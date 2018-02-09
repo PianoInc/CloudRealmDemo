@@ -1,0 +1,926 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		22B40D73EF1E6C78223215C1 /* Pods_MemoOverCloud.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F89DAD8363048C4F709C3A3F /* Pods_MemoOverCloud.framework */; };
+		6C0A689A2027D19200AA5AE3 /* FastTextAttachment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C0A68992027D19200AA5AE3 /* FastTextAttachment.swift */; };
+		6C0A689C2027D29500AA5AE3 /* LocalDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C0A689B2027D29500AA5AE3 /* LocalDatabase.swift */; };
+		6C2BD490202A80D500910B93 /* FlangeTextEngine.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6C2BD48F202A80D500910B93 /* FlangeTextEngine.framework */; };
+		6C2BD491202A80D500910B93 /* FlangeTextEngine.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 6C2BD48F202A80D500910B93 /* FlangeTextEngine.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		6C2BD494202AB65600910B93 /* CloudManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C2BD493202AB65600910B93 /* CloudManager.swift */; };
+		6C2D317320282D7B003C715C /* UISwift+resize.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C2D317220282D7A003C715C /* UISwift+resize.swift */; };
+		6C2D317A20282D86003C715C /* PhotoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C2D317520282D85003C715C /* PhotoView.swift */; };
+		6C2D317B20282D86003C715C /* PhotoView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 6C2D317620282D85003C715C /* PhotoView.xib */; };
+		6C2D317C20282D86003C715C /* PhotoCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C2D317720282D85003C715C /* PhotoCollectionView.swift */; };
+		6C2D317D20282D86003C715C /* ImageCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 6C2D317820282D85003C715C /* ImageCell.xib */; };
+		6C2D317E20282D86003C715C /* ImageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C2D317920282D85003C715C /* ImageCell.swift */; };
+		6C2D318020282E71003C715C /* FastTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C2D317F20282E71003C715C /* FastTextView.swift */; };
+		6C4C743F202A79BF00571760 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6C4C743E202A79BF00571760 /* CloudKit.framework */; };
+		6C9932B220242A4800592B5F /* CategoryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C9932B120242A4800592B5F /* CategoryViewController.swift */; };
+		6C9932B420242AF500592B5F /* MemoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C9932B320242AF500592B5F /* MemoViewController.swift */; };
+		75E990361EBDBEB577DDDA32 /* RealmDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E998D3337AA816BF45DE56 /* RealmDataModel.swift */; };
+		75E990A0B16AB48BFE41790D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 75E99D5A7F810B886240B527 /* Assets.xcassets */; };
+		75E99446BCCE162516E1285D /* CKErrorExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E99B3132DE853F3E155F81 /* CKErrorExtension.swift */; };
+		75E9949EB484325466F04E80 /* RealmImageObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E993ECF9C0B9E21AEC7B49 /* RealmImageObserver.swift */; };
+		75E995B431822B1735F044CE /* Strings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E993011963A79287F88763 /* Strings.swift */; };
+		75E995FBA2F1DE333DD675CB /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 75E99CB5D7B46F1F41268E5B /* Main.storyboard */; };
+		75E99651B39B56A70EBBA25F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 75E99E038917681CD67E7EFC /* LaunchScreen.storyboard */; };
+		75E9971C089ADB4C44BD2698 /* ImageTag.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E99332E1A14691085512DD /* ImageTag.swift */; };
+		75E997483FA312ACA18FB93A /* LocalCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E99E5982F1A096D94D1817 /* LocalCache.swift */; };
+		75E997FB260C7F52D1254235 /* MemoOverCloudUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E99CF2C3808CC5A5658B12 /* MemoOverCloudUITests.swift */; };
+		75E998C981615B3460BDC315 /* UniqueIDGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E99E9B56FAA6DB8D07F721 /* UniqueIDGenerator.swift */; };
+		75E99A1D0A954E7668F0F423 /* CloudDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E9953B186650F09A234D58 /* CloudDatabase.swift */; };
+		75E99A1D9AB722D31CE646C6 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E9992BB94D60A648685463 /* AppDelegate.swift */; };
+		75E99D3281309019294883E4 /* Realm+CloudKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E9931F132C4336F1FFC4DC /* Realm+CloudKit.swift */; };
+		75E99D4BA031EE3A22CE3CEC /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E998D2DA08766A9D4E4D0D /* ViewController.swift */; };
+		75E99DDF8A05D3CC84F19623 /* CKAsset+UIImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E990FDF54CBB7BF79599E4 /* CKAsset+UIImage.swift */; };
+		75E99F062615C2B1770B0FAF /* MemoOverCloudTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E9903A3DB1D3E6F6D676D1 /* MemoOverCloudTests.swift */; };
+		89BE0D6BF060F65A40479F2B /* Pods_MemoOverCloudTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B828A6784D52F558C043BA8C /* Pods_MemoOverCloudTests.framework */; };
+		BB9288D8E88556FD055649DB /* Pods_MemoOverCloudUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1C08FA74F67729070EF0E17 /* Pods_MemoOverCloudUITests.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		75E991E3002DBF59AC6EF0B2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 75E9986C6F83AF95A6D00950 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 75E9953B060BEE4DB8AA6294;
+			remoteInfo = MemoOverCloud;
+		};
+		75E99F10644E31B783BC8D64 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 75E9986C6F83AF95A6D00950 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 75E9953B060BEE4DB8AA6294;
+			remoteInfo = MemoOverCloud;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		6C2BD48E202A7FB900910B93 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				6C2BD491202A80D500910B93 /* FlangeTextEngine.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		10FA4AE59A0AC7C1578491A5 /* Pods-MemoOverCloud.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MemoOverCloud.release.xcconfig"; path = "Pods/Target Support Files/Pods-MemoOverCloud/Pods-MemoOverCloud.release.xcconfig"; sourceTree = "<group>"; };
+		1AAB7891FD377786608500DB /* Pods-MemoOverCloudUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MemoOverCloudUITests.release.xcconfig"; path = "Pods/Target Support Files/Pods-MemoOverCloudUITests/Pods-MemoOverCloudUITests.release.xcconfig"; sourceTree = "<group>"; };
+		36C8955E77DDB5A39946A528 /* Pods-MemoOverCloudTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MemoOverCloudTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-MemoOverCloudTests/Pods-MemoOverCloudTests.debug.xcconfig"; sourceTree = "<group>"; };
+		5F98457431C353BFF03DB56D /* Pods-MemoOverCloudUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MemoOverCloudUITests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-MemoOverCloudUITests/Pods-MemoOverCloudUITests.debug.xcconfig"; sourceTree = "<group>"; };
+		6C0A68992027D19200AA5AE3 /* FastTextAttachment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FastTextAttachment.swift; sourceTree = "<group>"; };
+		6C0A689B2027D29500AA5AE3 /* LocalDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalDatabase.swift; sourceTree = "<group>"; };
+		6C2BD48F202A80D500910B93 /* FlangeTextEngine.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = FlangeTextEngine.framework; sourceTree = "<group>"; };
+		6C2BD493202AB65600910B93 /* CloudManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudManager.swift; sourceTree = "<group>"; };
+		6C2D317220282D7A003C715C /* UISwift+resize.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UISwift+resize.swift"; sourceTree = "<group>"; };
+		6C2D317520282D85003C715C /* PhotoView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PhotoView.swift; sourceTree = "<group>"; };
+		6C2D317620282D85003C715C /* PhotoView.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = PhotoView.xib; sourceTree = "<group>"; };
+		6C2D317720282D85003C715C /* PhotoCollectionView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PhotoCollectionView.swift; sourceTree = "<group>"; };
+		6C2D317820282D85003C715C /* ImageCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ImageCell.xib; sourceTree = "<group>"; };
+		6C2D317920282D85003C715C /* ImageCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageCell.swift; sourceTree = "<group>"; };
+		6C2D317F20282E71003C715C /* FastTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FastTextView.swift; sourceTree = "<group>"; };
+		6C4C743D202A79B900571760 /* MemoOverCloud.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MemoOverCloud.entitlements; sourceTree = "<group>"; };
+		6C4C743E202A79BF00571760 /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = System/Library/Frameworks/CloudKit.framework; sourceTree = SDKROOT; };
+		6C9932B120242A4800592B5F /* CategoryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryViewController.swift; sourceTree = "<group>"; };
+		6C9932B320242AF500592B5F /* MemoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoViewController.swift; sourceTree = "<group>"; };
+		75E9903A3DB1D3E6F6D676D1 /* MemoOverCloudTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoOverCloudTests.swift; sourceTree = "<group>"; };
+		75E990FDF54CBB7BF79599E4 /* CKAsset+UIImage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CKAsset+UIImage.swift"; sourceTree = "<group>"; };
+		75E993011963A79287F88763 /* Strings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Strings.swift; sourceTree = "<group>"; };
+		75E9931F132C4336F1FFC4DC /* Realm+CloudKit.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Realm+CloudKit.swift"; sourceTree = "<group>"; };
+		75E99332E1A14691085512DD /* ImageTag.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageTag.swift; sourceTree = "<group>"; };
+		75E993ECF9C0B9E21AEC7B49 /* RealmImageObserver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RealmImageObserver.swift; sourceTree = "<group>"; };
+		75E994FCB9FD59A3CF169678 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.info; path = Info.plist; sourceTree = "<group>"; };
+		75E9953B186650F09A234D58 /* CloudDatabase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CloudDatabase.swift; sourceTree = "<group>"; };
+		75E996B81E5D6E13B5BF99DB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		75E997C4E2C4C1EE386BD014 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.info; path = Info.plist; sourceTree = "<group>"; };
+		75E997D31F2A1DBF161EBF0E /* MemoOverCloudTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MemoOverCloudTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		75E997EDE56D13E252173155 /* MemoOverCloud.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MemoOverCloud.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		75E99843C2F09ECD9F04D9F1 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		75E998A401B773F5AD248DE7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.info; path = Info.plist; sourceTree = "<group>"; };
+		75E998D2DA08766A9D4E4D0D /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		75E998D3337AA816BF45DE56 /* RealmDataModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RealmDataModel.swift; sourceTree = "<group>"; };
+		75E9992BB94D60A648685463 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		75E99B3132DE853F3E155F81 /* CKErrorExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CKErrorExtension.swift; sourceTree = "<group>"; };
+		75E99CF2C3808CC5A5658B12 /* MemoOverCloudUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoOverCloudUITests.swift; sourceTree = "<group>"; };
+		75E99D5A7F810B886240B527 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		75E99E5982F1A096D94D1817 /* LocalCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocalCache.swift; sourceTree = "<group>"; };
+		75E99E8116C67D0EED3A2045 /* MemoOverCloudUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MemoOverCloudUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		75E99E9B56FAA6DB8D07F721 /* UniqueIDGenerator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UniqueIDGenerator.swift; sourceTree = "<group>"; };
+		B828A6784D52F558C043BA8C /* Pods_MemoOverCloudTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_MemoOverCloudTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		D1C08FA74F67729070EF0E17 /* Pods_MemoOverCloudUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_MemoOverCloudUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		E4E22E459843937E0F6ED08C /* Pods-MemoOverCloudTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MemoOverCloudTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-MemoOverCloudTests/Pods-MemoOverCloudTests.release.xcconfig"; sourceTree = "<group>"; };
+		ECC871A49CCE8FDECCD68A0C /* Pods-MemoOverCloud.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MemoOverCloud.debug.xcconfig"; path = "Pods/Target Support Files/Pods-MemoOverCloud/Pods-MemoOverCloud.debug.xcconfig"; sourceTree = "<group>"; };
+		F89DAD8363048C4F709C3A3F /* Pods_MemoOverCloud.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_MemoOverCloud.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		75E99CA3599C50FC83D8EA38 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				89BE0D6BF060F65A40479F2B /* Pods_MemoOverCloudTests.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		75E99EE315733B886AE3011D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6C4C743F202A79BF00571760 /* CloudKit.framework in Frameworks */,
+				22B40D73EF1E6C78223215C1 /* Pods_MemoOverCloud.framework in Frameworks */,
+				6C2BD490202A80D500910B93 /* FlangeTextEngine.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		75E99F0A02C28F208709C891 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BB9288D8E88556FD055649DB /* Pods_MemoOverCloudUITests.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		03E154016548BB9FF8AC785B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				6C4C743E202A79BF00571760 /* CloudKit.framework */,
+				F89DAD8363048C4F709C3A3F /* Pods_MemoOverCloud.framework */,
+				B828A6784D52F558C043BA8C /* Pods_MemoOverCloudTests.framework */,
+				D1C08FA74F67729070EF0E17 /* Pods_MemoOverCloudUITests.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		20DCD37BA2FE488A8B9C3473 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				ECC871A49CCE8FDECCD68A0C /* Pods-MemoOverCloud.debug.xcconfig */,
+				10FA4AE59A0AC7C1578491A5 /* Pods-MemoOverCloud.release.xcconfig */,
+				36C8955E77DDB5A39946A528 /* Pods-MemoOverCloudTests.debug.xcconfig */,
+				E4E22E459843937E0F6ED08C /* Pods-MemoOverCloudTests.release.xcconfig */,
+				5F98457431C353BFF03DB56D /* Pods-MemoOverCloudUITests.debug.xcconfig */,
+				1AAB7891FD377786608500DB /* Pods-MemoOverCloudUITests.release.xcconfig */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
+		6C0A68982027D17B00AA5AE3 /* FlangeClasses */ = {
+			isa = PBXGroup;
+			children = (
+				6C2D317F20282E71003C715C /* FastTextView.swift */,
+				6C0A68992027D19200AA5AE3 /* FastTextAttachment.swift */,
+				75E99332E1A14691085512DD /* ImageTag.swift */,
+			);
+			path = FlangeClasses;
+			sourceTree = "<group>";
+		};
+		6C2D317120282D7A003C715C /* UIImage+resize */ = {
+			isa = PBXGroup;
+			children = (
+				6C2D317220282D7A003C715C /* UISwift+resize.swift */,
+			);
+			path = "UIImage+resize";
+			sourceTree = "<group>";
+		};
+		6C2D317420282D85003C715C /* InputView */ = {
+			isa = PBXGroup;
+			children = (
+				6C2D317520282D85003C715C /* PhotoView.swift */,
+				6C2D317620282D85003C715C /* PhotoView.xib */,
+				6C2D317720282D85003C715C /* PhotoCollectionView.swift */,
+				6C2D317820282D85003C715C /* ImageCell.xib */,
+				6C2D317920282D85003C715C /* ImageCell.swift */,
+			);
+			path = InputView;
+			sourceTree = "<group>";
+		};
+		6C4C7440202A7A9700571760 /* CloudKitModel */ = {
+			isa = PBXGroup;
+			children = (
+				6C2BD493202AB65600910B93 /* CloudManager.swift */,
+				75E99B3132DE853F3E155F81 /* CKErrorExtension.swift */,
+				75E9953B186650F09A234D58 /* CloudDatabase.swift */,
+				75E9931F132C4336F1FFC4DC /* Realm+CloudKit.swift */,
+				75E990FDF54CBB7BF79599E4 /* CKAsset+UIImage.swift */,
+			);
+			path = CloudKitModel;
+			sourceTree = "<group>";
+		};
+		6C9932B02024296E00592B5F /* ViewControllers */ = {
+			isa = PBXGroup;
+			children = (
+				75E998D2DA08766A9D4E4D0D /* ViewController.swift */,
+				6C9932B120242A4800592B5F /* CategoryViewController.swift */,
+				6C9932B320242AF500592B5F /* MemoViewController.swift */,
+			);
+			path = ViewControllers;
+			sourceTree = "<group>";
+		};
+		75E992C2BD3038F7176157B3 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				75E997EDE56D13E252173155 /* MemoOverCloud.app */,
+				75E997D31F2A1DBF161EBF0E /* MemoOverCloudTests.xctest */,
+				75E99E8116C67D0EED3A2045 /* MemoOverCloudUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		75E996C00C171195B6E2E714 = {
+			isa = PBXGroup;
+			children = (
+				6C2BD48F202A80D500910B93 /* FlangeTextEngine.framework */,
+				75E992C2BD3038F7176157B3 /* Products */,
+				75E99ACFB0B635E859C80185 /* MemoOverCloud */,
+				75E9988EDF473EC0E797AC2F /* MemoOverCloudTests */,
+				75E99993B2DD54049619F191 /* MemoOverCloudUITests */,
+				20DCD37BA2FE488A8B9C3473 /* Pods */,
+				03E154016548BB9FF8AC785B /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		75E9988EDF473EC0E797AC2F /* MemoOverCloudTests */ = {
+			isa = PBXGroup;
+			children = (
+				75E994FCB9FD59A3CF169678 /* Info.plist */,
+				75E9903A3DB1D3E6F6D676D1 /* MemoOverCloudTests.swift */,
+			);
+			path = MemoOverCloudTests;
+			sourceTree = "<group>";
+		};
+		75E99993B2DD54049619F191 /* MemoOverCloudUITests */ = {
+			isa = PBXGroup;
+			children = (
+				75E998A401B773F5AD248DE7 /* Info.plist */,
+				75E99CF2C3808CC5A5658B12 /* MemoOverCloudUITests.swift */,
+			);
+			path = MemoOverCloudUITests;
+			sourceTree = "<group>";
+		};
+		75E99ACFB0B635E859C80185 /* MemoOverCloud */ = {
+			isa = PBXGroup;
+			children = (
+				6C4C743D202A79B900571760 /* MemoOverCloud.entitlements */,
+				6C4C7440202A7A9700571760 /* CloudKitModel */,
+				6C2D317420282D85003C715C /* InputView */,
+				6C2D317120282D7A003C715C /* UIImage+resize */,
+				6C0A68982027D17B00AA5AE3 /* FlangeClasses */,
+				75E99EA2B1420B3B36F11B2C /* Models */,
+				6C9932B02024296E00592B5F /* ViewControllers */,
+				75E997C4E2C4C1EE386BD014 /* Info.plist */,
+				75E99D5A7F810B886240B527 /* Assets.xcassets */,
+				75E99E038917681CD67E7EFC /* LaunchScreen.storyboard */,
+				75E9992BB94D60A648685463 /* AppDelegate.swift */,
+				75E99CB5D7B46F1F41268E5B /* Main.storyboard */,
+			);
+			path = MemoOverCloud;
+			sourceTree = "<group>";
+		};
+		75E99EA2B1420B3B36F11B2C /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				75E998D3337AA816BF45DE56 /* RealmDataModel.swift */,
+				6C0A689B2027D29500AA5AE3 /* LocalDatabase.swift */,
+				75E99E5982F1A096D94D1817 /* LocalCache.swift */,
+				75E993ECF9C0B9E21AEC7B49 /* RealmImageObserver.swift */,
+				75E993011963A79287F88763 /* Strings.swift */,
+				75E99E9B56FAA6DB8D07F721 /* UniqueIDGenerator.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		75E9953B060BEE4DB8AA6294 /* MemoOverCloud */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 75E99BD149113470134EF7B1 /* Build configuration list for PBXNativeTarget "MemoOverCloud" */;
+			buildPhases = (
+				0074BA49D827B3EF6F4C99F4 /* [CP] Check Pods Manifest.lock */,
+				75E9980270695233682D245E /* Sources */,
+				75E99EE315733B886AE3011D /* Frameworks */,
+				75E99C596D935C6F87434A2D /* Resources */,
+				94EBEFC80FC4ADC4324F1D36 /* [CP] Embed Pods Frameworks */,
+				AA444C59044F0DC1A5609DDB /* [CP] Copy Pods Resources */,
+				6C2BD48E202A7FB900910B93 /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MemoOverCloud;
+			productName = MemoOverCloud;
+			productReference = 75E997EDE56D13E252173155 /* MemoOverCloud.app */;
+			productType = "com.apple.product-type.application";
+		};
+		75E9976BDD6D83261224270A /* MemoOverCloudUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 75E999AC0D4548D8BC19B11C /* Build configuration list for PBXNativeTarget "MemoOverCloudUITests" */;
+			buildPhases = (
+				3A73E874F41D826612D75396 /* [CP] Check Pods Manifest.lock */,
+				75E993DA9726590D9E0EE3A7 /* Sources */,
+				75E99F0A02C28F208709C891 /* Frameworks */,
+				75E9920A5F06DD413F13D7D1 /* Resources */,
+				B62372094A4408B06AB13FE0 /* [CP] Embed Pods Frameworks */,
+				05034AB2FB82B3BB44E546B3 /* [CP] Copy Pods Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				75E99A7E807132CD0E3D608A /* PBXTargetDependency */,
+			);
+			name = MemoOverCloudUITests;
+			productName = MemoOverCloudUITests;
+			productReference = 75E99E8116C67D0EED3A2045 /* MemoOverCloudUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		75E997883C55E35C5C1757A5 /* MemoOverCloudTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 75E99C53DC18C9C4848B2971 /* Build configuration list for PBXNativeTarget "MemoOverCloudTests" */;
+			buildPhases = (
+				A9054DF12C670621407CC926 /* [CP] Check Pods Manifest.lock */,
+				75E99C34A6E0A973E0602FFF /* Sources */,
+				75E99CA3599C50FC83D8EA38 /* Frameworks */,
+				75E994F2AF9D9AC81FB4E30F /* Resources */,
+				F5EF1EC1CCD5E3AAD7E387AF /* [CP] Embed Pods Frameworks */,
+				143CBD368623753733D3E421 /* [CP] Copy Pods Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				75E992FE890E3C295DBDB917 /* PBXTargetDependency */,
+			);
+			name = MemoOverCloudTests;
+			productName = MemoOverCloudTests;
+			productReference = 75E997D31F2A1DBF161EBF0E /* MemoOverCloudTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		75E9986C6F83AF95A6D00950 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				ORGANIZATIONNAME = piano;
+				TargetAttributes = {
+					75E9953B060BEE4DB8AA6294 = {
+						DevelopmentTeam = ANM7DT8PCR;
+						SystemCapabilities = {
+							com.apple.Push = {
+								enabled = 1;
+							};
+							com.apple.iCloud = {
+								enabled = 1;
+							};
+						};
+					};
+				};
+			};
+			buildConfigurationList = 75E99F38B585E4DA2814E22F /* Build configuration list for PBXProject "MemoOverCloud" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 75E996C00C171195B6E2E714;
+			productRefGroup = 75E992C2BD3038F7176157B3 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				75E9953B060BEE4DB8AA6294 /* MemoOverCloud */,
+				75E997883C55E35C5C1757A5 /* MemoOverCloudTests */,
+				75E9976BDD6D83261224270A /* MemoOverCloudUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		75E9920A5F06DD413F13D7D1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		75E994F2AF9D9AC81FB4E30F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		75E99C596D935C6F87434A2D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				75E990A0B16AB48BFE41790D /* Assets.xcassets in Resources */,
+				75E99651B39B56A70EBBA25F /* LaunchScreen.storyboard in Resources */,
+				75E995FBA2F1DE333DD675CB /* Main.storyboard in Resources */,
+				6C2D317D20282D86003C715C /* ImageCell.xib in Resources */,
+				6C2D317B20282D86003C715C /* PhotoView.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		0074BA49D827B3EF6F4C99F4 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-MemoOverCloud-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		05034AB2FB82B3BB44E546B3 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-MemoOverCloudUITests/Pods-MemoOverCloudUITests-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		143CBD368623753733D3E421 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-MemoOverCloudTests/Pods-MemoOverCloudTests-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		3A73E874F41D826612D75396 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-MemoOverCloudUITests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		94EBEFC80FC4ADC4324F1D36 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${SRCROOT}/Pods/Target Support Files/Pods-MemoOverCloud/Pods-MemoOverCloud-frameworks.sh",
+				"${BUILT_PRODUCTS_DIR}/CryptoSwift/CryptoSwift.framework",
+				"${BUILT_PRODUCTS_DIR}/Realm/Realm.framework",
+				"${BUILT_PRODUCTS_DIR}/RealmSwift/RealmSwift.framework",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/CryptoSwift.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Realm.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RealmSwift.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-MemoOverCloud/Pods-MemoOverCloud-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		A9054DF12C670621407CC926 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-MemoOverCloudTests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		AA444C59044F0DC1A5609DDB /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-MemoOverCloud/Pods-MemoOverCloud-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		B62372094A4408B06AB13FE0 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-MemoOverCloudUITests/Pods-MemoOverCloudUITests-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		F5EF1EC1CCD5E3AAD7E387AF /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-MemoOverCloudTests/Pods-MemoOverCloudTests-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		75E993DA9726590D9E0EE3A7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				75E997FB260C7F52D1254235 /* MemoOverCloudUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		75E9980270695233682D245E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6C9932B220242A4800592B5F /* CategoryViewController.swift in Sources */,
+				6C0A689A2027D19200AA5AE3 /* FastTextAttachment.swift in Sources */,
+				6C2D318020282E71003C715C /* FastTextView.swift in Sources */,
+				6C0A689C2027D29500AA5AE3 /* LocalDatabase.swift in Sources */,
+				6C2D317A20282D86003C715C /* PhotoView.swift in Sources */,
+				6C2D317320282D7B003C715C /* UISwift+resize.swift in Sources */,
+				6C2D317E20282D86003C715C /* ImageCell.swift in Sources */,
+				75E99A1D9AB722D31CE646C6 /* AppDelegate.swift in Sources */,
+				6C9932B420242AF500592B5F /* MemoViewController.swift in Sources */,
+				6C2BD494202AB65600910B93 /* CloudManager.swift in Sources */,
+				75E99D4BA031EE3A22CE3CEC /* ViewController.swift in Sources */,
+				75E990361EBDBEB577DDDA32 /* RealmDataModel.swift in Sources */,
+				6C2D317C20282D86003C715C /* PhotoCollectionView.swift in Sources */,
+				75E9971C089ADB4C44BD2698 /* ImageTag.swift in Sources */,
+				75E997483FA312ACA18FB93A /* LocalCache.swift in Sources */,
+				75E9949EB484325466F04E80 /* RealmImageObserver.swift in Sources */,
+				75E995B431822B1735F044CE /* Strings.swift in Sources */,
+				75E998C981615B3460BDC315 /* UniqueIDGenerator.swift in Sources */,
+				75E99446BCCE162516E1285D /* CKErrorExtension.swift in Sources */,
+				75E99A1D0A954E7668F0F423 /* CloudDatabase.swift in Sources */,
+				75E99D3281309019294883E4 /* Realm+CloudKit.swift in Sources */,
+				75E99DDF8A05D3CC84F19623 /* CKAsset+UIImage.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		75E99C34A6E0A973E0602FFF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				75E99F062615C2B1770B0FAF /* MemoOverCloudTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		75E992FE890E3C295DBDB917 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 75E9953B060BEE4DB8AA6294 /* MemoOverCloud */;
+			targetProxy = 75E99F10644E31B783BC8D64 /* PBXContainerItemProxy */;
+		};
+		75E99A7E807132CD0E3D608A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 75E9953B060BEE4DB8AA6294 /* MemoOverCloud */;
+			targetProxy = 75E991E3002DBF59AC6EF0B2 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		75E99CB5D7B46F1F41268E5B /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				75E99843C2F09ECD9F04D9F1 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		75E99E038917681CD67E7EFC /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				75E996B81E5D6E13B5BF99DB /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		75E995F1F615ADF2F0698D43 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.2;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		75E99728BC0927953F089D1B /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = E4E22E459843937E0F6ED08C /* Pods-MemoOverCloudTests.release.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/MemoOverCloud.app/MemoOverCloud";
+				INFOPLIST_FILE = MemoOverCloudTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = piano.com.MemoOverCloudTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUNDLE_LOADER)";
+			};
+			name = Release;
+		};
+		75E997FC2EA0346A590E18CA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 5F98457431C353BFF03DB56D /* Pods-MemoOverCloudUITests.debug.xcconfig */;
+			buildSettings = {
+				INFOPLIST_FILE = MemoOverCloudUITests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = piano.com.MemoOverCloudUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = MemoOverCloud;
+			};
+			name = Debug;
+		};
+		75E99AB1068CD974895D03D8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = ECC871A49CCE8FDECCD68A0C /* Pods-MemoOverCloud.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = MemoOverCloud/MemoOverCloud.entitlements;
+				DEVELOPMENT_TEAM = ANM7DT8PCR;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
+				INFOPLIST_FILE = MemoOverCloud/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.2;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = piano.com.MemoOverCloud;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		75E99B6CC38568E3DE35601E /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 10FA4AE59A0AC7C1578491A5 /* Pods-MemoOverCloud.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = MemoOverCloud/MemoOverCloud.entitlements;
+				DEVELOPMENT_TEAM = ANM7DT8PCR;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
+				INFOPLIST_FILE = MemoOverCloud/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.2;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = piano.com.MemoOverCloud;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		75E99D7103512A9F16D46E30 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 36C8955E77DDB5A39946A528 /* Pods-MemoOverCloudTests.debug.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/MemoOverCloud.app/MemoOverCloud";
+				INFOPLIST_FILE = MemoOverCloudTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = piano.com.MemoOverCloudTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUNDLE_LOADER)";
+			};
+			name = Debug;
+		};
+		75E99DAE923DACEE1983B4F3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		75E99E4D2C90960481398F6D /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1AAB7891FD377786608500DB /* Pods-MemoOverCloudUITests.release.xcconfig */;
+			buildSettings = {
+				INFOPLIST_FILE = MemoOverCloudUITests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = piano.com.MemoOverCloudUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = MemoOverCloud;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		75E999AC0D4548D8BC19B11C /* Build configuration list for PBXNativeTarget "MemoOverCloudUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				75E997FC2EA0346A590E18CA /* Debug */,
+				75E99E4D2C90960481398F6D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		75E99BD149113470134EF7B1 /* Build configuration list for PBXNativeTarget "MemoOverCloud" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				75E99AB1068CD974895D03D8 /* Debug */,
+				75E99B6CC38568E3DE35601E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		75E99C53DC18C9C4848B2971 /* Build configuration list for PBXNativeTarget "MemoOverCloudTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				75E99D7103512A9F16D46E30 /* Debug */,
+				75E99728BC0927953F089D1B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		75E99F38B585E4DA2814E22F /* Build configuration list for PBXProject "MemoOverCloud" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				75E995F1F615ADF2F0698D43 /* Debug */,
+				75E99DAE923DACEE1983B4F3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 75E9986C6F83AF95A6D00950 /* Project object */;
+}

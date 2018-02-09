@@ -1,0 +1,11 @@
+framework module FlangeTextEngine {
+  umbrella header "FlangeTextEngine.h"
+
+  export *
+  module * { export * }
+}
+
+module FlangeTextEngine.Swift {
+    header "FlangeTextEngine-Swift.h"
+    requires objc
+}
