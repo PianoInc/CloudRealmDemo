@@ -25,6 +25,7 @@
 		6C9932B420242AF500592B5F /* MemoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C9932B320242AF500592B5F /* MemoViewController.swift */; };
 		75E990361EBDBEB577DDDA32 /* RealmDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E998D3337AA816BF45DE56 /* RealmDataModel.swift */; };
 		75E990A0B16AB48BFE41790D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 75E99D5A7F810B886240B527 /* Assets.xcassets */; };
+		75E9939A3BB9E533D2A1DD36 /* RealmCloudMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E99D5C3BF6EFCBE835D8A6 /* RealmCloudMapper.swift */; };
 		75E99446BCCE162516E1285D /* CKErrorExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E99B3132DE853F3E155F81 /* CKErrorExtension.swift */; };
 		75E9949EB484325466F04E80 /* RealmImageObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E993ECF9C0B9E21AEC7B49 /* RealmImageObserver.swift */; };
 		75E995B431822B1735F044CE /* Strings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E993011963A79287F88763 /* Strings.swift */; };
@@ -115,6 +116,7 @@
 		75E99B3132DE853F3E155F81 /* CKErrorExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CKErrorExtension.swift; sourceTree = "<group>"; };
 		75E99CF2C3808CC5A5658B12 /* MemoOverCloudUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoOverCloudUITests.swift; sourceTree = "<group>"; };
 		75E99D5A7F810B886240B527 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		75E99D5C3BF6EFCBE835D8A6 /* RealmCloudMapper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RealmCloudMapper.swift; sourceTree = "<group>"; };
 		75E99E5982F1A096D94D1817 /* LocalCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocalCache.swift; sourceTree = "<group>"; };
 		75E99E8116C67D0EED3A2045 /* MemoOverCloudUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MemoOverCloudUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		75E99E9B56FAA6DB8D07F721 /* UniqueIDGenerator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UniqueIDGenerator.swift; sourceTree = "<group>"; };
@@ -217,6 +219,7 @@
 				75E9953B186650F09A234D58 /* CloudDatabase.swift */,
 				75E9931F132C4336F1FFC4DC /* Realm+CloudKit.swift */,
 				75E990FDF54CBB7BF79599E4 /* CKAsset+UIImage.swift */,
+				75E99D5C3BF6EFCBE835D8A6 /* RealmCloudMapper.swift */,
 			);
 			path = CloudKitModel;
 			sourceTree = "<group>";
@@ -631,6 +634,7 @@
 				75E99A1D0A954E7668F0F423 /* CloudDatabase.swift in Sources */,
 				75E99D3281309019294883E4 /* Realm+CloudKit.swift in Sources */,
 				75E99DDF8A05D3CC84F19623 /* CKAsset+UIImage.swift in Sources */,
+				75E9939A3BB9E533D2A1DD36 /* RealmCloudMapper.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

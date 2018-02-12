@@ -14,6 +14,8 @@ class RealmCategoryModel: Object {
     @objc dynamic var name = ""
 
     @objc dynamic var recordName = ""
+    @objc dynamic var zoneName = ""
+    @objc dynamic var ownerName = ""
     @objc dynamic var isCreated = Date()
     @objc dynamic var isModified = Date()
 
@@ -35,13 +37,15 @@ class RealmNoteModel: Object {
 
     @objc dynamic var id = ""
     @objc dynamic var title = ""
-    @objc dynamic var content = String()
+    @objc dynamic var content = ""
+    @objc dynamic var pureString = ""
 
     @objc dynamic var recordName = ""
+    @objc dynamic var zoneName = ""
+    @objc dynamic var ownerName = ""
     @objc dynamic var isCreated = Date()
     @objc dynamic var isModified = Date()
 
-    @objc dynamic var shareOwner: String? = nil //TODO: consider more if it really is required
 
     let images = List<RealmImageModel>()
 
@@ -65,6 +69,8 @@ class RealmImageModel: Object {
     @objc dynamic var thumbnail = Data()
 
     @objc dynamic var recordName = ""
+    @objc dynamic var zoneName = ""
+    @objc dynamic var ownerName = ""
     @objc dynamic var isCreated = Date()
     @objc dynamic var isModified = Date()
 
