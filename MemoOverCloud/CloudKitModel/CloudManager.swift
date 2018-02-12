@@ -14,13 +14,13 @@ class CloudManager {
 
     static let shared = CloudManager()
 
-    public var databases: [CloudDatabase]
-    public var privateDatabase: CloudDatabase
-    public var sharedDatabase: CloudDatabase
+    public var databases: [CloudCommonDatabase]
+    public var privateDatabase: CloudPrivateDatabase
+    public var sharedDatabase: CloudSharedDatabase
 
     private init() {
-        self.privateDatabase = CloudDatabase(database: CKContainer.default().privateCloudDatabase)
-        self.sharedDatabase = CloudDatabase(database: CKContainer.default().sharedCloudDatabase)
+        self.privateDatabase = CloudPrivateDatabase(database: CKContainer.default().privateCloudDatabase)
+        self.sharedDatabase = CloudSharedDatabase(database: CKContainer.default().sharedCloudDatabase)
 
         databases = [self.privateDatabase, self.sharedDatabase]
 
@@ -58,5 +58,11 @@ class CloudManager {
     }
 
 
-    func uploadRecordToPrivateDB
+    func uploadRecordToPrivateDB(record: CKRecord, completion: @escaping ((CKRecord?, Error?) -> Void)) {
+        privateDatabase.saveRecord(record: record, completion: completion)
+    }
+
+    func uploadRecordToSharedDB(record: CKRecord, completion: @escaping ((CKRecord?, Error?) -> Void)) {
+        sharedDatabase.saveRecord(record: record, completion: completion)
+    }
 }
