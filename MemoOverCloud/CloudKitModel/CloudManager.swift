@@ -27,7 +27,6 @@ class CloudManager {
         self.resumeLongLivedOperationIfPossible()
     }
 
-    //TODO: need a wrapper to load & save
 
 
     /*

@@ -80,7 +80,10 @@ class CloudCommonDatabase {
                 if clientModified.compare(serverModified) == .orderedDescending {
                     //client win!
 
-                    //TODO: set serverRecord same with client record
+                    serverRecord["title"] = clientRecord["title"]
+                    serverRecord["content"] = clientRecord["content"]
+                    serverRecord["pureString"] = clientRecord["pureString"]
+
                     self.saveRecord(record: serverRecord) { newRecord, error in
                         completion(newRecord, error)
                     }
@@ -316,15 +319,15 @@ class CloudSharedDatabase: CloudCommonDatabase {
         }
 
         operation.recordZoneWithIDChangedBlock = { zoneID in
-            //fetch changes in zone!!
+            //TODO:fetch changes in zone!!
         }
 
         operation.recordZoneWithIDWasDeletedBlock = { zoneID in
-            //delete all models related to zoneID
+            //TODO:delete all models related to zoneID
         }
 
         operation.recordZoneWithIDWasPurgedBlock = { zoneID in
-            //delete all model related to zoneID
+            //TODO:delete all model related to zoneID
         }
 
 
