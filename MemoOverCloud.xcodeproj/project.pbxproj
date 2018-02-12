@@ -381,6 +381,9 @@
 					75E9953B060BEE4DB8AA6294 = {
 						DevelopmentTeam = ANM7DT8PCR;
 						SystemCapabilities = {
+							com.apple.BackgroundModes = {
+								enabled = 1;
+							};
 							com.apple.Push = {
 								enabled = 1;
 							};
