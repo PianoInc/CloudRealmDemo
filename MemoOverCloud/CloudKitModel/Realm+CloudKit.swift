@@ -51,15 +51,76 @@ class CloudRealmMapper {
         case image = "Image"
 
     }
+    
+    //This doesn't contain any linking objects property!!!!!!!
+//    static func getRecordFromRealmObject(_ model: Object & Recordable) -> CKRecord {
+//        let recordTypeString = RealmRecordTypeString(rawValue: type(of: model).recordTypeString)!
+//        let zoneID = CKRecordZoneID(zoneName: model.zoneName, ownerName: model.ownerName)
+//        let recordID = CKRecordID(recordName: model.recordName, zoneID: zoneID)
+//        let record = CKRecord(recordType: recordTypeString.rawValue, recordID: recordID)
+//
+//
+//        let keys = model.objectSchema.properties.map {$0.name}.filter {
+//            $0 != "recordName" && $0 != "zoneName" && $0 != "ownerName"
+//        }
+//
+//
+//        keys.forEach { key in
+//            switch model[key] {
+//
+//
+//            case let value as String:
+//                record[key] = value as CKRecordValue
+//
+//            case let value as Data:
+//                record[key] = try? CKAsset(data: value)
+//
+//            case let list as ListBase:
+//                let refList: Array<Object & Recordable>
+//
+//                if recordTypeString == .category {
+//                    guard let noteList = list as? List<RealmNoteModel> else {return}
+//                    refList = Array(noteList)
+//                } else if recordTypeString == .note {
+//                    guard let imageList = list as? List<RealmImageModel> else {return}
+//                    refList = Array(imageList)
+//                } else { refList = [] }
+//
+//                record[key] = refList.map { child -> CKReference in
+//                    let childRecordID = CKRecordID(recordName: child.recordName, zoneID: zoneID)
+//                    return CKReference(recordID: childRecordID, action: .none)
+//                } as CKRecordValue
+//
+//            case let parent as LinkingObjects<Object>:
+//                let parentRecordID: CKRecordID?
+//
+//                if recordTypeString == .note {
+//                    guard let parentRecordName = (parent as? LinkingObjects<RealmCategoryModel>)?.first?.recordName else {return}
+//                    parentRecordID = CKRecordID(recordName: parentRecordName, zoneID: zoneID)
+//                } else if recordTypeString == .image {
+//                    guard let parentRecordName = (parent as? LinkingObjects<RealmNoteModel>)?.first?.recordName else {return}
+//                    parentRecordID = CKRecordID(recordName: parentRecordName, zoneID: zoneID)
+//                } else { parentRecordID = nil; break }
+//
+//                record.setParent(parentRecordID)
+//                record[key] = CKReference(recordID: parentRecordID!, action: .deleteSelf) as CKRecordValue
+//
+//
+//            default: break
+//            }
+//        }
+//
+//        return record
+//    }
 
 
-    static func saveRecordIntoRealm(record: CKRecord) {
+    static func saveRecordIntoRealm(record: CKRecord, isShared: Bool) {
         guard let realmType = RealmRecordTypeString(rawValue: record.recordType) else { /*fatal error*/ return }
 
         switch realmType {
             case .category: saveCategoryRecord(record)
-            case .note: saveNoteRecord(record)
-            case .image: saveImageRecord(record)
+            case .note: saveNoteRecord(record, isShared: isShared)
+            case .image: saveImageRecord(record, isShared: isShared)
         }
 
     }
@@ -96,14 +157,14 @@ class CloudRealmMapper {
                 guard error == nil,
                         let recordDic = dictionary else {return /* TODO: handle error plz!!!*/}
 
-                recordDic.forEach{saveNoteRecord($0.value)}
+                recordDic.forEach{saveNoteRecord($0.value, isShared: false)}
 
             }
         }
     }
 
-    private static func saveNoteRecord(_ record: CKRecord) {
-
+    private static func saveNoteRecord(_ record: CKRecord, isShared: Bool) {
+        //TODO: if shared, category model is not needed
         guard let realm = try? Realm(),
                 let categoryRecordName = (record[Schema.Note.category] as? CKReference)?.recordID.recordName,
                 let categoryModel = realm.objects(RealmCategoryModel.self).filter("recordName = %@", categoryRecordName).first,
@@ -111,7 +172,7 @@ class CloudRealmMapper {
                 let imageReferenceList = record[Schema.Note.images] as? [CKReference] else {return}
 
 
-
+        noteModel.isShared = isShared
         let categoryRef = ThreadSafeReference(to: categoryModel.notes)
         LocalDatabase.shared.saveObjectWithAppend(list: categoryRef, object: noteModel) {
 
@@ -120,14 +181,14 @@ class CloudRealmMapper {
                 guard error == nil,
                         let recordDic = dictionary else {return}
 
-                recordDic.forEach{saveImageRecord($0.value)}
+                recordDic.forEach{saveImageRecord($0.value, isShared: true)}
 
             }
         }
 
     }
 
-    private static func saveImageRecord(_ record: CKRecord) {
+    private static func saveImageRecord(_ record: CKRecord, isShared: Bool) {
 
         guard let realm = try? Realm(),
                 let noteRecordName = (record["note"] as? CKReference)?.recordID.recordName,
@@ -135,6 +196,7 @@ class CloudRealmMapper {
                 let imageModel = record.parseImageRecord() else {return}
 
 
+        imageModel.isShared = isShared
         let noteRef = ThreadSafeReference(to: noteModel.images)
         LocalDatabase.shared.saveObjectWithAppend(list: noteRef, object: imageModel)
 
@@ -143,7 +205,7 @@ class CloudRealmMapper {
     private static func deleteCategoryRecord(_ recordName: String) {
 
         guard let realm = try? Realm(),
-                let categoryModel = realm.objects(RealmCategoryModel.self).filter("recordName - %@", recordName).first else {return}
+                let categoryModel = realm.objects(RealmCategoryModel.self).filter("recordName = %@", recordName).first else {return}
 
         categoryModel.notes.forEach {
                 deleteNoteRecord($0.recordName)

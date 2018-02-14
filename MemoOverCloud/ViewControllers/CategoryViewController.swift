@@ -72,11 +72,21 @@ class CategoryViewController: UIViewController {
         //This functionality will be moved to Realm Wrapper
         let listRef = ThreadSafeReference(to: category.notes)
 
-        let newNote = RealmNoteModel()
-        newNote.title = "newNote \(count)"
-        newNote.id = UniqueIDGenerator.getUniqueID()
+        let newNote = RealmNoteModel.getNewModel(title: "newNote \(count)")
 
-        LocalDatabase.shared.saveObjectWithAppend(list: listRef, object: newNote)
+        LocalDatabase.shared.saveObjectWithAppend(list: listRef, object: newNote) {
+
+            CloudManager.shared.uploadRecordToPrivateDB(record: newNote.getRecord()) { (conflicted, error) in
+                if let error = error {
+                    print(error)
+                } else {
+                    print("happy")
+                }
+            }
+
+        }
+
+        
 
         count += 1
 

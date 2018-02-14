@@ -35,6 +35,7 @@ extension RealmNoteModel {
         let recordID = CKRecordID(recordName: self.recordName, zoneID: zoneID)
         let record = CKRecord(recordType: RealmNoteModel.recordTypeString, recordID: recordID)
         let categoryRecordID = CKRecordID(recordName: self.category.first!.recordName, zoneID: zoneID)
+        
 
         record[scheme.id] = self.id as CKRecordValue
         record[scheme.title] = self.title as CKRecordValue
