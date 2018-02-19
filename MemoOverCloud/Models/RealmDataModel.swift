@@ -133,6 +133,7 @@ class RealmImageModel: Object, Recordable {
         newModel.ownerName = record.recordID.zoneID.ownerName
         newModel.zoneName = record.recordID.zoneID.zoneName
         newModel.id = id
+        newModel.isShared = sharedZoneID != nil
         
         return newModel
     }

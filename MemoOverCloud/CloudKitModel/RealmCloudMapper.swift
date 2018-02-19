@@ -39,7 +39,7 @@ extension RealmNoteModel {
         record[scheme.attributes] = self.attributes as CKRecordValue
 
 
-        record[scheme.category] = CKReference(recordID: categoryRecordID, action: .deleteSelf)
+        record[scheme.categoryRecordName] = CKReference(recordID: categoryRecordID, action: .deleteSelf)
 
         return record
 
@@ -59,7 +59,7 @@ extension RealmImageModel {
         guard let asset = try? CKAsset(data: self.image) else { fatalError() }
         record[scheme.image] = asset
 
-        record[scheme.note] = CKReference(recordID: noteRecordID, action: .deleteSelf)
+        record[scheme.noteRecordName] = CKReference(recordID: noteRecordID, action: .deleteSelf)
         record.setParent(noteRecordID)
         
         return (asset.fileURL, record)
@@ -134,4 +134,5 @@ extension CKRecord {
 
         return newImageModel
     }
+
 }
