@@ -14,7 +14,6 @@ struct Schema {
 
         static let id = "id"
         static let name = "name"
-        static let notes = "notes"
 
     }
 
@@ -23,9 +22,8 @@ struct Schema {
         static let id = "id"
         static let title = "title"
         static let content = "content"
-        static let pureString = "pureString"
+        static let attributes = "attributes"
 
-        static let images = "images"
         static let category = "category"
 
     }
@@ -33,15 +31,14 @@ struct Schema {
     struct Image {
 
         static let id = "id"
-        static let original = "original"
-        static let thumbnail = "thumbnail"
+        static let image = "image"
 
         static let note = "note"
 
     }
 }
 
-//TODO: I think we should check if the record is shared or not whenever saving or deleting....
+//TODO: refactor syncing tasks
 class CloudRealmMapper {
 
     enum RealmRecordTypeString: String {
@@ -146,60 +143,24 @@ class CloudRealmMapper {
 
     private static func saveCategoryRecord(_ record: CKRecord) {
 
-        guard let categoryModel = record.parseCategoryRecord(),
-                let noteReferenceList = record[Schema.Category.notes] as? [CKReference] else {return}
-
-        LocalDatabase.shared.saveObject(newObject: categoryModel) {
-            //Fetch notes of this category
-
-            let recordNames = noteReferenceList.map{$0.recordID.recordName}
-            CloudManager.shared.loadRecordsFromPrivateDBWithID(recordNames: recordNames) { dictionary, error in
-                guard error == nil,
-                        let recordDic = dictionary else {return /* TODO: handle error plz!!!*/}
-
-                recordDic.forEach{saveNoteRecord($0.value, isShared: false)}
-
-            }
-        }
+        guard let categoryModel = record.parseCategoryRecord() else {return}
+        LocalDatabase.shared.saveObject(newObject: categoryModel)
     }
 
     private static func saveNoteRecord(_ record: CKRecord, isShared: Bool) {
-        //TODO: if shared, category model is not needed
-        guard let realm = try? Realm(),
-                let categoryRecordName = (record[Schema.Note.category] as? CKReference)?.recordID.recordName,
-                let categoryModel = realm.objects(RealmCategoryModel.self).filter("recordName = %@", categoryRecordName).first,
-                let noteModel = record.parseNoteRecord(),
-                let imageReferenceList = record[Schema.Note.images] as? [CKReference] else {return}
-
+        guard let noteModel = record.parseNoteRecord() else {return}
 
         noteModel.isShared = isShared
-        let categoryRef = ThreadSafeReference(to: categoryModel.notes)
-        LocalDatabase.shared.saveObjectWithAppend(list: categoryRef, object: noteModel) {
-
-            let recordNames = imageReferenceList.map{$0.recordID.recordName}
-            CloudManager.shared.loadRecordsFromPrivateDBWithID(recordNames: recordNames) { dictionary, error in
-                guard error == nil,
-                        let recordDic = dictionary else {return}
-
-                recordDic.forEach{saveImageRecord($0.value, isShared: true)}
-
-            }
-        }
+        LocalDatabase.shared.saveObject(newObject: noteModel)
 
     }
 
     private static func saveImageRecord(_ record: CKRecord, isShared: Bool) {
 
-        guard let realm = try? Realm(),
-                let noteRecordName = (record["note"] as? CKReference)?.recordID.recordName,
-                let noteModel = realm.objects(RealmNoteModel.self).filter("recordName = %@", noteRecordName).first,
-                let imageModel = record.parseImageRecord() else {return}
-
+        guard let imageModel = record.parseImageRecord() else {return}
 
         imageModel.isShared = isShared
-        let noteRef = ThreadSafeReference(to: noteModel.images)
-        LocalDatabase.shared.saveObjectWithAppend(list: noteRef, object: imageModel)
-
+        LocalDatabase.shared.saveObject(newObject: imageModel)
     }
 
     private static func deleteCategoryRecord(_ recordName: String) {
@@ -207,13 +168,12 @@ class CloudRealmMapper {
         guard let realm = try? Realm(),
                 let categoryModel = realm.objects(RealmCategoryModel.self).filter("recordName = %@", recordName).first else {return}
 
-        categoryModel.notes.forEach {
-                deleteNoteRecord($0.recordName)
-            }
+        let notes = realm.objects(RealmNoteModel.self).filter("categoryRecordName = %@", recordName)
 
-        let ref = ThreadSafeReference(to: categoryModel)
-
-        LocalDatabase.shared.deleteObject(ref: ref)
+        let categoryRef = ThreadSafeReference(to: categoryModel)
+        let notesRef =  ThreadSafeReference(to: notes)
+        LocalDatabase.shared.deleteObject(ref: categoryRef)
+        LocalDatabase.shared.deleteObject(ref: notesRef)
     }
 
     private static func deleteNoteRecord(_ recordName: String) {
@@ -221,13 +181,12 @@ class CloudRealmMapper {
         guard let realm = try? Realm(),
                 let noteModel = realm.objects(RealmNoteModel.self).filter("recordName = %@", recordName).first else {return}
 
-        noteModel.images.forEach {
-                deleteImageRecord($0.recordName)
-            }
+        let images = realm.objects(RealmImageModel.self).filter("noteRecordName = %@", recordName)
 
-        let ref = ThreadSafeReference(to: noteModel)
-
-        LocalDatabase.shared.deleteObject(ref: ref)
+        let noteRef = ThreadSafeReference(to: noteModel)
+        let imagesRef = ThreadSafeReference(to: images)
+        LocalDatabase.shared.deleteObject(ref: noteRef)
+        LocalDatabase.shared.deleteObject(ref: imagesRef)
     }
 
     private static func deleteImageRecord(_ recordName: String) {
