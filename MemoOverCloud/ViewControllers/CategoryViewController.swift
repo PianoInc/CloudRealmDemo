@@ -12,7 +12,8 @@ import RealmSwift
 class CategoryViewController: UIViewController {
 
     @IBOutlet weak var tableView: UITableView!
-    var category: RealmCategoryModel!
+    var categoryRecordName: String!
+    var notes: Results<RealmNoteModel>?
     var notificationToken: NotificationToken?
     var count = 0
     
@@ -25,7 +26,7 @@ class CategoryViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        self.navigationItem.title = category.name
+        self.navigationItem.title = ""
         
         tableView.delegate = self
         tableView.dataSource = self
@@ -48,8 +49,10 @@ class CategoryViewController: UIViewController {
     }
     
     func validateToken() {
+        guard let realm = try? Realm() else {return}
+        notes = realm.objects(RealmNoteModel.self).filter("categoryRecordName = %@", categoryRecordName)
         
-        notificationToken = category.notes.observe { [weak self] (changes) in
+        notificationToken = notes?.observe { [weak self] (changes) in
             guard let tableView = self?.tableView else {return}
             
             switch changes {
@@ -70,11 +73,9 @@ class CategoryViewController: UIViewController {
     
     @IBAction func newButtonTouched() {
         //This functionality will be moved to Realm Wrapper
-        let listRef = ThreadSafeReference(to: category.notes)
-
         let newNote = RealmNoteModel.getNewModel(title: "newNote \(count)")
 
-        LocalDatabase.shared.saveObjectWithAppend(list: listRef, object: newNote) {
+        LocalDatabase.shared.saveObject(newObject: newNote) {
 
             CloudManager.shared.uploadRecordToPrivateDB(record: newNote.getRecord()) { (conflicted, error) in
                 if let error = error {
@@ -97,13 +98,13 @@ class CategoryViewController: UIViewController {
 extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return category.notes.count
+        return notes?.count ?? 0
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "memoCell", for: indexPath)
         
-        let memo = category.notes[indexPath.row]
+        guard let memo = notes?[indexPath.row] else {return cell}
         
         cell.textLabel?.text = memo.title
         cell.detailTextLabel?.text = String(describing: memo.content.prefix(15))
@@ -112,8 +113,8 @@ extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        
-        performSegue(withIdentifier: "goToMemo", sender: category.notes[indexPath.row])
+        guard let note = notes?[indexPath.row] else {return}
+        performSegue(withIdentifier: "goToMemo", sender: note)
         tableView.deselectRow(at: indexPath, animated: true)
     }
     
@@ -128,7 +129,8 @@ extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            let noteRef = ThreadSafeReference(to: category.notes[indexPath.row])
+            guard let note = notes?[indexPath.row] else {return}
+            let noteRef = ThreadSafeReference(to: note)
             LocalDatabase.shared.deleteObject(ref: noteRef)
         }
     }

@@ -36,12 +36,31 @@ class CloudCommonDatabase {
         database.add(operation)
     }
 
+    //초기 DB zone x -> operation -> error zonex -> zone
     /*
      * It will be implemented by subclassing
      */
     fileprivate func createZoneIfNeeded(completion: @escaping ((Error?) -> Void)) {}
 
 
+    public func deleteRecords(recordNames: [String], in zoneID: CKRecordZoneID, completion: @escaping ((Error?) -> Void)) {
+        let recordIDs = recordNames.map { CKRecordID(recordName: $0, zoneID: zoneID)}
+
+        let operation = CKModifyRecordsOperation(recordsToSave: nil, recordIDsToDelete: recordIDs)
+
+        operation.modifyRecordsCompletionBlock = { (_, _, error) in
+            if let error = error {
+                completion(error)
+            } else {
+                completion(nil)
+            }
+        }
+
+        operation.qualityOfService = .utility
+
+        database.add(operation)
+
+    }
     /*
      * Load records by given record names and zoneID
      */
@@ -71,7 +90,7 @@ class CloudCommonDatabase {
             guard error == nil else {
                 guard let ckError = error as? CKError else { return completion(nil, error) }
 
-                let (clientRec, serverRec) = ckError.getMergeRecords()
+                let (ancestorRec, clientRec, serverRec) = ckError.getMergeRecords()
                 guard let clientRecord = clientRec,
                         let serverRecord = serverRec,
                         let clientModified = clientRecord.modificationDate,
@@ -142,7 +161,7 @@ class CloudCommonDatabase {
 
 class CloudPrivateDatabase: CloudCommonDatabase {
     private let customZoneName = "Cloud_Memo_Zone"
-    public var zoneID: CKRecordZoneID!
+    public var zoneID: CKRecordZoneID
 
     public override init(database: CKDatabase) {
         let zone = CKRecordZone(zoneName: self.customZoneName)
@@ -246,14 +265,19 @@ class CloudPrivateDatabase: CloudCommonDatabase {
 
         database.add(operation)
     }
+
+    public func deleteRecords(recordNames: [String], completion: @escaping ((Error?) -> Void)) {
+        super.deleteRecords(recordNames: recordNames, in: zoneID, completion: completion)
+    }
 }
 
 class CloudSharedDatabase: CloudCommonDatabase {
-    public var zoneIDs: [CKRecordZoneID] = []
+    public var zoneIDs: Set<CKRecordZoneID> = []
 
     public override init(database: CKDatabase) {
         super.init(database: database)
         saveSubscription()
+        handleNotification()
     }
 
     /*
@@ -294,9 +318,9 @@ class CloudSharedDatabase: CloudCommonDatabase {
         let serverChangedTokenKey = "ckServerChangeToken\(database.scopeString)"
         var changeToken: CKServerChangeToken?
 
-        if let changeTokenData = UserDefaults.standard.data(forKey: serverChangedTokenKey) {
-            changeToken = NSKeyedUnarchiver.unarchiveObject(with: changeTokenData) as? CKServerChangeToken
-        }
+//        if let changeTokenData = UserDefaults.standard.data(forKey: serverChangedTokenKey) {
+//            changeToken = NSKeyedUnarchiver.unarchiveObject(with: changeTokenData) as? CKServerChangeToken
+//        }
 
 
         let operation = CKFetchDatabaseChangesOperation(previousServerChangeToken: changeToken)
@@ -318,12 +342,12 @@ class CloudSharedDatabase: CloudCommonDatabase {
         }
 
         operation.recordZoneWithIDChangedBlock = { [weak self] zoneID in
-            self?.zoneIDs.append(zoneID)
+            self?.zoneIDs.insert(zoneID)
             self?.fetchChangesInZone(zoneID)
         }
 
         operation.recordZoneWithIDWasDeletedBlock = { [weak self] zoneID in
-            if let index = self?.zoneIDs.index(of: zoneID) { self?.zoneIDs.remove(at: index) }
+            self?.zoneIDs.remove(zoneID)
             //TODO:delete all models related to zoneID
         }
 
@@ -360,6 +384,12 @@ class CloudSharedDatabase: CloudCommonDatabase {
         operation.recordChangedBlock = { record in
             CloudRealmMapper.saveRecordIntoRealm(record: record, isShared: true)
             //TODO: only save notes
+            let newrecord = CKRecord(recordType: RealmImageModel.recordTypeString, zoneID: zoneID)
+            
+            newrecord.setParent(record)
+            CloudManager.shared.uploadRecordToSharedDB(record: newrecord, completion: { (_, error) in
+                print(error)
+            })
         }
         
         operation.recordWithIDWasDeletedBlock = { deletedRecordID, recordType in

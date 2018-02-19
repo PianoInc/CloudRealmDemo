@@ -56,13 +56,13 @@ extension CKError {
      * In case of partial error, iterate over to check if one of the errors is occured by conflict
      */
 
-    public func getMergeRecords() -> (CKRecord?, CKRecord?) {
+    public func getMergeRecords() -> (CKRecord?, CKRecord?, CKRecord?) {
         if code == .serverRecordChanged {
-            return (clientRecord, serverRecord)
+            return (ancestorRecord, clientRecord, serverRecord)
         }
 
         guard code == .partialFailure,
-                let errors = partialErrorsByItemID else {return (nil, nil)}
+                let errors = partialErrorsByItemID else {return (nil, nil, nil)}
 
         for (_, error) in errors {
             if let cloudError = error as? CKError {
@@ -72,6 +72,6 @@ extension CKError {
             }
         }
 
-        return (nil, nil)
+        return (nil, nil, nil)
     }
 }

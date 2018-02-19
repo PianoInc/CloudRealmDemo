@@ -76,6 +76,23 @@ class LocalDatabase {
 
     }
 
+    func deleteObject<T> (ref: ThreadSafeReference<Results<T>>, completion handler: (() -> Void)? = nil) where T: Object {
+
+        DispatchQueue.global(qos: .background).async {
+
+            autoreleasepool {
+                guard let realm = try? Realm(),
+                        let object = realm.resolve(ref) else {/* fatal error */ return}
+
+                try? realm.write {
+                    realm.delete(object)
+                }
+                handler?()
+            }
+
+        }
+
+    }
     /*
      * This method is for appending object to list.
      */

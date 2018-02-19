@@ -41,6 +41,7 @@
 		75E99D4BA031EE3A22CE3CEC /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E998D2DA08766A9D4E4D0D /* ViewController.swift */; };
 		75E99DDF8A05D3CC84F19623 /* CKAsset+UIImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E990FDF54CBB7BF79599E4 /* CKAsset+UIImage.swift */; };
 		75E99F062615C2B1770B0FAF /* MemoOverCloudTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E9903A3DB1D3E6F6D676D1 /* MemoOverCloudTests.swift */; };
+		75E99FDB9B17968899D63AFF /* ModelManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E99E7FFE006FC02FF4B72E /* ModelManager.swift */; };
 		89BE0D6BF060F65A40479F2B /* Pods_MemoOverCloudTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B828A6784D52F558C043BA8C /* Pods_MemoOverCloudTests.framework */; };
 		BB9288D8E88556FD055649DB /* Pods_MemoOverCloudUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1C08FA74F67729070EF0E17 /* Pods_MemoOverCloudUITests.framework */; };
 /* End PBXBuildFile section */
@@ -118,6 +119,7 @@
 		75E99D5A7F810B886240B527 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		75E99D5C3BF6EFCBE835D8A6 /* RealmCloudMapper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RealmCloudMapper.swift; sourceTree = "<group>"; };
 		75E99E5982F1A096D94D1817 /* LocalCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocalCache.swift; sourceTree = "<group>"; };
+		75E99E7FFE006FC02FF4B72E /* ModelManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ModelManager.swift; sourceTree = "<group>"; };
 		75E99E8116C67D0EED3A2045 /* MemoOverCloudUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MemoOverCloudUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		75E99E9B56FAA6DB8D07F721 /* UniqueIDGenerator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UniqueIDGenerator.swift; sourceTree = "<group>"; };
 		B828A6784D52F558C043BA8C /* Pods_MemoOverCloudTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_MemoOverCloudTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -303,6 +305,7 @@
 				75E993ECF9C0B9E21AEC7B49 /* RealmImageObserver.swift */,
 				75E993011963A79287F88763 /* Strings.swift */,
 				75E99E9B56FAA6DB8D07F721 /* UniqueIDGenerator.swift */,
+				75E99E7FFE006FC02FF4B72E /* ModelManager.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -635,6 +638,7 @@
 				75E99D3281309019294883E4 /* Realm+CloudKit.swift in Sources */,
 				75E99DDF8A05D3CC84F19623 /* CKAsset+UIImage.swift in Sources */,
 				75E9939A3BB9E533D2A1DD36 /* RealmCloudMapper.swift in Sources */,
+				75E99FDB9B17968899D63AFF /* ModelManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
