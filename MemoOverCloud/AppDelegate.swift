@@ -10,6 +10,7 @@ import UIKit
 import RealmSwift
 import CloudKit
 
+
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
     
@@ -24,6 +25,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
         
+        application.registerForRemoteNotifications()
         performMigration()
         
         //Remove this chunk if datas need to be persistent
@@ -37,13 +39,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         return true
     }
+
     
     
     func performMigration() {
         let config = Realm.Configuration(
             // Set the new schema version. This must be greater than the previously used
             // version (if you've never set a schema version before, the version is 0).
-            schemaVersion: 3,
+            schemaVersion: 5,
             
             // Set the block which will be called automatically when opening a Realm with
             // a schema version lower than the one set above
@@ -92,8 +95,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationWillTerminate(_ application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     }
+    
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        print("let's go")
+        CloudManager.shared.privateDatabase.handleNotification()
+    }
+    
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        print(error)
+    }
 
+    //This only happens whenever the change has occured from other environment!!
     func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+        print("got noti!")
         guard let dict = userInfo as? [String: NSObject],
                 application.applicationState != .inactive else {return}
         let notification = CKNotification(fromRemoteNotificationDictionary: dict)
@@ -111,4 +125,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
 
     }
+    
+    func application(_ application: UIApplication, userDidAcceptCloudKitShareWith cloudKitShareMetadata: CKShareMetadata) {
+        let acceptShareOperation: CKAcceptSharesOperation =
+            CKAcceptSharesOperation(shareMetadatas:
+                [cloudKitShareMetadata])
+        
+        acceptShareOperation.qualityOfService = .userInteractive
+        acceptShareOperation.perShareCompletionBlock = {meta, share,
+            error in
+            print("share was accepted")
+        }
+        acceptShareOperation.acceptSharesCompletionBlock = {
+            error in
+            /// Send your user to where they need to go in your app
+        }
+        CKContainer(identifier:
+            cloudKitShareMetadata.containerIdentifier).add(acceptShareOperation)
+    }
+    
 }

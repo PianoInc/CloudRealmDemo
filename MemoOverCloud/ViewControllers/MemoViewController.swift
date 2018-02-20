@@ -9,6 +9,7 @@
 import UIKit
 import RealmSwift
 import FlangeTextEngine
+import CloudKit
 
 class MemoViewController: UIViewController {
     
@@ -80,13 +81,14 @@ class MemoViewController: UIViewController {
 
     
     @IBAction func albumButtonTouched(_ sender: UIButton) {
-        sender.isSelected = !sender.isSelected
-        
-        if sender.isSelected {
-            addPhotoView()
-        } else {
-            removePhotoView()
-        }
+//        sender.isSelected = !sender.isSelected
+//
+//        if sender.isSelected {
+//            addPhotoView()
+//        } else {
+//            removePhotoView()
+//        }
+        presentShare(sender)
     }
     
 }
@@ -143,19 +145,17 @@ extension MemoViewController: PhotoViewDelegate {
         let identifier = textView.memo.id + url.absoluteString
         
         let imageTag = ImageTag(identifier: identifier, width: resizedImage.size.width, height: resizedImage.size.height)
-        let imagesRef = ThreadSafeReference(to: textView.memo.images)
 
         DispatchQueue.global(qos: .userInteractive).async {
             if let realm = try? Realm(),
                 let _ = realm.object(ofType: RealmImageModel.self, forPrimaryKey: imageTag.identifier) {
                 //ImageModel exist!!
             } else {
-                let newImageModel = RealmImageModel()
+                let newImageModel = RealmImageModel.getNewModel()
                 newImageModel.id = imageTag.identifier
-                newImageModel.original = UIImageJPEGRepresentation(image, 1.0) ?? Data()
-                newImageModel.thumbnail = UIImageJPEGRepresentation(resizedImage, 1.0) ?? Data()
-                
-                LocalDatabase.shared.saveObjectWithAppend(list: imagesRef, object: newImageModel)
+                newImageModel.image = UIImageJPEGRepresentation(image, 1.0) ?? Data()
+
+                LocalDatabase.shared.saveObject(newObject: newImageModel)
             }
         }
         
@@ -222,5 +222,62 @@ extension MemoViewController {
     }
     @objc internal func keyboardDidHide(notification: Notification){
         textView.inputView = nil
+    }
+}
+
+
+extension MemoViewController: UICloudSharingControllerDelegate, UIPopoverPresentationControllerDelegate {
+    func cloudSharingController(_ csc: UICloudSharingController, failedToSaveShareWithError error: Error) {
+        print(error)
+    }
+    
+    func itemTitle(for csc: UICloudSharingController) -> String? {
+        return memo.title
+    }
+    
+    func presentShare(_ sender: UIButton) {
+        let record = memo.getRecord()
+        let share = CKShare(rootRecord: record)
+        share[CKShareTitleKey] = "Some title" as CKRecordValue?
+        share[CKShareTypeKey] = "Some type" as CKRecordValue?
+        let sharingController = UICloudSharingController (preparationHandler: {(UICloudSharingController, handler:
+            @escaping (CKShare?, CKContainer?, Error?) -> Void) in
+            let modifyOp = CKModifyRecordsOperation(recordsToSave:
+                [record, share], recordIDsToDelete: nil)
+            modifyOp.savePolicy = CKRecordSavePolicy.changedKeys
+            modifyOp.modifyRecordsCompletionBlock = { (record, recordID,
+                error) in
+                handler(share, CKContainer.default(), error)
+            }
+            CKContainer.default().privateCloudDatabase.add(modifyOp)
+        })
+        sharingController.availablePermissions = [.allowReadWrite,
+                                                  .allowPublic]
+        
+        sharingController.delegate = self
+        
+        if (UI_USER_INTERFACE_IDIOM() == .phone) {
+            
+            self.present(sharingController, animated:true, completion:nil)
+            
+        }
+            //for iPad
+        else {
+            // Change Rect as required
+            let contentViewController = sharingController
+            
+            contentViewController.preferredContentSize = CGSize(width: 500, height: 550)
+            contentViewController.modalPresentationStyle = .popover;
+            
+            
+            let presentationController = contentViewController.popoverPresentationController
+            presentationController?.delegate = self
+            presentationController?.permittedArrowDirections = .up
+            presentationController?.sourceView = sender
+            presentationController?.sourceRect = sender.bounds
+            
+            self.present(contentViewController, animated: true, completion: nil)
+        }
+        
     }
 }

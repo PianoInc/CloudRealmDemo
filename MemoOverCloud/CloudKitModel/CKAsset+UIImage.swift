@@ -27,7 +27,12 @@ enum ImageError: Error {
 
 extension CKAsset {
     convenience init(image: UIImage, fileType: ImageFileType = .JPG(compressionQuality: 70)) throws {
-        let url = try image.saveToTempLocationWithFileType(fileType: fileType)
+        let url = try image.saveImageToTempLocationWithFileType(fileType: fileType)
+        self.init(fileURL: url)
+    }
+
+    convenience init(data: Data) throws {
+        let url = try data.saveDataToTempLocation(fileType: .JPG(compressionQuality: 70))
         self.init(fileURL: url)
     }
 
@@ -38,7 +43,7 @@ extension CKAsset {
 }
 
 extension UIImage {
-    func saveToTempLocationWithFileType(fileType: ImageFileType) throws -> URL {
+    func saveImageToTempLocationWithFileType(fileType: ImageFileType) throws -> URL {
         let imageData: Data?
 
         switch fileType {
@@ -51,9 +56,21 @@ extension UIImage {
             throw ImageError.UnableToConvertImageToData
         }
 
+
+
+        return try data.saveDataToTempLocation(fileType: fileType)
+    }
+
+
+}
+
+extension Data {
+
+    func saveDataToTempLocation(fileType: ImageFileType) throws -> URL {
+
         let filename = ProcessInfo.processInfo.globallyUniqueString + fileType.fileExtension
         let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(filename)
-        try data.write(to: url, options: .atomicWrite)
+        try self.write(to: url, options: .atomicWrite)
 
         return url
     }

@@ -36,12 +36,31 @@ class CloudCommonDatabase {
         database.add(operation)
     }
 
+    //초기 DB zone x -> operation -> error zonex -> zone
     /*
      * It will be implemented by subclassing
      */
     fileprivate func createZoneIfNeeded(completion: @escaping ((Error?) -> Void)) {}
 
 
+    public func deleteRecords(recordNames: [String], in zoneID: CKRecordZoneID, completion: @escaping ((Error?) -> Void)) {
+        let recordIDs = recordNames.map { CKRecordID(recordName: $0, zoneID: zoneID)}
+
+        let operation = CKModifyRecordsOperation(recordsToSave: nil, recordIDsToDelete: recordIDs)
+
+        operation.modifyRecordsCompletionBlock = { (_, _, error) in
+            if let error = error {
+                completion(error)
+            } else {
+                completion(nil)
+            }
+        }
+
+        operation.qualityOfService = .utility
+
+        database.add(operation)
+
+    }
     /*
      * Load records by given record names and zoneID
      */
@@ -71,16 +90,20 @@ class CloudCommonDatabase {
             guard error == nil else {
                 guard let ckError = error as? CKError else { return completion(nil, error) }
 
-                let (clientRec, serverRec) = ckError.getMergeRecords()
+                let (ancestorRec, clientRec, serverRec) = ckError.getMergeRecords()
                 guard let clientRecord = clientRec,
                         let serverRecord = serverRec,
                         let clientModified = clientRecord.modificationDate,
                         let serverModified = serverRecord.modificationDate else { return completion(nil, error) }
 
+                //TODO: resolve merge conflict by diff3 algorithm
                 if clientModified.compare(serverModified) == .orderedDescending {
                     //client win!
 
-                    //TODO: set serverRecord same with client record
+                    serverRecord["title"] = clientRecord["title"]
+                    serverRecord["content"] = clientRecord["content"]
+                    serverRecord["pureString"] = clientRecord["pureString"]
+
                     self.saveRecord(record: serverRecord) { newRecord, error in
                         completion(newRecord, error)
                     }
@@ -116,9 +139,6 @@ class CloudCommonDatabase {
                 return
             }
 
-            //Lazy save the subscription
-
-            self.saveSubscription()
             completion(nil)
         }
         operation.qualityOfService = .utility
@@ -141,14 +161,14 @@ class CloudCommonDatabase {
 
 class CloudPrivateDatabase: CloudCommonDatabase {
     private let customZoneName = "Cloud_Memo_Zone"
-    public var zoneID: CKRecordZoneID!
+    public var zoneID: CKRecordZoneID
 
     public override init(database: CKDatabase) {
         let zone = CKRecordZone(zoneName: self.customZoneName)
         self.zoneID = zone.zoneID
 
         super.init(database: database)
-
+        saveSubscription()
     }
 
     /*
@@ -187,7 +207,7 @@ class CloudPrivateDatabase: CloudCommonDatabase {
 
         let operation = CKModifySubscriptionsOperation(subscriptionsToSave: [subscription], subscriptionIDsToDelete: [])
         operation.modifySubscriptionsCompletionBlock = { (_, _, error) in
-            guard error == nil else { return }
+            guard error == nil else { return}
 
             UserDefaults.standard.set(true, forKey: subscriptionKey)
         }
@@ -204,10 +224,10 @@ class CloudPrivateDatabase: CloudCommonDatabase {
     public override func handleNotification() {
         let serverChangedTokenKey = "ckServerChangeToken\(database.scopeString)"
         var changeToken: CKServerChangeToken?
-
-        if let changeTokenData = UserDefaults.standard.data(forKey: serverChangedTokenKey) {
-            changeToken = NSKeyedUnarchiver.unarchiveObject(with: changeTokenData) as? CKServerChangeToken
-        }
+        //TODO: uncomment these later
+//        if let changeTokenData = UserDefaults.standard.data(forKey: serverChangedTokenKey) {
+//            changeToken = NSKeyedUnarchiver.unarchiveObject(with: changeTokenData) as? CKServerChangeToken
+//        }
 
 
         let options = CKFetchRecordZoneChangesOptions()
@@ -219,7 +239,7 @@ class CloudPrivateDatabase: CloudCommonDatabase {
         operation.fetchAllChanges = true //TODO: change it to false
 
         operation.recordChangedBlock = { record in
-            CloudRealmMapper.saveRecordIntoRealm(record: record)
+            CloudRealmMapper.saveRecordIntoRealm(record: record, isShared: false)
         }
 
         operation.recordWithIDWasDeletedBlock = { deletedRecordID, recordType in
@@ -245,13 +265,19 @@ class CloudPrivateDatabase: CloudCommonDatabase {
 
         database.add(operation)
     }
+
+    public func deleteRecords(recordNames: [String], completion: @escaping ((Error?) -> Void)) {
+        super.deleteRecords(recordNames: recordNames, in: zoneID, completion: completion)
+    }
 }
 
 class CloudSharedDatabase: CloudCommonDatabase {
-    public var zoneIDs: [CKRecordZoneID] = []
+    public var zoneIDs: Set<CKRecordZoneID> = []
 
     public override init(database: CKDatabase) {
         super.init(database: database)
+        saveSubscription()
+        handleNotification()
     }
 
     /*
@@ -292,12 +318,12 @@ class CloudSharedDatabase: CloudCommonDatabase {
         let serverChangedTokenKey = "ckServerChangeToken\(database.scopeString)"
         var changeToken: CKServerChangeToken?
 
-        if let changeTokenData = UserDefaults.standard.data(forKey: serverChangedTokenKey) {
-            changeToken = NSKeyedUnarchiver.unarchiveObject(with: changeTokenData) as? CKServerChangeToken
-        }
+//        if let changeTokenData = UserDefaults.standard.data(forKey: serverChangedTokenKey) {
+//            changeToken = NSKeyedUnarchiver.unarchiveObject(with: changeTokenData) as? CKServerChangeToken
+//        }
 
 
-        let operation = CKFetchDatabaseChangesOperation(previousServerChangeToken: changeToken)//CKFetchRecordZoneChangesOperation(recordZoneIDs: [zoneID], optionsByRecordZoneID: optionDic)
+        let operation = CKFetchDatabaseChangesOperation(previousServerChangeToken: changeToken)
         operation.fetchAllChanges = true //TODO: change it to false
 
 
@@ -315,21 +341,78 @@ class CloudSharedDatabase: CloudCommonDatabase {
             UserDefaults.standard.set(changedTokenData, forKey: serverChangedTokenKey)
         }
 
-        operation.recordZoneWithIDChangedBlock = { zoneID in
-            //fetch changes in zone!!
+        operation.recordZoneWithIDChangedBlock = { [weak self] zoneID in
+            self?.zoneIDs.insert(zoneID)
+            self?.fetchChangesInZone(zoneID)
         }
 
-        operation.recordZoneWithIDWasDeletedBlock = { zoneID in
-            //delete all models related to zoneID
+        operation.recordZoneWithIDWasDeletedBlock = { [weak self] zoneID in
+            self?.zoneIDs.remove(zoneID)
+            //TODO:delete all models related to zoneID
         }
 
         operation.recordZoneWithIDWasPurgedBlock = { zoneID in
-            //delete all model related to zoneID
+            
+            //TODO:delete all model related to zoneID
         }
 
 
         operation.qualityOfService = .utility
 
+        database.add(operation)
+    }
+    
+    
+    private func fetchChangesInZone(_ zoneID: CKRecordZoneID) {
+        let serverChangedTokenKey = "ckServerChangeToken\(database.scopeString) \(zoneID)"
+        var changeToken: CKServerChangeToken?
+        
+        if let changeTokenData = UserDefaults.standard.data(forKey: serverChangedTokenKey) {
+            changeToken = NSKeyedUnarchiver.unarchiveObject(with: changeTokenData) as? CKServerChangeToken
+        }
+        
+        let options = CKFetchRecordZoneChangesOptions()
+        
+        options.previousServerChangeToken = changeToken
+        
+        let operation = CKFetchRecordZoneChangesOperation(recordZoneIDs: [zoneID],
+                                                          optionsByRecordZoneID: [zoneID: options])
+        
+        
+        operation.fetchAllChanges = true //TODO: change it to false
+        
+        operation.recordChangedBlock = { record in
+            CloudRealmMapper.saveRecordIntoRealm(record: record, isShared: true)
+            //TODO: only save notes
+            let newrecord = CKRecord(recordType: RealmImageModel.recordTypeString, zoneID: zoneID)
+            
+            newrecord.setParent(record)
+            CloudManager.shared.uploadRecordToSharedDB(record: newrecord, completion: { (_, error) in
+                print(error)
+            })
+        }
+        
+        operation.recordWithIDWasDeletedBlock = { deletedRecordID, recordType in
+            //Delete private record also
+            CloudRealmMapper.deleteRecordInRealm(recordID: deletedRecordID, recordType: recordType)
+        }
+        
+        operation.recordZoneChangeTokensUpdatedBlock = { zoneID, changedToken, _ in
+            guard let changedToken = changedToken else { return }
+            
+            let changedTokenData = NSKeyedArchiver.archivedData(withRootObject: changedToken)
+            UserDefaults.standard.set(changedTokenData, forKey: serverChangedTokenKey)
+        }
+        
+        operation.recordZoneFetchCompletionBlock = { zoneID, changeToken, data, more, error in
+            guard error == nil, let changedToken = changeToken else { return }
+            
+            let changedTokenData = NSKeyedArchiver.archivedData(withRootObject: changedToken)
+            UserDefaults.standard.set(changedTokenData, forKey: serverChangedTokenKey)
+        }
+        
+        operation.qualityOfService = .utility
+        
         database.add(operation)
     }
 }

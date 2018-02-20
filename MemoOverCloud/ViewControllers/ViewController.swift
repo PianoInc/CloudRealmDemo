@@ -38,13 +38,14 @@ class ViewController: UIViewController {
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+        
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "goToCategory" {
             guard let categoryVC = segue.destination as? CategoryViewController,
                 let category = sender as? RealmCategoryModel else {return}
-            categoryVC.category = category
+            categoryVC.categoryRecordName = category.recordName
         }
     }
 
@@ -71,10 +72,15 @@ class ViewController: UIViewController {
 
     @IBAction func newButtonTouched() {
 
-        let newCategory = RealmCategoryModel()
-        newCategory.id = UniqueIDGenerator.getUniqueID()
-        newCategory.name = "new Category\(count)"
+        let newCategory = RealmCategoryModel.getNewModel(name: "new Category\(count)")
 
+        CloudManager.shared.uploadRecordToPrivateDB(record: newCategory.getRecord()) { (conflicted, error) in
+            if let error = error {
+                print(error)
+            } else {
+                print("happy")
+            }
+        }
         LocalDatabase.shared.saveObject(newObject: newCategory)
 
         count += 1

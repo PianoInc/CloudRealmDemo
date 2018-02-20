@@ -4,9 +4,21 @@
 //
 
 import RealmSwift
+import CloudKit
 
+//TODO: remove List properties
+protocol Recordable {
+    static var recordTypeString: String {get}
 
-class RealmCategoryModel: Object {
+    var recordName: String {get set}
+    var zoneName: String {get set}
+    var ownerName: String {get set}
+    var isCreated: Date {get set}
+    var isModified: Date {get set}
+
+}
+
+class RealmCategoryModel: Object, Recordable {
 
     static let recordTypeString = "Category"
 
@@ -14,10 +26,10 @@ class RealmCategoryModel: Object {
     @objc dynamic var name = ""
 
     @objc dynamic var recordName = ""
+    @objc dynamic var zoneName = ""
+    @objc dynamic var ownerName = ""
     @objc dynamic var isCreated = Date()
     @objc dynamic var isModified = Date()
-
-    let notes = List<RealmNoteModel>()
 
     override static func primaryKey() -> String? {
         return "id"
@@ -26,26 +38,42 @@ class RealmCategoryModel: Object {
     override static func ignoredProperties() -> [String] {
         return ["recordTypeString"]
     }
+
+    static func getNewModel(name: String) -> RealmCategoryModel {
+        let id = UniqueIDGenerator.getUniqueID()
+        let record = CKRecord(recordType: RealmCategoryModel.recordTypeString, zoneID: CloudManager.shared.privateDatabase.zoneID)
+
+        let newModel = RealmCategoryModel()
+        newModel.recordName = record.recordID.recordName
+        newModel.ownerName = record.recordID.zoneID.ownerName
+        newModel.zoneName = record.recordID.zoneID.zoneName
+        newModel.id = id
+        newModel.name = name
+
+        return newModel
+    }
 }
 
 
-class RealmNoteModel: Object {
+class RealmNoteModel: Object, Recordable {
 
     static let recordTypeString = "Note"
 
     @objc dynamic var id = ""
     @objc dynamic var title = ""
-    @objc dynamic var content = String()
+    @objc dynamic var content = ""
+    @objc dynamic var attributes = ""
 
     @objc dynamic var recordName = ""
+    @objc dynamic var zoneName = ""
+    @objc dynamic var ownerName = ""
     @objc dynamic var isCreated = Date()
     @objc dynamic var isModified = Date()
+    
+    @objc dynamic var isShared = false
 
-    @objc dynamic var shareOwner: String? = nil //TODO: consider more if it really is required
 
-    let images = List<RealmImageModel>()
-
-    let category = LinkingObjects(fromType: RealmCategoryModel.self, property: "notes")
+    let categoryRecordName = ""
 
     override static func primaryKey() -> String? {
         return "id"
@@ -54,21 +82,38 @@ class RealmNoteModel: Object {
     override static func ignoredProperties() -> [String] {
         return ["recordTypeString"]
     }
+
+    static func getNewModel(title: String) -> RealmNoteModel {
+        let id = UniqueIDGenerator.getUniqueID()
+        let record = CKRecord(recordType: RealmNoteModel.recordTypeString, zoneID: CloudManager.shared.privateDatabase.zoneID)
+
+        let newModel = RealmNoteModel()
+        newModel.recordName = record.recordID.recordName
+        newModel.ownerName = record.recordID.zoneID.ownerName
+        newModel.zoneName = record.recordID.zoneID.zoneName
+        newModel.id = id
+        newModel.title = title
+
+        return newModel
+    }
 }
 
-class RealmImageModel: Object {
+class RealmImageModel: Object, Recordable {
 
     static let recordTypeString = "Image"
 
     @objc dynamic var id = ""
-    @objc dynamic var original = Data()
-    @objc dynamic var thumbnail = Data()
+    @objc dynamic var image = Data()
 
     @objc dynamic var recordName = ""
+    @objc dynamic var zoneName = ""
+    @objc dynamic var ownerName = ""
     @objc dynamic var isCreated = Date()
     @objc dynamic var isModified = Date()
+    
+    @objc dynamic var isShared = false
 
-    let note = LinkingObjects(fromType: RealmNoteModel.self, property: "images")
+    let noteRecordName = ""
 
     override static func primaryKey() -> String? {
         return "id"
@@ -76,6 +121,20 @@ class RealmImageModel: Object {
 
     override static func ignoredProperties() -> [String] {
         return ["recordTypeString"]
+    }
+
+    static func getNewModel(sharedZoneID: CKRecordZoneID? = nil) -> RealmImageModel {
+        let id = UniqueIDGenerator.getUniqueID()
+        let zoneID = sharedZoneID ?? CloudManager.shared.privateDatabase.zoneID
+        let record = CKRecord(recordType: RealmImageModel.recordTypeString, zoneID: zoneID)
+        
+        let newModel = RealmImageModel()
+        newModel.recordName = record.recordID.recordName
+        newModel.ownerName = record.recordID.zoneID.ownerName
+        newModel.zoneName = record.recordID.zoneID.zoneName
+        newModel.id = id
+        
+        return newModel
     }
 }
 

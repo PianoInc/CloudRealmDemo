@@ -37,7 +37,7 @@ class LocalCache {
                             guard let realm = try? Realm(),
                                   let imageModel = realm.resolve(ref) else {return}
 
-                            if let thumbImage = UIImage(data: imageModel.thumbnail) {
+                            if let thumbImage = UIImage(data: imageModel.image) {
                                 self?.imageCache.setObject(thumbImage, forKey: id.nsString)
                                 handler()
                             }
