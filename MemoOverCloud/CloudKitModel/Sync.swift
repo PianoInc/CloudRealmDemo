@@ -36,18 +36,23 @@ struct Schema {
         static let noteRecordName = "noteRecordName"
 
     }
+
+    struct SharedNote {
+        static let categoryRecordName = "categoryRecordName"
+    }
 }
 
-extension CloudCommonDatabase {
-
-    enum RealmRecordTypeString: String {
+enum RealmRecordTypeString: String {
 
         case category = "Category"
         case note = "Note"
         case image = "Image"
         case sharedMemo = "SharedMemo"
+}
 
-    }
+
+extension CloudCommonDatabase {
+
 
     static func syncChanged(record: CKRecord, isShared: Bool) {
         guard let realmType = RealmRecordTypeString(rawValue: record.recordType) else { /*fatal error*/ return }
@@ -89,6 +94,7 @@ extension CloudCommonDatabase {
         if isShared {
             let recordID = CKRecordID(recordName: record.recordID.recordName, zoneID: CloudManager.shared.privateDatabase.zoneID)
             let sharedMemoRecord = CKRecord(recordType: RealmRecordTypeString.sharedMemo.rawValue, recordID: recordID)
+            sharedMemoRecord[Schema.SharedNote.categoryRecordName] = "" as CKRecordValue
 
             CloudManager.shared.uploadRecordToPrivateDB(record: sharedMemoRecord) { _ , error in
                 //if error do it again
@@ -135,6 +141,12 @@ extension CloudCommonDatabase {
                 let noteModel = realm.objects(RealmNoteModel.self).filter("recordName = %@", recordName).first else {return}
 
         let images = realm.objects(RealmImageModel.self).filter("noteRecordName = %@", recordName)
+
+        if noteModel.isShared {
+            CloudManager.shared.deleteInPrivateDB(recordNames: [recordName]) { error in
+                if let error = error { print("\(error)")}
+            }
+        }
 
         let noteRef = ThreadSafeReference(to: noteModel)
         let imagesRef = ThreadSafeReference(to: images)

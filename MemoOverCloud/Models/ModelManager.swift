@@ -7,8 +7,7 @@
 import CloudKit
 import RealmSwift
 
-//TODO: Repetetive code. Refactor it
-//TODO: Shared model logic not implemented
+//TODO: Repetetive code. Refactor it by generic
 class ModelManager {
 
     static func save(model: RealmCategoryModel, completion: @escaping ((Error?) -> Void)) {
@@ -31,6 +30,7 @@ class ModelManager {
         let recordName = model.recordName
         let ref = ThreadSafeReference(to: model)
 
+
         LocalDatabase.shared.deleteObject(ref: ref)
         CloudManager.shared.deleteInPrivateDB(recordNames: [recordName]) { error in
             if let error = error { completion(error) }
@@ -41,20 +41,30 @@ class ModelManager {
 
     static func save(model: RealmNoteModel, completion: @escaping ((Error?) -> Void)) {
 
-        if model.isShared {
-            //save on shared & update private record also
-        } else {
+        let record = model.getRecord()
+        LocalDatabase.shared.saveObject(newObject: model)
 
-            let record = model.getRecord()
-            LocalDatabase.shared.saveObject(newObject: model)
-            CloudManager.shared.uploadRecordToPrivateDB(record: record) { (conflicted, error) in
-                if let error = error {
-                    return completion(error)
-                } else if let conflictedModel = conflicted?.parseCategoryRecord() {
-                    LocalDatabase.shared.saveObject(newObject: conflictedModel)
-                }
-                completion(nil)
+        let cloudCompletion: (CKRecord?, Error?) -> Void = { (conflicted, error) in
+
+            if let error = error {
+                return completion(error)
+            } else if let conflictedModel = conflicted?.parseNoteRecord() {
+                LocalDatabase.shared.saveObject(newObject: conflictedModel)
             }
+            completion(nil)
+        }
+
+        if model.isShared {
+
+            let recordID = CKRecordID(recordName: record.recordID.recordName, zoneID: CloudManager.shared.privateDatabase.zoneID)
+            let sharedMemoRecord = CKRecord(recordType: RealmRecordTypeString.sharedMemo.rawValue, recordID: recordID)
+
+            sharedMemoRecord[Schema.SharedNote.categoryRecordName] = model.categoryRecordName as CKRecordValue
+
+            CloudManager.shared.uploadRecordToSharedDB(record: record, completion: cloudCompletion)
+            CloudManager.shared.uploadRecordToPrivateDB(record: record) {_,_ in }
+        } else {
+            CloudManager.shared.uploadRecordToPrivateDB(record: record, completion: cloudCompletion)
         }
     }
 
@@ -65,12 +75,16 @@ class ModelManager {
 
         LocalDatabase.shared.deleteObject(ref: ref)
         if model.isShared {
-
+            let zoneID = CKRecordZoneID(zoneName: model.zoneName, ownerName: model.ownerName)
+            CloudManager.shared.deleteInPrivateDB(recordNames: [recordName], completion: {_ in})
+            CloudManager.shared.deleteInSharedDB(recordNames: [recordName], in: zoneID) { error in
+                if let error = error { completion(error) }
+                else {completion(nil)}
+            }
         } else {
             CloudManager.shared.deleteInPrivateDB(recordNames: [recordName]) { error in
                 if let error = error { completion(error) }
                 else {completion(nil)}
-
             }
         }
     }
@@ -78,20 +92,28 @@ class ModelManager {
 
     static func save(model: RealmImageModel, completion: @escaping ((Error?) -> Void)) {
 
+        let (url, record) = model.getRecord()
+        LocalDatabase.shared.saveObject(newObject: model)
+
         if model.isShared {
-
-        } else {
-
-            let (url, record) = model.getRecord()
-            //TODO: remove URL file in completion
-            LocalDatabase.shared.saveObject(newObject: model)
-            CloudManager.shared.uploadRecordToPrivateDB(record: record) { (conflicted, error) in
+            CloudManager.shared.uploadRecordToSharedDB(record: record) { conflicted, error in
                 if let error = error {
                     return completion(error)
-                } else if let conflictedModel = conflicted?.parseCategoryRecord() {
+                } else if let conflictedModel = conflicted?.parseImageRecord() {
                     LocalDatabase.shared.saveObject(newObject: conflictedModel)
                 }
                 completion(nil)
+                try? FileManager.default.removeItem(at: url)
+            }
+        } else {
+            CloudManager.shared.uploadRecordToPrivateDB(record: record) { (conflicted, error) in
+                if let error = error {
+                    return completion(error)
+                } else if let conflictedModel = conflicted?.parseImageRecord() {
+                    LocalDatabase.shared.saveObject(newObject: conflictedModel)
+                }
+                completion(nil)
+                try? FileManager.default.removeItem(at: url)
             }
         }
     }
@@ -103,7 +125,11 @@ class ModelManager {
 
         LocalDatabase.shared.deleteObject(ref: ref)
         if model.isShared {
-
+            let zoneID = CKRecordZoneID(zoneName: model.zoneName, ownerName: model.ownerName)
+            CloudManager.shared.deleteInSharedDB(recordNames: [recordName], in: zoneID) { error in
+                if let error = error { completion(error) }
+                else { completion(nil) }
+            }
         } else {
             CloudManager.shared.deleteInPrivateDB(recordNames: [recordName]) { error in
                 if let error = error { completion(error) }
