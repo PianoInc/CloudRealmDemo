@@ -24,6 +24,7 @@ class MemoViewController: UIViewController {
         registerKeyboardNotification()
         
         textView.memo = memo
+        textView.font = UIFont.boldSystemFont(ofSize: 12)
 
         textView.registerClass(FastTextAttachment.self)
         textView.flangeDelegate = self
@@ -145,13 +146,13 @@ extension MemoViewController: PhotoViewDelegate {
         let identifier = textView.memo.id + url.absoluteString
         
         let imageTag = ImageTag(identifier: identifier, width: resizedImage.size.width, height: resizedImage.size.height)
-
+        let noteRecordName = memo.recordName
         DispatchQueue.global(qos: .userInteractive).async {
             if let realm = try? Realm(),
                 let _ = realm.object(ofType: RealmImageModel.self, forPrimaryKey: imageTag.identifier) {
                 //ImageModel exist!!
             } else {
-                let newImageModel = RealmImageModel.getNewModel()
+                let newImageModel = RealmImageModel.getNewModel(noteRecordName: noteRecordName)
                 newImageModel.id = imageTag.identifier
                 newImageModel.image = UIImageJPEGRepresentation(image, 1.0) ?? Data()
 

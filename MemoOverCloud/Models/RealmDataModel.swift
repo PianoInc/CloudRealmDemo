@@ -73,7 +73,7 @@ class RealmNoteModel: Object, Recordable {
     @objc dynamic var isShared = false
 
 
-    let categoryRecordName = ""
+    @objc dynamic var categoryRecordName = ""
 
     override static func primaryKey() -> String? {
         return "id"
@@ -83,7 +83,7 @@ class RealmNoteModel: Object, Recordable {
         return ["recordTypeString"]
     }
 
-    static func getNewModel(title: String) -> RealmNoteModel {
+    static func getNewModel(title: String, categoryRecordName: String) -> RealmNoteModel {
         let id = UniqueIDGenerator.getUniqueID()
         let record = CKRecord(recordType: RealmNoteModel.recordTypeString, zoneID: CloudManager.shared.privateDatabase.zoneID)
 
@@ -93,6 +93,7 @@ class RealmNoteModel: Object, Recordable {
         newModel.zoneName = record.recordID.zoneID.zoneName
         newModel.id = id
         newModel.title = title
+        newModel.categoryRecordName = categoryRecordName
 
         return newModel
     }
@@ -113,7 +114,7 @@ class RealmImageModel: Object, Recordable {
     
     @objc dynamic var isShared = false
 
-    let noteRecordName = ""
+    @objc dynamic var noteRecordName = ""
 
     override static func primaryKey() -> String? {
         return "id"
@@ -123,7 +124,7 @@ class RealmImageModel: Object, Recordable {
         return ["recordTypeString"]
     }
 
-    static func getNewModel(sharedZoneID: CKRecordZoneID? = nil) -> RealmImageModel {
+    static func getNewModel(sharedZoneID: CKRecordZoneID? = nil, noteRecordName: String) -> RealmImageModel {
         let id = UniqueIDGenerator.getUniqueID()
         let zoneID = sharedZoneID ?? CloudManager.shared.privateDatabase.zoneID
         let record = CKRecord(recordType: RealmImageModel.recordTypeString, zoneID: zoneID)
@@ -134,6 +135,7 @@ class RealmImageModel: Object, Recordable {
         newModel.zoneName = record.recordID.zoneID.zoneName
         newModel.id = id
         newModel.isShared = sharedZoneID != nil
+        newModel.noteRecordName = noteRecordName
         
         return newModel
     }

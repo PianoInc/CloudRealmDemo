@@ -184,8 +184,6 @@ class CloudPrivateDatabase: CloudCommonDatabase {
      * some change has happened
      */
     override fileprivate func saveSubscription() {
-        //Check If I had saved subscription before
-        //TODO: check all the record types
 
         let recordTypes = [RealmCategoryModel.recordTypeString,
                            RealmNoteModel.recordTypeString,
@@ -202,7 +200,7 @@ class CloudPrivateDatabase: CloudCommonDatabase {
 
             let subscription = CKQuerySubscription(recordType: $0,
                     predicate: predicate,
-                    subscriptionID: subscriptionID,
+                    subscriptionID: "\(subscriptionID)\($0)",
                     options: [.firesOnRecordCreation, .firesOnRecordDeletion, .firesOnRecordUpdate])
 
 
