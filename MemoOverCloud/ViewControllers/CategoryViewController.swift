@@ -73,7 +73,7 @@ class CategoryViewController: UIViewController {
     
     @IBAction func newButtonTouched() {
         //This functionality will be moved to Realm Wrapper
-        let newNote = RealmNoteModel.getNewModel(title: "newNote \(count)")
+        let newNote = RealmNoteModel.getNewModel(title: "newNote \(count)", categoryRecordName: categoryRecordName)
 
         LocalDatabase.shared.saveObject(newObject: newNote) {
 

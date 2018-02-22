@@ -184,37 +184,45 @@ class CloudPrivateDatabase: CloudCommonDatabase {
      * some change has happened
      */
     override fileprivate func saveSubscription() {
-        //Check If I had saved subscription before
 
-        let subscriptionKey = "ckSubscriptionSaved\(database.scopeString)"
-        let alreadySaved = UserDefaults.standard.bool(forKey: subscriptionKey)
-        guard !alreadySaved else {return}
+        let recordTypes = [RealmCategoryModel.recordTypeString,
+                           RealmNoteModel.recordTypeString,
+                           RealmImageModel.recordTypeString,
+                           RealmRecordTypeString.sharedMemo.rawValue]
 
-
-        let predicate = NSPredicate(value: true)
-        let subscription = CKQuerySubscription(recordType: RealmCategoryModel.recordTypeString,
-                predicate: predicate,
-                subscriptionID: subscriptionID,
-                options: [.firesOnRecordCreation, .firesOnRecordDeletion, .firesOnRecordUpdate])
+        recordTypes.forEach {
+            let subscriptionKey = "ckSubscriptionSaved\($0)\(database.scopeString)"
+            let alreadySaved = UserDefaults.standard.bool(forKey: subscriptionKey)
+            guard !alreadySaved else {return}
 
 
-        //Set Silent Push
+            let predicate = NSPredicate(value: true)
 
-        let notificationInfo = CKNotificationInfo()
-        notificationInfo.shouldSendContentAvailable = true
-        subscription.notificationInfo = notificationInfo
+            let subscription = CKQuerySubscription(recordType: $0,
+                    predicate: predicate,
+                    subscriptionID: "\(subscriptionID)\($0)",
+                    options: [.firesOnRecordCreation, .firesOnRecordDeletion, .firesOnRecordUpdate])
 
 
-        let operation = CKModifySubscriptionsOperation(subscriptionsToSave: [subscription], subscriptionIDsToDelete: [])
-        operation.modifySubscriptionsCompletionBlock = { (_, _, error) in
-            guard error == nil else { return}
+            //Set Silent Push
 
-            UserDefaults.standard.set(true, forKey: subscriptionKey)
+            let notificationInfo = CKNotificationInfo()
+            notificationInfo.shouldSendContentAvailable = true
+            subscription.notificationInfo = notificationInfo
+
+
+            let operation = CKModifySubscriptionsOperation(subscriptionsToSave: [subscription], subscriptionIDsToDelete: [])
+            operation.modifySubscriptionsCompletionBlock = { (_, _, error) in
+                guard error == nil else { return}
+
+                UserDefaults.standard.set(true, forKey: subscriptionKey)
+            }
+            operation.qualityOfService = .utility
+
+
+            database.add(operation)
         }
-        operation.qualityOfService = .utility
 
-
-        database.add(operation)
     }
 
     public func loadRecords(recordNames: [String], completion: @escaping (([CKRecordID: CKRecord]?, Error?) -> Void)) {
@@ -239,11 +247,11 @@ class CloudPrivateDatabase: CloudCommonDatabase {
         operation.fetchAllChanges = true //TODO: change it to false
 
         operation.recordChangedBlock = { record in
-            CloudRealmMapper.saveRecordIntoRealm(record: record, isShared: false)
+            CloudCommonDatabase.syncChanged(record: record, isShared: false)
         }
 
         operation.recordWithIDWasDeletedBlock = { deletedRecordID, recordType in
-            CloudRealmMapper.deleteRecordInRealm(recordID: deletedRecordID, recordType: recordType)
+            CloudCommonDatabase.syncDeleted(recordID: deletedRecordID, recordType: recordType)
         }
 
         operation.recordZoneChangeTokensUpdatedBlock = { zoneID, changedToken, _ in
@@ -366,53 +374,45 @@ class CloudSharedDatabase: CloudCommonDatabase {
     private func fetchChangesInZone(_ zoneID: CKRecordZoneID) {
         let serverChangedTokenKey = "ckServerChangeToken\(database.scopeString) \(zoneID)"
         var changeToken: CKServerChangeToken?
-        
+
         if let changeTokenData = UserDefaults.standard.data(forKey: serverChangedTokenKey) {
             changeToken = NSKeyedUnarchiver.unarchiveObject(with: changeTokenData) as? CKServerChangeToken
         }
-        
+
         let options = CKFetchRecordZoneChangesOptions()
-        
+
         options.previousServerChangeToken = changeToken
-        
+
         let operation = CKFetchRecordZoneChangesOperation(recordZoneIDs: [zoneID],
                                                           optionsByRecordZoneID: [zoneID: options])
-        
-        
+
+
         operation.fetchAllChanges = true //TODO: change it to false
-        
+
         operation.recordChangedBlock = { record in
-            CloudRealmMapper.saveRecordIntoRealm(record: record, isShared: true)
-            //TODO: only save notes
-            let newrecord = CKRecord(recordType: RealmImageModel.recordTypeString, zoneID: zoneID)
-            
-            newrecord.setParent(record)
-            CloudManager.shared.uploadRecordToSharedDB(record: newrecord, completion: { (_, error) in
-                print(error)
-            })
+            CloudCommonDatabase.syncChanged(record: record, isShared: true)
         }
-        
+
         operation.recordWithIDWasDeletedBlock = { deletedRecordID, recordType in
-            //Delete private record also
-            CloudRealmMapper.deleteRecordInRealm(recordID: deletedRecordID, recordType: recordType)
+            CloudCommonDatabase.syncDeleted(recordID: deletedRecordID, recordType: recordType)
         }
-        
+
         operation.recordZoneChangeTokensUpdatedBlock = { zoneID, changedToken, _ in
             guard let changedToken = changedToken else { return }
-            
+
             let changedTokenData = NSKeyedArchiver.archivedData(withRootObject: changedToken)
             UserDefaults.standard.set(changedTokenData, forKey: serverChangedTokenKey)
         }
-        
+
         operation.recordZoneFetchCompletionBlock = { zoneID, changeToken, data, more, error in
             guard error == nil, let changedToken = changeToken else { return }
-            
+
             let changedTokenData = NSKeyedArchiver.archivedData(withRootObject: changedToken)
             UserDefaults.standard.set(changedTokenData, forKey: serverChangedTokenKey)
         }
-        
+
         operation.qualityOfService = .utility
-        
+
         database.add(operation)
     }
 }

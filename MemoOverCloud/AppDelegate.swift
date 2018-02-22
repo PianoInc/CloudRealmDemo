@@ -46,7 +46,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let config = Realm.Configuration(
             // Set the new schema version. This must be greater than the previously used
             // version (if you've never set a schema version before, the version is 0).
-            schemaVersion: 5,
+            schemaVersion: 6,
             
             // Set the block which will be called automatically when opening a Realm with
             // a schema version lower than the one set above
@@ -97,7 +97,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-        print("let's go")
+        
         CloudManager.shared.privateDatabase.handleNotification()
     }
     
@@ -115,10 +115,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         guard let subscriptionID = notification.subscriptionID else {return}
 
 
-        let subscriptionIDs = CloudManager.shared.databases.map {$0.subscriptionID}
-
-        if let index = subscriptionIDs.index(of: subscriptionID) {
-            CloudManager.shared.databases[index].handleNotification()
+        if subscriptionID.hasPrefix(CloudManager.shared.privateDatabase.subscriptionID) {
+            CloudManager.shared.privateDatabase.handleNotification()
+            completionHandler(.newData)
+        } else if subscriptionID == CloudManager.shared.sharedDatabase.subscriptionID {
+            CloudManager.shared.sharedDatabase.handleNotification()
             completionHandler(.newData)
         } else {
             completionHandler(.noData)

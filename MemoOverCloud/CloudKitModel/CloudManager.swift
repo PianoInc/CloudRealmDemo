@@ -68,4 +68,8 @@ class CloudManager {
     func deleteInPrivateDB(recordNames:[String], completion: @escaping ((Error?) -> Void)) {
         privateDatabase.deleteRecords(recordNames: recordNames, completion: completion)
     }
+
+    func deleteInSharedDB(recordNames:[String], in zone: CKRecordZoneID, completion: @escaping ((Error?) -> Void)) {
+        sharedDatabase.deleteRecords(recordNames: recordNames, in: zone, completion: completion)
+    }
 }
