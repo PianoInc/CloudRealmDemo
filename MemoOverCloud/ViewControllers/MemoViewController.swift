@@ -23,7 +23,6 @@ class MemoViewController: UIViewController {
         
         registerKeyboardNotification()
         
-        
         textView.memo = memo
         textView.adjustsFontForContentSizeCategory = true
 
@@ -68,7 +67,7 @@ class MemoViewController: UIViewController {
 
 
     @objc func saveText() {
-        
+        //TODO: make async
         let attributedString: NSAttributedString = textView.unmarkedString
         guard let data = try? attributedString.data(from: NSMakeRange(0, attributedString.length), documentAttributes:[.documentType: NSAttributedString.DocumentType.rtf]),
             let string = String(data: data, encoding: .utf8) else {/* save failed!! */ return}
