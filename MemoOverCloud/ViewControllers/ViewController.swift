@@ -45,7 +45,7 @@ class ViewController: UIViewController {
         if segue.identifier == "goToCategory" {
             guard let categoryVC = segue.destination as? CategoryViewController,
                 let category = sender as? RealmCategoryModel else {return}
-            categoryVC.category = category
+            categoryVC.categoryRecordName = category.recordName
         }
     }
 

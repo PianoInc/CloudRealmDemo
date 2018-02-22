@@ -11,16 +11,12 @@ extension RealmCategoryModel {
 
     func getRecord() -> CKRecord {
         let scheme = Schema.Category.self
-        let zoneID = CKRecordZoneID(zoneName: self.zoneName, ownerName: self.ownerName)
+        let zoneID = CKRecordZoneID(zoneName: zoneName, ownerName: ownerName)
         let recordID = CKRecordID(recordName: self.recordName, zoneID: zoneID)
         let record = CKRecord(recordType: RealmCategoryModel.recordTypeString, recordID: recordID)
 
         record[scheme.id] = self.id as CKRecordValue
         record[scheme.name] = self.name as CKRecordValue
-        record[scheme.notes] = Array(self.notes).map { model -> CKReference in
-            let recordID = CKRecordID(recordName: model.recordName, zoneID: zoneID)
-            return CKReference(recordID: recordID, action: .none)
-        } as CKRecordValue
 
         return record
     }
@@ -31,24 +27,19 @@ extension RealmNoteModel {
 
     func getRecord() -> CKRecord {
         let scheme = Schema.Note.self
-        let zoneID = CKRecordZoneID(zoneName: self.zoneName, ownerName: self.ownerName)
+        let zoneID = CKRecordZoneID(zoneName: zoneName, ownerName: ownerName)
         let recordID = CKRecordID(recordName: self.recordName, zoneID: zoneID)
         let record = CKRecord(recordType: RealmNoteModel.recordTypeString, recordID: recordID)
-        let categoryRecordID = CKRecordID(recordName: self.category.first!.recordName, zoneID: zoneID)
+        let categoryRecordID = CKRecordID(recordName: self.categoryRecordName, zoneID: zoneID)
         
 
         record[scheme.id] = self.id as CKRecordValue
         record[scheme.title] = self.title as CKRecordValue
         record[scheme.content] = self.content as CKRecordValue
-        record[scheme.pureString] = self.pureString as CKRecordValue
-
-        record[scheme.images] = Array(self.images).map { model -> CKReference in
-            let recordID = CKRecordID(recordName: model.recordName, zoneID: zoneID)
-            return CKReference(recordID: recordID, action: .none)
-        } as CKRecordValue
+        record[scheme.attributes] = self.attributes as CKRecordValue
 
 
-        record[scheme.category] = CKReference(recordID: categoryRecordID, action: .deleteSelf)
+        record[scheme.categoryRecordName] = CKReference(recordID: categoryRecordID, action: .deleteSelf)
 
         return record
 
@@ -57,21 +48,21 @@ extension RealmNoteModel {
 
 extension RealmImageModel {
 
-    func getRecord() -> CKRecord {
+    func getRecord() -> (URL, CKRecord) {
         let scheme = Schema.Image.self
-        let zoneID = CKRecordZoneID(zoneName: self.zoneName, ownerName: self.ownerName)
+        let zoneID = CKRecordZoneID(zoneName: zoneName, ownerName: ownerName)
         let recordID = CKRecordID(recordName: self.recordName, zoneID: zoneID)
-        let noteRecordID = CKRecordID(recordName: self.note.first!.recordName, zoneID: zoneID)
         let record = CKRecord(recordType: RealmImageModel.recordTypeString, recordID: recordID)
+        let noteRecordID = CKRecordID(recordName: noteRecordName, zoneID: zoneID)
 
         record[scheme.id] = self.id as CKRecordValue
-        record[scheme.original] = try? CKAsset(data: self.original)
-        record[scheme.thumbnail] = try? CKAsset(data: self.thumbnail)
-        record[scheme.note] = CKReference(recordID: noteRecordID, action: .deleteSelf)
+        guard let asset = try? CKAsset(data: self.image) else { fatalError() }
+        record[scheme.image] = asset
 
+        record[scheme.noteRecordName] = CKReference(recordID: noteRecordID, action: .deleteSelf)
         record.setParent(noteRecordID)
         
-        return record
+        return (asset.fileURL, record)
     }
 }
 
@@ -104,14 +95,14 @@ extension CKRecord {
         guard let id = self[schema.id] as? String,
                 let title = self[schema.title] as? String,
                 let content = self[schema.content] as? String,
-                let pureString = self[schema.pureString] as? String,
+                let attributes = self[schema.attributes] as? String,
                 let isCreated = self.creationDate,
                 let isModified = self.modificationDate else {return nil}
 
         newNoteModel.id = id
         newNoteModel.title = title
         newNoteModel.content = content
-        newNoteModel.pureString = pureString
+        newNoteModel.attributes = attributes
         newNoteModel.isCreated = isCreated
         newNoteModel.isModified = isModified
         newNoteModel.recordName = self.recordID.recordName
@@ -128,14 +119,14 @@ extension CKRecord {
         guard let id = self[schema.id] as? String,
                 let isCreated = self.creationDate,
                 let isModified = self.modificationDate,
-                let thumbAsset = self[schema.thumbnail] as? CKAsset,
-                let thumbnail = try? Data(contentsOf: thumbAsset.fileURL)
+                let imageAsset = self[schema.image] as? CKAsset,
+                let image = try? Data(contentsOf: imageAsset.fileURL)
                 else {return nil}
 
         newImageModel.id = id
         newImageModel.isCreated = isCreated
         newImageModel.isModified = isModified
-        newImageModel.thumbnail = thumbnail
+        newImageModel.image = image
         newImageModel.recordName = self.recordID.recordName
         newImageModel.zoneName = self.recordID.zoneID.zoneName
         newImageModel.ownerName = self.recordID.zoneID.ownerName
@@ -143,4 +134,5 @@ extension CKRecord {
 
         return newImageModel
     }
+
 }

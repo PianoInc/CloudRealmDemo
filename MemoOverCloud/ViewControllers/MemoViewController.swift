@@ -24,6 +24,7 @@ class MemoViewController: UIViewController {
         registerKeyboardNotification()
         
         textView.memo = memo
+        textView.font = UIFont.boldSystemFont(ofSize: 12)
 
         textView.registerClass(FastTextAttachment.self)
         textView.flangeDelegate = self
@@ -145,19 +146,17 @@ extension MemoViewController: PhotoViewDelegate {
         let identifier = textView.memo.id + url.absoluteString
         
         let imageTag = ImageTag(identifier: identifier, width: resizedImage.size.width, height: resizedImage.size.height)
-        let imagesRef = ThreadSafeReference(to: textView.memo.images)
-
+        let noteRecordName = memo.recordName
         DispatchQueue.global(qos: .userInteractive).async {
             if let realm = try? Realm(),
                 let _ = realm.object(ofType: RealmImageModel.self, forPrimaryKey: imageTag.identifier) {
                 //ImageModel exist!!
             } else {
-                let newImageModel = RealmImageModel()
+                let newImageModel = RealmImageModel.getNewModel(noteRecordName: noteRecordName)
                 newImageModel.id = imageTag.identifier
-                newImageModel.original = UIImageJPEGRepresentation(image, 1.0) ?? Data()
-                newImageModel.thumbnail = UIImageJPEGRepresentation(resizedImage, 1.0) ?? Data()
-                
-                LocalDatabase.shared.saveObjectWithAppend(list: imagesRef, object: newImageModel)
+                newImageModel.image = UIImageJPEGRepresentation(image, 1.0) ?? Data()
+
+                LocalDatabase.shared.saveObject(newObject: newImageModel)
             }
         }
         
@@ -254,7 +253,8 @@ extension MemoViewController: UICloudSharingControllerDelegate, UIPopoverPresent
             CKContainer.default().privateCloudDatabase.add(modifyOp)
         })
         sharingController.availablePermissions = [.allowReadWrite,
-                                                  .allowPrivate]
+                                                  .allowPublic]
+        
         sharingController.delegate = self
         
         if (UI_USER_INTERFACE_IDIOM() == .phone) {
