@@ -73,11 +73,11 @@ class ModelManager {
         let recordName = model.recordName
         let ref = ThreadSafeReference(to: model)
 
-        LocalDatabase.shared.deleteObject(ref: ref)
+        
         if model.isShared {
-            let zoneID = CKRecordZoneID(zoneName: model.zoneName, ownerName: model.ownerName)
+            let record = model.getRecord()
             CloudManager.shared.deleteInPrivateDB(recordNames: [recordName], completion: {_ in})
-            CloudManager.shared.deleteInSharedDB(recordNames: [recordName], in: zoneID) { error in
+            CloudManager.shared.deleteInSharedDB(recordNames: [recordName], in: record.recordID.zoneID) { error in
                 if let error = error { completion(error) }
                 else {completion(nil)}
             }
@@ -87,6 +87,8 @@ class ModelManager {
                 else {completion(nil)}
             }
         }
+        
+        LocalDatabase.shared.deleteObject(ref: ref)
     }
 
 
@@ -123,10 +125,14 @@ class ModelManager {
         let recordName = model.recordName
         let ref = ThreadSafeReference(to: model)
 
-        LocalDatabase.shared.deleteObject(ref: ref)
         if model.isShared {
-            let zoneID = CKRecordZoneID(zoneName: model.zoneName, ownerName: model.ownerName)
-            CloudManager.shared.deleteInSharedDB(recordNames: [recordName], in: zoneID) { error in
+            //Not make any additional url
+            let coder = NSKeyedUnarchiver(forReadingWith: model.ckMetaData)
+            coder.requiresSecureCoding = true
+            guard let record = CKRecord(coder: coder) else {fatalError("Data pulluted!!")}
+            coder.finishDecoding()
+                
+            CloudManager.shared.deleteInSharedDB(recordNames: [recordName], in: record.recordID.zoneID) { error in
                 if let error = error { completion(error) }
                 else { completion(nil) }
             }
@@ -137,6 +143,8 @@ class ModelManager {
 
             }
         }
+        
+        LocalDatabase.shared.deleteObject(ref: ref)
     }
 
 

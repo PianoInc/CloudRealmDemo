@@ -168,10 +168,10 @@ extension CloudCommonDatabase {
         guard let realm = try? Realm(),
                 let noteModel = realm.objects(RealmNoteModel.self).filter("recordName = %@", recordName).first else {return}
 
-        let zoneID = CKRecordZoneID(zoneName: noteModel.zoneName, ownerName: noteModel.ownerName)
+        let record = noteModel.getRecord()
         deleteNoteRecord(recordName)
 
-        CloudManager.shared.deleteInSharedDB(recordNames: [recordName], in: zoneID) { error in
+        CloudManager.shared.deleteInSharedDB(recordNames: [recordName], in: record.recordID.zoneID) { error in
             if let error = error {
                 //Do it again
             }

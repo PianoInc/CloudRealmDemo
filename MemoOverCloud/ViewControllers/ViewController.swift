@@ -26,7 +26,7 @@ class ViewController: UIViewController {
         super.viewDidLoad()
 
         guard let realm = try? Realm() else { fatalError("Database open failed")}
-        self.categories = realm.objects(RealmCategoryModel.self).sorted(byKeyPath: "isCreated", ascending: false)
+        self.categories = realm.objects(RealmCategoryModel.self)
 
         tableView.delegate = self
         tableView.dataSource = self

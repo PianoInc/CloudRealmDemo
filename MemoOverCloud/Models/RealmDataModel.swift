@@ -15,10 +15,7 @@ class RealmCategoryModel: Object {
     @objc dynamic var name = ""
 
     @objc dynamic var recordName = ""
-    @objc dynamic var zoneName = ""
-    @objc dynamic var ownerName = ""
-    @objc dynamic var isCreated = Date()
-    @objc dynamic var isModified = Date()
+    @objc dynamic var ckMetaData = Data()
 
     override static func primaryKey() -> String? {
         return "id"
@@ -31,11 +28,16 @@ class RealmCategoryModel: Object {
     static func getNewModel(name: String) -> RealmCategoryModel {
         let id = UniqueIDGenerator.getUniqueID()
         let record = CKRecord(recordType: RealmCategoryModel.recordTypeString, zoneID: CloudManager.shared.privateDatabase.zoneID)
+        
+        let data = NSMutableData()
+        let coder = NSKeyedArchiver(forWritingWith: data)
+        coder.requiresSecureCoding = true
+        record.encodeSystemFields(with: coder)
+        coder.finishEncoding()
 
         let newModel = RealmCategoryModel()
         newModel.recordName = record.recordID.recordName
-        newModel.ownerName = record.recordID.zoneID.ownerName
-        newModel.zoneName = record.recordID.zoneID.zoneName
+        newModel.ckMetaData = Data(referencing: data)
         newModel.id = id
         newModel.name = name
 
@@ -54,9 +56,7 @@ class RealmNoteModel: Object {
     @objc dynamic var attributes = ""
 
     @objc dynamic var recordName = ""
-    @objc dynamic var zoneName = ""
-    @objc dynamic var ownerName = ""
-    @objc dynamic var isCreated = Date()
+    @objc dynamic var ckMetaData = Data()
     @objc dynamic var isModified = Date()
     
     @objc dynamic var isShared = false
@@ -75,11 +75,16 @@ class RealmNoteModel: Object {
     static func getNewModel(title: String, categoryRecordName: String) -> RealmNoteModel {
         let id = UniqueIDGenerator.getUniqueID()
         let record = CKRecord(recordType: RealmNoteModel.recordTypeString, zoneID: CloudManager.shared.privateDatabase.zoneID)
+        
+        let data = NSMutableData()
+        let coder = NSKeyedArchiver.init(forWritingWith: data)
+        coder.requiresSecureCoding = true
+        record.encodeSystemFields(with: coder)
+        coder.finishEncoding()
 
         let newModel = RealmNoteModel()
         newModel.recordName = record.recordID.recordName
-        newModel.ownerName = record.recordID.zoneID.ownerName
-        newModel.zoneName = record.recordID.zoneID.zoneName
+        newModel.ckMetaData = Data(referencing: data)
         newModel.id = id
         newModel.title = title
         newModel.categoryRecordName = categoryRecordName
@@ -96,10 +101,7 @@ class RealmImageModel: Object {
     @objc dynamic var image = Data()
 
     @objc dynamic var recordName = ""
-    @objc dynamic var zoneName = ""
-    @objc dynamic var ownerName = ""
-    @objc dynamic var isCreated = Date()
-    @objc dynamic var isModified = Date()
+    @objc dynamic var ckMetaData = Data()
     
     @objc dynamic var isShared = false
 
@@ -118,10 +120,15 @@ class RealmImageModel: Object {
         let zoneID = sharedZoneID ?? CloudManager.shared.privateDatabase.zoneID
         let record = CKRecord(recordType: RealmImageModel.recordTypeString, zoneID: zoneID)
         
+        let data = NSMutableData()
+        let coder = NSKeyedArchiver.init(forWritingWith: data)
+        coder.requiresSecureCoding = true
+        record.encodeSystemFields(with: coder)
+        coder.finishEncoding()
+        
         let newModel = RealmImageModel()
         newModel.recordName = record.recordID.recordName
-        newModel.ownerName = record.recordID.zoneID.ownerName
-        newModel.zoneName = record.recordID.zoneID.zoneName
+        newModel.ckMetaData = Data(referencing: data)
         newModel.id = id
         newModel.isShared = sharedZoneID != nil
         newModel.noteRecordName = noteRecordName
