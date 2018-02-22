@@ -192,7 +192,7 @@ class CloudPrivateDatabase: CloudCommonDatabase {
         let recordTypes = [RealmCategoryModel.recordTypeString,
                            RealmNoteModel.recordTypeString,
                            RealmImageModel.recordTypeString,
-                           RealmRecordTypeString.categoryForSharedMemo.rawValue]
+                           RealmCategoryForSharedModel.recordTypeString]
 
         recordTypes.forEach {
             let subscriptionKey = "ckSubscriptionSaved\($0)\(database.scopeString)\(userID)"

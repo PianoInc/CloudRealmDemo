@@ -78,19 +78,7 @@ class ModelManager {
             completion?(nil)
         }
 
-        if model.isShared {
-            
-            let recordID = CKRecordID(recordName: record.recordID.recordName, zoneID: CloudManager.shared.privateDatabase.zoneID)
-            let categoryForSharedMemoRecord = CKRecord(recordType: RealmRecordTypeString.categoryForSharedMemo.rawValue, recordID: recordID)
-
-            categoryForSharedMemoRecord[Schema.SharedNote.categoryRecordName] = model.categoryRecordName as CKRecordValue
-
-            record[Schema.Note.categoryRecordName] = nil
-            CloudManager.shared.uploadRecordToSharedDB(record: record, completion: cloudCompletion)
-            CloudManager.shared.uploadRecordToPrivateDB(record: record) {_,_ in }
-        } else {
-            CloudManager.shared.uploadRecordToPrivateDB(record: record, completion: cloudCompletion)
-        }
+        CloudManager.shared.uploadRecordToPrivateDB(record: record, completion: cloudCompletion)
     }
 
     static func delete(model: RealmNoteModel, completion: ((Error?) -> Void)? = nil) {
@@ -138,15 +126,15 @@ class ModelManager {
                     }
                     
                     if updatedModel.isShared {
-                        //TODO: logic needs to be fixed
-                        let recordID = CKRecordID(recordName: record.recordID.recordName, zoneID: CloudManager.shared.privateDatabase.zoneID)
-                        let categoryForSharedMemoRecord = CKRecord(recordType: RealmRecordTypeString.categoryForSharedMemo.rawValue, recordID: recordID)
+                        let newModel = RealmCategoryForSharedModel.getNewModel(recordName: record.recordID.recordName)
                         
-                        categoryForSharedMemoRecord[Schema.SharedNote.categoryRecordName] = model.categoryRecordName as CKRecordValue
+                        let categoryForSharedMemoRecord = newModel.getRecord()
+                        categoryForSharedMemoRecord[Schema.categoryForSharedNote.CategoryRecordName] = model.categoryRecordName as CKRecordValue
                         
                         record[Schema.Note.categoryRecordName] = nil
                         CloudManager.shared.uploadRecordToSharedDB(record: record, completion: cloudCompletion)
                         CloudManager.shared.uploadRecordToPrivateDB(record: record) {_,_ in }
+                        LocalDatabase.shared.saveObject(newObject: newModel)
                     } else {
                         CloudManager.shared.uploadRecordToPrivateDB(record: record, completion: cloudCompletion)
                     } 
