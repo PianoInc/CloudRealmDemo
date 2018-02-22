@@ -72,22 +72,16 @@ class CategoryViewController: UIViewController {
     }
     
     @IBAction func newButtonTouched() {
-        //This functionality will be moved to Realm Wrapper
+        
         let newNote = RealmNoteModel.getNewModel(title: "newNote \(count)", categoryRecordName: categoryRecordName)
 
-        LocalDatabase.shared.saveObject(newObject: newNote) {
-
-            CloudManager.shared.uploadRecordToPrivateDB(record: newNote.getRecord()) { (conflicted, error) in
-                if let error = error {
-                    print(error)
-                } else {
-                    print("happy")
-                }
+        ModelManager.save(model: newNote) { error in
+            if let error = error {
+                print(error)
+            } else {
+                print("happy")
             }
-
         }
-
-        
 
         count += 1
 

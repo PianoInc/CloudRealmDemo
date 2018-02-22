@@ -25,13 +25,11 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        guard let realm = try? Realm() else { fatalError("Database open failed")}
-        self.categories = realm.objects(RealmCategoryModel.self).sorted(byKeyPath: "isCreated", ascending: false)
-
         tableView.delegate = self
         tableView.dataSource = self
         
         validateToken()
+        NotificationCenter.default.addObserver(self, selector: #selector(validateToken), name: NSNotification.Name.RealmConfigHasChanged, object: nil)
     }
 
 
@@ -49,7 +47,11 @@ class ViewController: UIViewController {
         }
     }
 
-    func validateToken() {
+    @objc func validateToken() {
+        
+        guard let realm = try? Realm() else { fatalError("Database open failed")}
+        self.categories = realm.objects(RealmCategoryModel.self).sorted(byKeyPath: "isCreated", ascending: false)
+        
         notificationToken = categories.observe { [weak self] (changes) in
             guard let tableView = self?.tableView else {return}
 
@@ -74,14 +76,13 @@ class ViewController: UIViewController {
 
         let newCategory = RealmCategoryModel.getNewModel(name: "new Category\(count)")
 
-        CloudManager.shared.uploadRecordToPrivateDB(record: newCategory.getRecord()) { (conflicted, error) in
+        ModelManager.save(model: newCategory) { error in
             if let error = error {
                 print(error)
             } else {
                 print("happy")
             }
         }
-        LocalDatabase.shared.saveObject(newObject: newCategory)
 
         count += 1
     }
@@ -122,10 +123,7 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
 
-            let categoryRef = ThreadSafeReference(to: categories[indexPath.row])
-
-            LocalDatabase.shared.deleteObject(ref: categoryRef)
-
+            ModelManager.delete(model: categories[indexPath.row])
         }
     }
 }

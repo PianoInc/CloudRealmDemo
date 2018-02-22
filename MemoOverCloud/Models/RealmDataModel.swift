@@ -6,7 +6,7 @@
 import RealmSwift
 import CloudKit
 
-//TODO: remove List properties
+
 protocol Recordable {
     static var recordTypeString: String {get}
 
@@ -94,6 +94,8 @@ class RealmNoteModel: Object, Recordable {
         newModel.id = id
         newModel.title = title
         newModel.categoryRecordName = categoryRecordName
+        newModel.content = ""
+        newModel.attributes = ""
 
         return newModel
     }
@@ -124,7 +126,7 @@ class RealmImageModel: Object, Recordable {
         return ["recordTypeString"]
     }
 
-    static func getNewModel(sharedZoneID: CKRecordZoneID? = nil, noteRecordName: String) -> RealmImageModel {
+    static func getNewModel(sharedZoneID: CKRecordZoneID? = nil, noteRecordName: String, image: UIImage) -> RealmImageModel {
         let id = UniqueIDGenerator.getUniqueID()
         let zoneID = sharedZoneID ?? CloudManager.shared.privateDatabase.zoneID
         let record = CKRecord(recordType: RealmImageModel.recordTypeString, zoneID: zoneID)
@@ -136,6 +138,7 @@ class RealmImageModel: Object, Recordable {
         newModel.id = id
         newModel.isShared = sharedZoneID != nil
         newModel.noteRecordName = noteRecordName
+        newModel.image = UIImageJPEGRepresentation(image, 1.0) ?? Data()
         
         return newModel
     }

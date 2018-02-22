@@ -96,6 +96,7 @@ extension CKRecord {
                 let title = self[schema.title] as? String,
                 let content = self[schema.content] as? String,
                 let attributes = self[schema.attributes] as? String,
+                let categoryReference = self[schema.categoryRecordName] as? CKReference,
                 let isCreated = self.creationDate,
                 let isModified = self.modificationDate else {return nil}
 
@@ -103,6 +104,7 @@ extension CKRecord {
         newNoteModel.title = title
         newNoteModel.content = content
         newNoteModel.attributes = attributes
+        newNoteModel.categoryRecordName = categoryReference.recordID.recordName
         newNoteModel.isCreated = isCreated
         newNoteModel.isModified = isModified
         newNoteModel.recordName = self.recordID.recordName
@@ -120,13 +122,15 @@ extension CKRecord {
                 let isCreated = self.creationDate,
                 let isModified = self.modificationDate,
                 let imageAsset = self[schema.image] as? CKAsset,
-                let image = try? Data(contentsOf: imageAsset.fileURL)
+                let image = try? Data(contentsOf: imageAsset.fileURL),
+                let noteReference = self[schema.noteRecordName] as? CKReference
                 else {return nil}
 
         newImageModel.id = id
         newImageModel.isCreated = isCreated
         newImageModel.isModified = isModified
         newImageModel.image = image
+        newImageModel.noteRecordName = noteReference.recordID.recordName
         newImageModel.recordName = self.recordID.recordName
         newImageModel.zoneName = self.recordID.zoneID.zoneName
         newImageModel.ownerName = self.recordID.zoneID.ownerName
