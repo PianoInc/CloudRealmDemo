@@ -102,16 +102,18 @@ class CloudCommonDatabase {
                 if clientModified.compare(serverModified) == .orderedDescending {
                     //client win!
 
-                    serverRecord["title"] = clientRecord["title"]
-                    serverRecord["content"] = clientRecord["content"]
-                    serverRecord["pureString"] = clientRecord["pureString"]
+//                    serverRecord["title"] = clientRecord["title"]
+//                    serverRecord["content"] = clientRecord["content"]
+//                    serverRecord["pureString"] = clientRecord["pureString"]
 
+                    print("c win")
                     self.saveRecord(record: serverRecord) { newRecord, error in
                         completion(newRecord, error)
                     }
                 } else {
                     //server win!
 
+                    print("s win")
                     completion(serverRecord, nil)
                 }
                 return
