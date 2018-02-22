@@ -6,19 +6,8 @@
 import RealmSwift
 import CloudKit
 
-//TODO: remove List properties
-protocol Recordable {
-    static var recordTypeString: String {get}
 
-    var recordName: String {get set}
-    var zoneName: String {get set}
-    var ownerName: String {get set}
-    var isCreated: Date {get set}
-    var isModified: Date {get set}
-
-}
-
-class RealmCategoryModel: Object, Recordable {
+class RealmCategoryModel: Object {
 
     static let recordTypeString = "Category"
 
@@ -55,7 +44,7 @@ class RealmCategoryModel: Object, Recordable {
 }
 
 
-class RealmNoteModel: Object, Recordable {
+class RealmNoteModel: Object {
 
     static let recordTypeString = "Note"
 
@@ -99,7 +88,7 @@ class RealmNoteModel: Object, Recordable {
     }
 }
 
-class RealmImageModel: Object, Recordable {
+class RealmImageModel: Object {
 
     static let recordTypeString = "Image"
 
