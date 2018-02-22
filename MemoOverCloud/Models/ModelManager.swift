@@ -81,9 +81,9 @@ class ModelManager {
         if model.isShared {
             
             let recordID = CKRecordID(recordName: record.recordID.recordName, zoneID: CloudManager.shared.privateDatabase.zoneID)
-            let sharedMemoRecord = CKRecord(recordType: RealmRecordTypeString.sharedMemo.rawValue, recordID: recordID)
+            let categoryForSharedMemoRecord = CKRecord(recordType: RealmRecordTypeString.categoryForSharedMemo.rawValue, recordID: recordID)
 
-            sharedMemoRecord[Schema.SharedNote.categoryRecordName] = model.categoryRecordName as CKRecordValue
+            categoryForSharedMemoRecord[Schema.SharedNote.categoryRecordName] = model.categoryRecordName as CKRecordValue
 
             record[Schema.Note.categoryRecordName] = nil
             CloudManager.shared.uploadRecordToSharedDB(record: record, completion: cloudCompletion)
@@ -140,9 +140,9 @@ class ModelManager {
                     if updatedModel.isShared {
                         //TODO: logic needs to be fixed
                         let recordID = CKRecordID(recordName: record.recordID.recordName, zoneID: CloudManager.shared.privateDatabase.zoneID)
-                        let sharedMemoRecord = CKRecord(recordType: RealmRecordTypeString.sharedMemo.rawValue, recordID: recordID)
+                        let categoryForSharedMemoRecord = CKRecord(recordType: RealmRecordTypeString.categoryForSharedMemo.rawValue, recordID: recordID)
                         
-                        sharedMemoRecord[Schema.SharedNote.categoryRecordName] = model.categoryRecordName as CKRecordValue
+                        categoryForSharedMemoRecord[Schema.SharedNote.categoryRecordName] = model.categoryRecordName as CKRecordValue
                         
                         record[Schema.Note.categoryRecordName] = nil
                         CloudManager.shared.uploadRecordToSharedDB(record: record, completion: cloudCompletion)
@@ -193,7 +193,7 @@ class ModelManager {
             //Not make any additional url
             let coder = NSKeyedUnarchiver(forReadingWith: model.ckMetaData)
             coder.requiresSecureCoding = true
-            guard let record = CKRecord(coder: coder) else {fatalError("Data pulluted!!")}
+            guard let record = CKRecord(coder: coder) else {fatalError("Data polluted!!")}
             coder.finishDecoding()
             
             CloudManager.shared.deleteInSharedDB(recordNames: [recordName], in: record.recordID.zoneID) { error in

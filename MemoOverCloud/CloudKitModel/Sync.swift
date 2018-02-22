@@ -47,7 +47,7 @@ enum RealmRecordTypeString: String {
         case category = "Category"
         case note = "Note"
         case image = "Image"
-        case sharedMemo = "SharedMemo"
+        case categoryForSharedMemo = "categoryForSharedMemo"
 }
 
 
@@ -61,7 +61,7 @@ extension CloudCommonDatabase {
             case .category: saveCategoryRecord(record)
             case .note: saveNoteRecord(record, isShared: isShared)
             case .image: saveImageRecord(record, isShared: isShared)
-            case .sharedMemo: saveSharedMemo(record)
+            case .categoryForSharedMemo: savecategoryForSharedMemo(record)
         }
 
     }
@@ -73,7 +73,7 @@ extension CloudCommonDatabase {
             case .category: deleteCategoryRecord(recordID.recordName)
             case .note: deleteNoteRecord(recordID.recordName)
             case .image: deleteImageRecord(recordID.recordName)
-            case .sharedMemo: deleteSharedNoteRecord(recordID.recordName)
+            case .categoryForSharedMemo: deleteSharedNoteRecord(recordID.recordName)
         }
     }
 
@@ -93,10 +93,10 @@ extension CloudCommonDatabase {
         
         if isShared {
             let recordID = CKRecordID(recordName: record.recordID.recordName, zoneID: CloudManager.shared.privateDatabase.zoneID)
-            let sharedMemoRecord = CKRecord(recordType: RealmRecordTypeString.sharedMemo.rawValue, recordID: recordID)
-            sharedMemoRecord[Schema.SharedNote.categoryRecordName] = "" as CKRecordValue
+            let categoryForSharedMemoRecord = CKRecord(recordType: RealmRecordTypeString.categoryForSharedMemo.rawValue, recordID: recordID)
+            categoryForSharedMemoRecord[Schema.SharedNote.categoryRecordName] = "" as CKRecordValue
             
-            CloudManager.shared.uploadRecordToPrivateDB(record: sharedMemoRecord) { _ , error in
+            CloudManager.shared.uploadRecordToPrivateDB(record: categoryForSharedMemoRecord) { _ , error in
                 //if error do it again
             }
             
@@ -119,7 +119,7 @@ extension CloudCommonDatabase {
         LocalDatabase.shared.saveObject(newObject: imageModel)
     }
 
-    private static func saveSharedMemo(_ record: CKRecord) {
+    private static func savecategoryForSharedMemo(_ record: CKRecord) {
         guard let realm = try? Realm(),
                 let noteModel = realm.objects(RealmNoteModel.self).filter("recordName = %@", record.recordID.recordName).first,
                 let categoryRecordName = record[Schema.Note.categoryRecordName] as? String else {return}
