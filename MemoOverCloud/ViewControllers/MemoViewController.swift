@@ -23,8 +23,9 @@ class MemoViewController: UIViewController {
         
         registerKeyboardNotification()
         
+        
         textView.memo = memo
-        textView.font = UIFont.boldSystemFont(ofSize: 12)
+        textView.adjustsFontForContentSizeCategory = true
 
         textView.registerClass(FastTextAttachment.self)
         textView.flangeDelegate = self
@@ -67,17 +68,17 @@ class MemoViewController: UIViewController {
 
 
     @objc func saveText() {
-
-        let memoReference = ThreadSafeReference(to: textView.memo)
-
         
         let attributedString: NSAttributedString = textView.unmarkedString
         guard let data = try? attributedString.data(from: NSMakeRange(0, attributedString.length), documentAttributes:[.documentType: NSAttributedString.DocumentType.rtf]),
             let string = String(data: data, encoding: .utf8) else {/* save failed!! */ return}
 
         let kv: [String: Any] = ["content": string]
-
-        LocalDatabase.shared.updateObject(ref: memoReference, kv: kv)
+        
+        ModelManager.update(model: textView.memo, kv: kv) { error in
+            if let error = error {print(error)}
+            else {print("happy")}
+        }
     }
 
     
@@ -152,11 +153,10 @@ extension MemoViewController: PhotoViewDelegate {
                 let _ = realm.object(ofType: RealmImageModel.self, forPrimaryKey: imageTag.identifier) {
                 //ImageModel exist!!
             } else {
-                let newImageModel = RealmImageModel.getNewModel(noteRecordName: noteRecordName)
+                let newImageModel = RealmImageModel.getNewModel(noteRecordName: noteRecordName, image: image)
                 newImageModel.id = imageTag.identifier
-                newImageModel.image = UIImageJPEGRepresentation(image, 1.0) ?? Data()
 
-                LocalDatabase.shared.saveObject(newObject: newImageModel)
+                ModelManager.save(model: newImageModel) {error in }
             }
         }
         

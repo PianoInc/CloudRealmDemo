@@ -86,21 +86,29 @@ extension CloudCommonDatabase {
     }
 
     private static func saveNoteRecord(_ record: CKRecord, isShared: Bool) {
+        
         guard let noteModel = record.parseNoteRecord() else {return}
 
         noteModel.isShared = isShared
-        LocalDatabase.shared.saveObject(newObject: noteModel)
-
+        
         if isShared {
             let recordID = CKRecordID(recordName: record.recordID.recordName, zoneID: CloudManager.shared.privateDatabase.zoneID)
             let sharedMemoRecord = CKRecord(recordType: RealmRecordTypeString.sharedMemo.rawValue, recordID: recordID)
             sharedMemoRecord[Schema.SharedNote.categoryRecordName] = "" as CKRecordValue
-
+            
             CloudManager.shared.uploadRecordToPrivateDB(record: sharedMemoRecord) { _ , error in
                 //if error do it again
             }
+            
+            if let realm = try? Realm(),
+                let oldNote = realm.object(ofType: RealmNoteModel.self, forPrimaryKey: noteModel.id) {
+                noteModel.categoryRecordName = oldNote.categoryRecordName
+            }
         }
+        
+        LocalDatabase.shared.saveObject(newObject: noteModel)
 
+        
     }
 
     private static func saveImageRecord(_ record: CKRecord, isShared: Bool) {

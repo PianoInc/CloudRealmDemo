@@ -17,9 +17,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
     
     
-    //TODO: make user managing point
-    //It will check whether user has turned icloud on or not
-    //Also it enables share owner check
     
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
@@ -28,14 +25,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         application.registerForRemoteNotifications()
         performMigration()
         
+        _ = CloudManager.shared
         //Remove this chunk if datas need to be persistent
         let realm = try! Realm()
         try! realm.write {
             realm.deleteAll()
         }
         
-        _ = CloudManager.shared
-
+        
 
         return true
     }
@@ -98,7 +95,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         
-        CloudManager.shared.privateDatabase.handleNotification()
     }
     
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
@@ -145,4 +141,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             cloudKitShareMetadata.containerIdentifier).add(acceptShareOperation)
     }
     
+}
+
+
+extension Realm {
+    static func setDefaultRealmForUser(username: String) {
+        var config = Realm.Configuration()
+        
+        // Use the default directory, but replace the filename with the username
+        config.fileURL = config.fileURL!.deletingLastPathComponent()
+            .appendingPathComponent("\(username).realm")
+        
+        // Set this as the configuration used for the default Realm
+        Realm.Configuration.defaultConfiguration = config
+    }
 }

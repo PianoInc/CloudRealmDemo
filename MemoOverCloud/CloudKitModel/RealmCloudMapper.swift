@@ -105,13 +105,15 @@ extension CKRecord {
         guard let id = self[schema.id] as? String,
                 let title = self[schema.title] as? String,
                 let content = self[schema.content] as? String,
-                let attributes = self[schema.attributes] as? String else {return nil}
+                let attributes = self[schema.attributes] as? String,
+                let categoryReference = self[schema.categoryRecordName] as? CKReference else {return nil}
         
         let data = NSMutableData()
         let coder = NSKeyedArchiver.init(forWritingWith: data)
         coder.requiresSecureCoding = true
         self.encodeSystemFields(with: coder)
         coder.finishEncoding()
+
 
         newNoteModel.id = id
         newNoteModel.title = title
@@ -120,6 +122,7 @@ extension CKRecord {
         newNoteModel.recordName = self.recordID.recordName
         newNoteModel.ckMetaData = Data(referencing: data)
         newNoteModel.isModified = self.modificationDate ?? Date()
+        newNoteModel.categoryRecordName = categoryReference.recordID.recordName
 
         return newNoteModel
     }
@@ -130,7 +133,8 @@ extension CKRecord {
 
         guard let id = self[schema.id] as? String,
                 let imageAsset = self[schema.image] as? CKAsset,
-                let image = try? Data(contentsOf: imageAsset.fileURL)
+                let image = try? Data(contentsOf: imageAsset.fileURL),
+                let noteReference = self[schema.noteRecordName] as? CKReference
                 else {return nil}
 
         let data = NSMutableData()
@@ -141,6 +145,7 @@ extension CKRecord {
         
         newImageModel.id = id
         newImageModel.image = image
+        newImageModel.noteRecordName = noteReference.recordID.recordName
         newImageModel.recordName = self.recordID.recordName
         newImageModel.ckMetaData = Data(referencing: data)
 
