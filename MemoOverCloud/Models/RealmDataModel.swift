@@ -53,7 +53,7 @@ class RealmNoteModel: Object {
     @objc dynamic var id = ""
     @objc dynamic var title = ""
     @objc dynamic var content = ""
-    @objc dynamic var attributes = ""
+    @objc dynamic var attributes = Data()
 
     @objc dynamic var recordName = ""
     @objc dynamic var ckMetaData = Data()
@@ -89,7 +89,6 @@ class RealmNoteModel: Object {
         newModel.title = title
         newModel.categoryRecordName = categoryRecordName
         newModel.content = ""
-        newModel.attributes = ""
 
         return newModel
     }
@@ -116,6 +115,8 @@ class RealmImageModel: Object {
     override static func ignoredProperties() -> [String] {
         return ["recordTypeString"]
     }
+
+
 
     static func getNewModel(sharedZoneID: CKRecordZoneID? = nil, noteRecordName: String, image: UIImage) -> RealmImageModel {
         let id = UniqueIDGenerator.getUniqueID()
@@ -147,6 +148,7 @@ class RealmCategoryForSharedModel: Object {
     @objc dynamic var recordName = ""
     @objc dynamic var ckMetaData = Data()
     @objc dynamic var categoryRecordName = ""
+    
     
     override static func ignoredProperties() -> [String] {
         return ["recordTypeString"]
