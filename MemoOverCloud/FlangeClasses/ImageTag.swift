@@ -6,27 +6,15 @@
 import Photos
 import UIKit
 
-struct ImageTag {
-    static let tagName = "flg_image"
-    let identifier: String
-    let width: CGFloat
-    let height: CGFloat
-
-    
-    init(identifier: String, width: CGFloat, height: CGFloat) {
-        self.identifier = identifier
-        self.width = width
-        self.height = height
+class ImageTag {
+    static func parseImageTag(_ tag: String) -> (String, CGFloat, CGFloat) {
+        let strings = tag.components(separatedBy: "|")
+        let width = CGFloat(Int(strings[1]) ?? 0)
+        let height = CGFloat(Int(strings[2]) ?? 0)
+        return (strings[0],width,height)
     }
 
-    init?(tagString: String) {
-        let components = tagString.components(separatedBy: "\"")
-        let identifier = components[1]
-        guard let width = Int(components[3]), let height = Int(components[5]) else {return nil}
-        self.init(identifier: identifier, width: CGFloat(width), height: CGFloat(height))
-    }
-
-    func getTagString() -> String {
-        return "<\(ImageTag.tagName) src=\"\(identifier)\" width=\"\(Int(width))\"height=\"\(Int(height))\">"
+    static func getImageTag(id: String, width: CGFloat, height: CGFloat) -> String {
+        return "\(id)|\(Int(width))|\(Int(height))"
     }
 }
