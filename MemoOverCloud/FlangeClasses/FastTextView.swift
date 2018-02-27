@@ -54,6 +54,14 @@ class FastTextView: FlangeTextView {
                 }
             }
             
+
+            newAttributedString.enumerateAttribute(.font, in: NSMakeRange(0, newAttributedString.length), options: [.longestEffectiveRangeNotRequired, .reverse]) { (value, range, _) in
+                guard let font = value as? UIFont else {return}
+                
+                print(font)
+            }
+            
+            
             attributedText = newAttributedString
 
         }

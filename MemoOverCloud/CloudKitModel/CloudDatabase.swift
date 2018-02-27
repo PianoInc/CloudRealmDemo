@@ -8,11 +8,13 @@ import CloudKit
 class CloudCommonDatabase {
     fileprivate let database: CKDatabase
     public let subscriptionID: String
+    var userID: CKRecordID?
 
-    init(database: CKDatabase) {
+    init(database: CKDatabase, userID: CKRecordID?) {
         self.database = database
 
         self.subscriptionID = "cloudkit-note-changes\(database.scopeString)"
+        self.userID = userID
     }
 
     /*
@@ -93,23 +95,25 @@ class CloudCommonDatabase {
                 let (ancestorRec, clientRec, serverRec) = ckError.getMergeRecords()
                 guard let clientRecord = clientRec,
                         let serverRecord = serverRec,
-                        let clientModified = clientRecord.modificationDate,
                         let serverModified = serverRecord.modificationDate else { return completion(nil, error) }
 
+                let clientModified = clientRecord.modificationDate ?? Date(timeIntervalSince1970: 0)
                 //TODO: resolve merge conflict by diff3 algorithm
                 if clientModified.compare(serverModified) == .orderedDescending {
                     //client win!
 
-                    serverRecord["title"] = clientRecord["title"]
-                    serverRecord["content"] = clientRecord["content"]
-                    serverRecord["pureString"] = clientRecord["pureString"]
+//                    serverRecord["title"] = clientRecord["title"]
+//                    serverRecord["content"] = clientRecord["content"]
+//                    serverRecord["pureString"] = clientRecord["pureString"]
 
+                    print("c win")
                     self.saveRecord(record: serverRecord) { newRecord, error in
                         completion(newRecord, error)
                     }
                 } else {
                     //server win!
 
+                    print("s win")
                     completion(serverRecord, nil)
                 }
                 return
@@ -163,11 +167,12 @@ class CloudPrivateDatabase: CloudCommonDatabase {
     private let customZoneName = "Cloud_Memo_Zone"
     public var zoneID: CKRecordZoneID
 
-    public override init(database: CKDatabase) {
+    public override init(database: CKDatabase, userID: CKRecordID?) {
         let zone = CKRecordZone(zoneName: self.customZoneName)
         self.zoneID = zone.zoneID
 
-        super.init(database: database)
+        super.init(database: database, userID: userID)
+        
         saveSubscription()
     }
 
@@ -185,13 +190,14 @@ class CloudPrivateDatabase: CloudCommonDatabase {
      */
     override fileprivate func saveSubscription() {
 
+        let userID = self.userID?.recordName ?? ""
         let recordTypes = [RealmCategoryModel.recordTypeString,
                            RealmNoteModel.recordTypeString,
                            RealmImageModel.recordTypeString,
-                           RealmRecordTypeString.sharedMemo.rawValue]
+                           RealmCategoryForSharedModel.recordTypeString]
 
         recordTypes.forEach {
-            let subscriptionKey = "ckSubscriptionSaved\($0)\(database.scopeString)"
+            let subscriptionKey = "ckSubscriptionSaved\($0)\(database.scopeString)\(userID)"
             let alreadySaved = UserDefaults.standard.bool(forKey: subscriptionKey)
             guard !alreadySaved else {return}
 
@@ -200,7 +206,7 @@ class CloudPrivateDatabase: CloudCommonDatabase {
 
             let subscription = CKQuerySubscription(recordType: $0,
                     predicate: predicate,
-                    subscriptionID: "\(subscriptionID)\($0)",
+                    subscriptionID: "\(subscriptionID)\($0)\(userID)",
                     options: [.firesOnRecordCreation, .firesOnRecordDeletion, .firesOnRecordUpdate])
 
 
@@ -230,7 +236,8 @@ class CloudPrivateDatabase: CloudCommonDatabase {
     }
 
     public override func handleNotification() {
-        let serverChangedTokenKey = "ckServerChangeToken\(database.scopeString)"
+        let userID = self.userID?.recordName ?? ""
+        let serverChangedTokenKey = "ckServerChangeToken\(database.scopeString)\(userID)"
         var changeToken: CKServerChangeToken?
         //TODO: uncomment these later
 //        if let changeTokenData = UserDefaults.standard.data(forKey: serverChangedTokenKey) {
@@ -282,10 +289,10 @@ class CloudPrivateDatabase: CloudCommonDatabase {
 class CloudSharedDatabase: CloudCommonDatabase {
     public var zoneIDs: Set<CKRecordZoneID> = []
 
-    public override init(database: CKDatabase) {
-        super.init(database: database)
+    public override init(database: CKDatabase, userID: CKRecordID?) {
+        super.init(database: database, userID: userID)
+        
         saveSubscription()
-        handleNotification()
     }
 
     /*
@@ -295,11 +302,12 @@ class CloudSharedDatabase: CloudCommonDatabase {
     override fileprivate func saveSubscription() {
         //Check If I had saved subscription before
 
-        let subscriptionKey = "ckSubscriptionSaved\(database.scopeString)"
+        let userID = self.userID?.recordName ?? ""
+        let subscriptionKey = "ckSubscriptionSaved\(database.scopeString)\(userID)"
         let alreadySaved = UserDefaults.standard.bool(forKey: subscriptionKey)
         guard !alreadySaved else {return}
 
-        let subscription = CKDatabaseSubscription(subscriptionID: subscriptionID)
+        let subscription = CKDatabaseSubscription(subscriptionID: "\(subscriptionID)\(userID)")
 
 
         //Set Silent Push
@@ -323,7 +331,8 @@ class CloudSharedDatabase: CloudCommonDatabase {
 
 
     public override func handleNotification() {
-        let serverChangedTokenKey = "ckServerChangeToken\(database.scopeString)"
+        let userID = self.userID?.recordName ?? ""
+        let serverChangedTokenKey = "ckServerChangeToken\(database.scopeString)\(userID)"
         var changeToken: CKServerChangeToken?
 
 //        if let changeTokenData = UserDefaults.standard.data(forKey: serverChangedTokenKey) {
@@ -372,7 +381,8 @@ class CloudSharedDatabase: CloudCommonDatabase {
     
     
     private func fetchChangesInZone(_ zoneID: CKRecordZoneID) {
-        let serverChangedTokenKey = "ckServerChangeToken\(database.scopeString) \(zoneID)"
+        let userID = self.userID?.recordName ?? ""
+        let serverChangedTokenKey = "ckServerChangeToken\(database.scopeString) \(zoneID)\(userID)"
         var changeToken: CKServerChangeToken?
 
         if let changeTokenData = UserDefaults.standard.data(forKey: serverChangedTokenKey) {

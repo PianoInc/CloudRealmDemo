@@ -7,26 +7,47 @@
 //
 
 import CloudKit
-
+import RealmSwift
 
 
 class CloudManager {
 
     static let shared = CloudManager()
 
-    public let databases: [CloudCommonDatabase]
+    private static let userIDKey = "CKCurrentUserID"
     public let privateDatabase: CloudPrivateDatabase
     public let sharedDatabase: CloudSharedDatabase
+    public var userID: CKRecordID?
 
     private init() {
-        self.privateDatabase = CloudPrivateDatabase(database: CKContainer.default().privateCloudDatabase)
-        self.sharedDatabase = CloudSharedDatabase(database: CKContainer.default().sharedCloudDatabase)
-
-        databases = [self.privateDatabase, self.sharedDatabase]
+        self.userID = CloudManager.getUserID()
+        Realm.setDefaultRealmForUser(username: userID?.recordName ?? "")
+        
+        self.privateDatabase = CloudPrivateDatabase(database: CKContainer.default().privateCloudDatabase, userID: userID)
+        self.sharedDatabase = CloudSharedDatabase(database: CKContainer.default().sharedCloudDatabase, userID: userID)
 
         self.resumeLongLivedOperationIfPossible()
+        self.setupNotificationHandling()
+        
+        requestUserInfo()
+        
+        //TODO: these must be removed later
+        privateDatabase.handleNotification()
+        sharedDatabase.handleNotification()
     }
 
+    
+    private static func save(userID: CKRecordID) {
+        let userData = NSKeyedArchiver.archivedData(withRootObject: userID)
+        UserDefaults.standard.set(userData, forKey: userIDKey)
+    }
+    
+    private static func getUserID() -> CKRecordID? {
+        if let userData = UserDefaults.standard.data(forKey: userIDKey) {
+            return NSKeyedUnarchiver.unarchiveObject(with: userData) as? CKRecordID
+        }
+        return nil
+    }
 
 
     /*
@@ -51,6 +72,11 @@ class CloudManager {
         }
     }
 
+    fileprivate func setupNotificationHandling() {
+        // Helpers
+        let notificationCenter = NotificationCenter.default
+        notificationCenter.addObserver(self, selector: #selector(accountDidChange(_:)), name: Notification.Name.CKAccountChanged, object: nil)
+    }
 
     func loadRecordsFromPrivateDBWithID(recordNames: [String], completion handler: @escaping(([CKRecordID: CKRecord]?, Error?) -> Void)) {
         privateDatabase.loadRecords(recordNames: recordNames, completion: handler)
@@ -71,5 +97,47 @@ class CloudManager {
 
     func deleteInSharedDB(recordNames:[String], in zone: CKRecordZoneID, completion: @escaping ((Error?) -> Void)) {
         sharedDatabase.deleteRecords(recordNames: recordNames, in: zone, completion: completion)
+        
     }
+    
+    func requestUserInfo() {
+        let container = CKContainer.default()
+        container.fetchUserRecordID() { [weak self] recordID, error in
+            if error != nil {
+                if let ckError = error as? CKError, ckError.isSpecificErrorCode(code: .notAuthenticated) {
+                    //If not authenticated, request for authentication
+                }
+                print(error!.localizedDescription)
+            } else {
+                guard let recordID = recordID else {return}
+        
+                if self?.userID != recordID {
+                    self?.icloudIDChanged(with: recordID)
+                }
+            }
+        }
+    }
+    
+    private func icloudIDChanged(with recordID: CKRecordID) {
+        
+        self.userID = recordID
+        CloudManager.save(userID: recordID)
+        Realm.setDefaultRealmForUser(username: recordID.recordName)
+        //refresh UI when this notification observed
+        NotificationCenter.default.post(name: NSNotification.Name.RealmConfigHasChanged, object: nil)
+        
+        privateDatabase.userID = recordID
+        sharedDatabase.userID = recordID
+        privateDatabase.handleNotification()
+        sharedDatabase.handleNotification()
+    }
+    
+    @objc private func accountDidChange(_ notification: Notification) {
+        // Request Account Status
+        DispatchQueue.main.async { self.requestUserInfo() }
+    }
+}
+
+extension NSNotification.Name {
+    public static let RealmConfigHasChanged: NSNotification.Name = NSNotification.Name(rawValue: "RealmConfigHasChanged")
 }
