@@ -67,6 +67,7 @@ enum Style {
     case strikethrough
     case underline
     case bold
+    case italic
     case image(String, CGFloat, CGFloat)
 
     init?(from attribute: (key: NSAttributedStringKey, value: Any)) {
@@ -84,8 +85,13 @@ enum Style {
                 guard let value = attribute.value as? NSUnderlineStyle, value == .styleSingle else {return nil}
                 self = .underline
             case .font:
+                //TODO: What if font is both bold&italic?
                 guard let font = attribute.value as? UIFont, font.fontDescriptor.symbolicTraits.contains(.traitBold) else {return nil}
-                self = .bold
+                if font.fontDescriptor.symbolicTraits.contains(.traitBold) {
+                    self = .bold
+                } else if font.fontDescriptor.symbolicTraits.contains(.traitItalic) {
+                    self = .italic
+                } else {return nil}
             case .attachment:
                 guard let attachment = attribute.value as? FastTextAttachment else {return nil}
                 self = .image(attachment.imageID, attachment.width, attachment.height)
@@ -102,6 +108,7 @@ enum Style {
             case .strikethrough: return [NSAttributedStringKey.strikethroughStyle: NSUnderlineStyle.styleSingle]
             case .underline: return [NSAttributedStringKey.underlineStyle: NSUnderlineStyle.styleSingle]
             case .bold: return [NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: 15)]
+            case .italic: return [NSAttributedStringKey.font: UIFont.italicSystemFont(ofSize: 15)]
             case .image(let id, let width, let height):
                 let attachment = FastTextAttachment()
                 attachment.imageID = id
@@ -120,6 +127,7 @@ extension Style: Codable {
         case strikeThrough
         case underline
         case bold
+        case italic
         case image
     }
 
@@ -150,6 +158,10 @@ extension Style: Codable {
             self = .bold
             return
         }
+        if let _ = try? values.decode(String.self, forKey: .italic) {
+            self = .italic
+            return
+        }
         if let tagString = try? values.decode(String.self, forKey: .image) {
             let (id, width, height) = ImageTag.parseImageTag(tagString)
             self = .image(id, width, height)
@@ -168,6 +180,7 @@ extension Style: Codable {
             case .strikethrough: try container.encode("", forKey: .strikeThrough)
             case .underline: try container.encode("", forKey: .underline)
             case .bold: try container.encode("", forKey: .bold)
+            case .italic: try container.encode("", forKey: .italic)
             case .image(let id, let width, let height): try container.encode(ImageTag.getImageTag(id: id, width: width, height: height), forKey: .image)
         }
     }
