@@ -24,10 +24,10 @@ class ConflictResolver {
                     serverRecord[Schema.Note.title] = myRecord[Schema.Note.title]
 
                     //TODO: add attribute to merge
-                    let ancestorContent = ancestor[Schema.Note.content] as String
-                    let myContent = myRecord[Schema.Note.content] as String
-                    let serverContent = serverRecord[Schema.Note.content] as String
-                    serverRecord[Schema.Note.content] = Diff3.merge(ancestor: ancestorContent, a: myContent, b: serverContent)
+                    let ancestorContent = ancestor[Schema.Note.content] as! String
+                    let myContent = myRecord[Schema.Note.content] as! String
+                    let serverContent = serverRecord[Schema.Note.content] as! String
+                    serverRecord[Schema.Note.content] = Diff3.merge(ancestor: ancestorContent, a: myContent, b: serverContent) as CKRecordValue
 
                     serverRecord[Schema.Note.categoryRecordName] = myRecord[Schema.Note.categoryRecordName]
 
