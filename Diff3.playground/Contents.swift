@@ -1,6 +1,7 @@
 //: Playground - noun: a place where people can play
 
 import UIKit
+import Foundation
 
 enum DiffStatus: CustomStringConvertible {
     case stable(String)
@@ -9,7 +10,14 @@ enum DiffStatus: CustomStringConvertible {
     var description: String {
         switch self {
         case .stable(let s): return "stable: \(s)"
-        case .conflict(let an, let a, let b): return "conflicted \nancestor: \(an)\na: \(a)\nb: \(b)"
+        case .conflict(let an, let a, let b): return "conflicted \no: \(an)\na: \(a)\nb: \(b)"
+        }
+    }
+    
+    var isConflict: Bool {
+        switch self {
+        case .stable: return false
+        case .conflict: return true
         }
     }
 }
@@ -45,11 +53,8 @@ extension ReferenceArray where T == Int {
         guard let index = array.index(where: { (element) -> Bool in
             return element >= value
         }) else {return nil}
-        let result = array[index]
         
-        array.removeSubrange(index..<array.endIndex)
-        
-        return result
+        return array[index]
     }
 }
 
@@ -121,6 +126,7 @@ class Diff3 {
             array.append(index)
         }
         
+        
         for (index, string) in aChunks.enumerated() {
             let array = aWordIndices[string] ?? ReferenceArray<Int>()
             
@@ -143,7 +149,7 @@ class Diff3 {
             
             //first step - find longest stable chunk
             if oChunks[Lo+commonLength] == aChunks[La+commonLength] &&
-                oChunks[Lo+commonLength] == bChunks[Lb+commonLength] {
+                oChunks[Lo+commonLength] == bChunks[Lb+commonLength] && !oChunks[Lo+commonLength].isEmpty {
                 commonLength += 1
                 continue
             }
@@ -152,32 +158,46 @@ class Diff3 {
             //second step
             if commonLength == 0 {
                 // conflict occured!
-                var o = Lo
+                
+                var oOffset = 0
+                var trueOffset = 0
                 var a: Int? = nil
                 var b: Int? = nil
+                var minB = Int.max
+                var trueA: Int? = nil
+                var trueB: Int? = nil
                 
-                while(o<oChunks.count) {
-                    let currentOWord = oChunks[o]
+                while(Lo+oOffset<oChunks.count && oOffset < minB) {
+                    let currentOWord = oChunks[Lo+oOffset]
                     
                     if let aWordIndex = aWordIndices[currentOWord], let bWordIndex = bWordIndices[currentOWord] {
                         
                         a = aWordIndex.getFirstElement(largerThan: La)
                         b = bWordIndex.getFirstElement(largerThan: Lb)
                         
-                        if aWordIndex.count == 0 {
-                            aWordIndices[currentOWord] = nil
-                        }
-                        if bWordIndex.count == 0 {
-                            bWordIndices[currentOWord] = nil
+                        if a == nil || b == nil || currentOWord.isEmpty {
+                            oOffset += 1
+                            continue
                         }
                         
-                        break
+                        
+                        let tempMinB = (a!-La) + (b!-Lb) + oOffset
+                        
+                        //count and compare minB
+                        if (tempMinB < minB) {
+                            trueOffset = oOffset
+                            trueA = a
+                            trueB = b
+                            minB = tempMinB
+                        }
                     }
-                    o += 1
+                    
+                    oOffset += 1
                 }
 
                 
-                guard let a1 = a, let b1 = b else {break}
+                guard let a1 = trueA, let b1 = trueB else {break}
+                let o = Lo+trueOffset
                 
                 let originalChunk = oChunks[Lo..<o].joined(separator: "\n")
                 let aChunk = aChunks[La..<a1].joined(separator: "\n")
@@ -211,88 +231,284 @@ class Diff3 {
         //third step
         //add final chunks
         
-        let originalChunk = oChunks[Lo..<oChunks.count].joined(separator: " ")
-        let aChunk = aChunks[La..<aChunks.count].joined(separator: " ")
-        let bChunk = bChunks[Lb..<bChunks.count].joined(separator: " ")
+        if commonLength > 0 {
+            let commonChunks = oChunks[Lo..<Lo+commonLength]
+            
+            Lo += commonLength
+            La += commonLength
+            Lb += commonLength
+            
+            finalChunks.append(.stable(commonChunks.joined(separator: "\n")))
+        }
+        
+        let originalChunk = oChunks[Lo..<oChunks.count].joined(separator: "\n")
+        let aChunk = aChunks[La..<aChunks.count].joined(separator: "\n")
+        let bChunk = bChunks[Lb..<bChunks.count].joined(separator: "\n")
         
         finalChunks.append(.conflict(originalChunk, aChunk, bChunk))
+//        finalChunks.forEach{
+//            print($0)
+//        }
         
+//        print("********************************************")
         return finalChunks.getResolvedString()
     }
 }
 
-let lala = """
-class MyClass: CustomStringConvertible {
-var string: String?
+let origin = """
+//////////////////////////////////////////////////////////////////////////
+// File: Bug_ReporterApp.h
+//
+// Description:
+//   Contains main entry point to the executable.
+//
+// Header File:
+//   NA
+//
+// Copyright:
+//   Copyright � 1996-2010 WysiCorp, Inc.
+//   All contents of this file are considered WysiCorp Software proprietary.
+//////////////////////////////////////////////////////////////////////////
 
+Option Strict On
 
-var description: String {
-//return \"MyClass \\(string)\"
-return \"\\(self.dynamicType)\"
-}
-}
+Public Class frmMain
+Inherits System.Windows.Forms.Form
 
-var myClass = MyClass()  // this line outputs MyClass nil
+Public Event SaveWhileClosingCancelled As System.EventHandler
+Public Event ExitApplication As System.EventHandler
 
-// and of course
-print(\"\\(myClass)\")
+Private m_Dirty As Boolean = False
+Private m_ClosingComplete As Boolean = False
+Private m_DocumentName As String
+Private m_FileName As String
 
-// Use this newer versions of Xcode
-var description: String {
-//return \"MyClass \\(string)\"
-return \"\\(type(of: self))\"
-}
+#Region " Windows Form Designer generated code "
+
+Public Sub New()
+MyBase.New()
+
+InitializeComponent()
+
+Dim ainfo As New AssemblyInfo()
+
+Me.mnuAbout.Text = String.Format("&About {0} ...", ainfo.Title)
+
+End Sub
+
+Protected Overloads Overrides Sub Dispose(ByVal disposing As Boolean)
+If disposing Then
+If Not (components Is Nothing) Then
+components.Dispose()
+End If
+End If
+MyBase.Dispose(disposing)
+End Sub
+
+Private components As System.ComponentModel.IContainer
+
+Friend WithEvents mnuMain As System.Windows.Forms.MainMenu
+Friend WithEvents MenuItem1 As System.Windows.Forms.MenuItem
+<System.Diagnostics.DebuggerStepThrough()> Private Sub InitializeComponent()
+Dim resources As System.Resources.ResourceManager = New System.Resources.ResourceManager(GetType(frmMain))
+Me.mnuMain = New System.Windows.Forms.MainMenu()
+Me.MenuItem1 = New System.Windows.Forms.MenuItem()
+Me.SuspendLayout()
+'
+'mnuMain
+'
+Me.mnuMain.MenuItems.AddRange(New System.Windows.Forms.MenuItem() {Me.mnuFile, Me.mnuHelp})
+'
+'mnuFile
+'
+Me.mnuFile.Index = 0
+Me.mnuFile.MenuItems.AddRange(New System.Windows.Forms.MenuItem() {Me.mnuNew, Me.mnuClose, Me.MenuItem1, Me.mnuSave, Me.MenuItem2, Me.mnuExit})
+Me.mnuFile.Text = "&File"
+'
+'mnuExit
+'
+Me.mnuExit.Index = 5
+Me.mnuExit.Text = "E&xit"
+
+End Sub
+
+#End Region
 """
 
-let lalaa = """
-class MyClass: CustomStringConvertible {
-var string: String?
+let a = """
+//////////////////////////////////////////////////////////////////////////
+// File: Bug_ReporterApp.h
+//
+// Description:
+//   Contains main entry point to the executable.
+//
+// Header File:
+//   NA
+//
+// Copyright:
+//   Copyright � 1996-2010 WysiCorp, Inc.
+//   All contents of this file are considered WysiCorp Software proprietary.
+//////////////////////////////////////////////////////////////////////////
+
+Option Strict On
+
+Public Class frmMain
+Inherits System.Windows.Forms.Form
+
+Public Event SaveWhileClosingCancelled As System.EventHandler
+Public Event ExitApplication As System.EventHandler
+Public StatusMsg
+
+Private m_Dirty As Boolean = False
+Private m_ClosingComplete As Boolean = False
+Private m_DocumentName As String
+Private m_FileName As String
+Private m_TempFileName As String
+Private m_DirName As String
+Private m_ErrorMessage As String
+
+#Region " Windows Form Designer generated code "
+
+Public Sub New()
+MyBase.New()
+
+InitializeComponent()
+
+Dim ainfo As New AssemblyInfo()
+
+Me.mnuAbout.Text = String.Format("&About {0} ...", ainfo.Title)
+
+End Sub
+
+Protected Overloads Overrides Sub Dispose(ByVal disposing As Boolean)
+If disposing Then
+If Not (components Is Nothing) Then
+components.Dispose()
+End If
+End If
+MyBase.Dispose(disposing)
+End Sub
+
+Private components As System.ComponentModel.IContainer
+
+Friend WithEvents mnuMain As System.Windows.Forms.MainMenu
+Friend WithEvents MenuItem1 As System.Windows.Forms.MenuItem
+<System.Diagnostics.DebuggerStepThrough()> Private Sub InitializeComponent()
+Dim resources As System.Resources.ResourceManager = New System.Resources.ResourceManager(GetType(frmMain))
+Me.mnuMain = New System.Windows.Forms.MainMenu()
+Me.MenuItem1 = New System.Windows.Forms.MenuItem()
+Me.SuspendLayout()
+'
+'mnuMain
+'
+Me.mnuMain.MenuItems.AddRange(New System.Windows.Forms.MenuItem() {Me.mnuFile, Me.mnuHelp})
+'
+'mnuFile
+'
+Me.mnuFile.Index = 0
+Me.mnuFile.MenuItems.AddRange(New System.Windows.Forms.MenuItem() {Me.mnuNew, Me.mnuClose, Me.MenuItem1, Me.mnuSave, Me.MenuItem2, Me.mnuExit})
+Me.mnuFile.Text = "&File"
+'
+mnuHelp
+'
+Me.mnuExit.Index = 4
+Me.mnuExit.Text = "H&elp"
+'
+'mnuExit
+'
+Me.mnuExit.Index = 5
+Me.mnuExit.Text = "E&xit"
 
 
-var description: String {
-//return \"MyClass \\(string)\"
-It;s not my string you fool
-return \"\\(self.dynamicType)\"
-}
-}
 
-new Script = lalallanananan lowlow
+End Sub
 
-var myClass = MyClass()  // this line outputs MyClass nil
-
-// and of course
-print(\"\\(myClass)\")
-
-// Use this newer versions of Xcode
-var description: String {
-//return \"MyClass \\(string)\"
-return \"\\(type(of: self))\"
-}
+#End Region
 """
 
-let lalab = """
-class MyClass: CustomStringConvertible {
-var string: String?
+let b = """
+//////////////////////////////////////////////////////////////////////////
+// File: Bug_ReporterApp.h
+//
+// Description:
+//   Contains main entry point to the executable.
+//
+// Header File:
+//   NA
+//
+// Copyright:
+//   Copyright � 1996-2010 WysiCorp, Inc.
+//   All contents of this file are considered WysiCorp Software proprietary.
+//////////////////////////////////////////////////////////////////////////
 
+Option Strict On
 
-var description: String {
-//return \"MyClass \\(string)\"
-return \"\\(self.dynamicType)\"
-}
-}
+Public Class frmMain
+Inherits System.Windows.Forms.Form
 
-struct newStruct {
-    var lalala lilili
-    new nono
-}
+Public Event SaveWhileClosingCancelled As System.EventHandler
+Public Event ExitApplication As System.EventHandler
+Public StatusMsg
 
-var myClass = MyClass()  // this line outputs MyClass nil
+Private m_Dirty As Boolean = False
+Private m_ClosingComplete As Boolean = False
+Private m_DocumentName As String
+Private m_FileName As String
+Private m_TempFileName As String
+Private m_DirName As String
 
-// and of course
-print(\"\\(myClass)\")
+#Region " Windows Form Designer generated code "
 
-// Use this newer versions of Xcode
-I don't want description
-}
+Public Sub New()
+MyBase.New()
+
+InitializeComponent()
+
+Dim ainfo As New AssemblyInfo()
+
+Me.mnuAbout.Text = String.Format("&About {0} ...", ainfo.Title)
+
+End Sub
+
+Protected Overloads Overrides Sub Dispose(ByVal disposing As Boolean)
+If disposing Then
+If Not (components Is Nothing) Then
+components.Dispose()
+End If
+End If
+MyBase.Dispose(disposing)
+End Sub
+
+Private components As System.ComponentModel.IContainer
+
+Friend WithEvents mnuMain As System.Windows.Forms.MainMenu
+Friend WithEvents MenuItem1 As System.Windows.Forms.MenuItem
+<System.Diagnostics.DebuggerStepThrough()> Private Sub InitializeComponent()
+Dim resources As System.Resources.ResourceManager = New System.Resources.ResourceManager(GetType(frmMain))
+Me.mnuMain = New System.Windows.Forms.MainMenu()
+Me.MenuItem1 = New System.Windows.Forms.MenuItem()
+Me.SuspendLayout()
+'
+'mnuMain
+'
+Me.mnuMain.MenuItems.AddRange(New System.Windows.Forms.MenuItem() {Me.mnuFile, Me.mnuHelp})
+'
+'mnuFile
+'
+Me.mnuFile.Index = 0
+Me.mnuFile.MenuItems.AddRange(New System.Windows.Forms.MenuItem() {Me.mnuNew, Me.mnuClose, Me.MenuItem1, Me.mnuSave, Me.MenuItem2, Me.mnuExit})
+Me.mnuFile.Text = "&File"
+'
+'mnuExit
+'
+Me.mnuExit.Index = 5
+Me.mnuExit.Text = "E&xit"
+
+End Sub
+
+#End Region
 """
-print(Diff3.makeItUP(ancestor: lala, a: lalaa, b: lalab))
+
+//Diff3.makeItUP(ancestor: origin, a: a, b: b)
+print(Diff3.makeItUP(ancestor: origin, a: a, b: b))
+
