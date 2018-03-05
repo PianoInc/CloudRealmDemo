@@ -27,14 +27,17 @@ class MemoViewController: UIViewController {
         textView.memo = memo
         textView.adjustsFontForContentSizeCategory = true
 
-        textView.registerClass(FastTextAttachment.self)
         textView.flangeDelegate = self
         textView.delegate = self
 
-        
-        guard let data = textView.memo.content.data(using: .utf8),
-            let attributedString = try? NSAttributedString(data: data, options: [.documentType : NSAttributedString.DocumentType.rtf], documentAttributes: nil) else {return}
-        textView.unmarkedString = attributedString
+        do {
+            let jsonDecoder = JSONDecoder()
+            let attributes = try jsonDecoder.decode([PianoAttribute].self, from: memo.attributes)
+            
+            textView.set(string: memo.content, with: attributes)
+        } catch {
+            print(error)
+        }
         
     }
     
@@ -47,7 +50,7 @@ class MemoViewController: UIViewController {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-    
+
     private func addPhotoView(){
         let nib = UINib(nibName: "PhotoView", bundle: nil)
         let photoView: PhotoView = nib.instantiate(withOwner: nil, options: nil).first as! PhotoView
@@ -69,33 +72,36 @@ class MemoViewController: UIViewController {
 
     @objc func saveText() {
         //TODO: make async
-        if isSaving {return}
+
+		if isSaving {return}
         
         isSaving = true
-        
-        let attributedString: NSAttributedString = textView.unmarkedString
-        guard let data = try? attributedString.data(from: NSMakeRange(0, attributedString.length), documentAttributes:[.documentType: NSAttributedString.DocumentType.rtf]),
-            let string = String(data: data, encoding: .utf8) else {/* save failed!! */ isSaving = false;return}
 
-        let kv: [String: Any] = ["content": string]
+        let (string, attributes) = textView.get()
+        let jsonEncoder = JSONEncoder()
+
+        guard let data = try? jsonEncoder.encode(attributes) else {return}
+
+        let kv: [String: Any] = ["content": string, "attributes": data]
         
         ModelManager.update(model: textView.memo, kv: kv) { error in
             if let error = error {print(error)}
             else {print("happy")}
             self.isSaving = true
         }
+
     }
 
     
     @IBAction func albumButtonTouched(_ sender: UIButton) {
-//        sender.isSelected = !sender.isSelected
-//
-//        if sender.isSelected {
-//            addPhotoView()
-//        } else {
-//            removePhotoView()
-//        }
-        presentShare(sender)
+        sender.isSelected = !sender.isSelected
+
+        if sender.isSelected {
+            addPhotoView()
+        } else {
+            removePhotoView()
+        }
+//        presentShare(sender)
     }
     
 }
@@ -107,31 +113,25 @@ extension MemoViewController: UITextViewDelegate {
 }
 
 extension MemoViewController: FlangeTextViewDelegate {
-    func image(for attachment: FlangeTextAttachment, bounds: CGRect, range: NSRange) -> FlangeImage? {
+    func requestImage(for attachment: FlangeTextAttachment, range: NSRange) {
+        guard let attachment = (attachment as? FastTextAttachment) else {return}
         
-        guard let imageTag = (attachment as? FastTextAttachment)?.imageTag else {return nil}
-
-        if let image = LocalCache.shared.getImage(id: imageTag.identifier) {
-            return image
+        if let image = LocalCache.shared.getImage(id: attachment.imageID + "thumb") {
+            attachment.image = image
+            textView.reloadRange(for: range)
+            return
         } else {
-            
-            LocalCache.shared.updateCacheWithID(id: imageTag.identifier) {
+            LocalCache.shared.updateThumbnailCacheWithID(id: attachment.imageID + "thumb", width: attachment.width, height: attachment.height) { image in
                 DispatchQueue.main.async { [weak self] in
+                    attachment.image = image
+                    //TODO: reload whole visible range
                     self?.textView.reloadRange(for: range)
                 }
             }
-            
-            return nil
+            return
         }
     }
-    
-    func attachmentBounds(for attachment: FlangeTextAttachment, proposedLineFragment lineFrag: CGRect, glyphPosition position: CGPoint, characterIndex charIndex: Int) -> CGRect {
-        
-        guard let imageTag = (attachment as? FastTextAttachment)?.imageTag else {return CGRect.zero}
-        return CGRect(x: 0, y: 0, width: imageTag.width, height: imageTag.height)
-    }
-    
-    
+
 }
 
 
@@ -147,19 +147,18 @@ extension MemoViewController: PhotoViewDelegate {
         } else {
             resizedImage = image
         }
-        
-        
+
+
         let identifier = textView.memo.id + url.absoluteString
         
-        let imageTag = ImageTag(identifier: identifier, width: resizedImage.size.width, height: resizedImage.size.height)
         let noteRecordName = memo.recordName
         DispatchQueue.global(qos: .userInteractive).async {
             if let realm = try? Realm(),
-                let _ = realm.object(ofType: RealmImageModel.self, forPrimaryKey: imageTag.identifier) {
+                let _ = realm.object(ofType: RealmImageModel.self, forPrimaryKey: identifier) {
                 //ImageModel exist!!
             } else {
                 let newImageModel = RealmImageModel.getNewModel(noteRecordName: noteRecordName, image: image)
-                newImageModel.id = imageTag.identifier
+                newImageModel.id = identifier
 
                 ModelManager.save(model: newImageModel) {error in }
             }
@@ -170,10 +169,12 @@ extension MemoViewController: PhotoViewDelegate {
         
         //왼쪽 범위가 존재하고 && 왼쪽에 개행이 아니면 개행 삽입하기
         textView.insertNewLineToLeftSideIfNeeded(location: textView.selectedRange.location)
-        
-        guard let attachment = textView.dequeueAttachment() as? FastTextAttachment else {return}
-        attachment.imageTag = imageTag
-        
+
+        let attachment = FastTextAttachment()
+        attachment.imageID = identifier
+        attachment.width = resizedImage.size.width
+        attachment.height = resizedImage.size.height
+
         let attrString = NSMutableAttributedString(attributedString: NSAttributedString(attachment: attachment))
         textView.textStorage.replaceCharacters(in: textView.selectedRange, with: attrString)
         

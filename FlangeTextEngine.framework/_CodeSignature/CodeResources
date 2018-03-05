@@ -6,7 +6,7 @@
 	<dict>
 		<key>Headers/FlangeTextEngine-Swift.h</key>
 		<data>
-		j/5k0QSbxiQyMPr4GxD94zEk9oI=
+		5oS0r5mAkGlcIiHAaJqpL82e7QQ=
 		</data>
 		<key>Headers/FlangeTextEngine.h</key>
 		<data>
@@ -22,7 +22,7 @@
 		</data>
 		<key>Modules/FlangeTextEngine.swiftmodule/arm64.swiftmodule</key>
 		<data>
-		eC9JBnc+dHxmDv2hxA25BXNxok4=
+		zDhX722ONMoRe97BT6Lln/Y0E6M=
 		</data>
 		<key>Modules/module.modulemap</key>
 		<data>
@@ -35,11 +35,11 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			j/5k0QSbxiQyMPr4GxD94zEk9oI=
+			5oS0r5mAkGlcIiHAaJqpL82e7QQ=
 			</data>
 			<key>hash2</key>
 			<data>
-			KAuSLxyQpVGKsSlL3K+tiEydzYMU0LmusQ9lcpioSJ0=
+			DfkrwtbfSTHM4MnYh2b1hob5uc7ZiunLHAlHb4Y20Vc=
 			</data>
 		</dict>
 		<key>Headers/FlangeTextEngine.h</key>
@@ -68,11 +68,11 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			eC9JBnc+dHxmDv2hxA25BXNxok4=
+			zDhX722ONMoRe97BT6Lln/Y0E6M=
 			</data>
 			<key>hash2</key>
 			<data>
-			0JcMEVmjIoA2dABvut6opmJARQREbXP8jJsjyO56S3E=
+			T0MnB+WqJ5R20zu3qFfZ/jAixchmrvV8vRQkm5+Ppa8=
 			</data>
 		</dict>
 		<key>Modules/module.modulemap</key>
