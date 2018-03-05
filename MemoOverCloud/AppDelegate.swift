@@ -20,9 +20,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Override point for customization after application launch.
         
         application.registerForRemoteNotifications()
+        _ = CloudManager.shared
+        
         performMigration()
         
-        _ = CloudManager.shared
         //Remove this chunk if datas need to be persistent
         let realm = try! Realm()
         try! realm.write {
@@ -40,7 +41,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let config = Realm.Configuration(
             // Set the new schema version. This must be greater than the previously used
             // version (if you've never set a schema version before, the version is 0).
-            schemaVersion: 8,
+            schemaVersion: 11,
             
             // Set the block which will be called automatically when opening a Realm with
             // a schema version lower than the one set above

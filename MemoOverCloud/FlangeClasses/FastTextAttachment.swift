@@ -7,7 +7,15 @@
 //
 
 import FlangeTextEngine
+import UIKit
+import CoreGraphics
 
 class FastTextAttachment: FlangeTextAttachment {
-    var imageTag: ImageTag!
+    var width: CGFloat!
+    var height: CGFloat!
+    var imageID: String!
+
+    override func attachmentBounds(for textContainer: NSTextContainer?, proposedLineFragment lineFrag: CGRect, glyphPosition position: CGPoint, characterIndex charIndex: Int) -> CGRect {
+        return CGRect(x: 0, y: 0, width: width, height: height)
+    }
 }

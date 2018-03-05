@@ -117,8 +117,9 @@ class CloudCommonDatabase {
 
     private func internalSaveRecord(record: CKRecord, completion: @escaping ((Error?) -> Void)) {
 
+        let isShared = self.database.databaseScope == .shared
         let operation = CKModifyRecordsOperation(recordsToSave: [record], recordIDsToDelete: [])
-        operation.modifyRecordsCompletionBlock = { _, _, error in
+        operation.modifyRecordsCompletionBlock = { savedRecords, _, error in
             guard error == nil else {
                 guard let cloudError = error as? CKError,
                         cloudError.isZoneNotFound() else { return completion(error) }
@@ -135,6 +136,11 @@ class CloudCommonDatabase {
                 return
             }
 
+            
+            
+            savedRecords?.forEach {
+                CloudCommonDatabase.syncChanged(record: $0, isShared: isShared)
+            }
             completion(nil)
         }
         operation.qualityOfService = .utility

@@ -19,14 +19,15 @@
 		6C2D317D20282D86003C715C /* ImageCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 6C2D317820282D85003C715C /* ImageCell.xib */; };
 		6C2D317E20282D86003C715C /* ImageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C2D317920282D85003C715C /* ImageCell.swift */; };
 		6C2D318020282E71003C715C /* FastTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C2D317F20282E71003C715C /* FastTextView.swift */; };
+		6C4253462043D57C009612AB /* FlangeTextEngine.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6C4253452043D57C009612AB /* FlangeTextEngine.framework */; };
+		6C4253482043D580009612AB /* FlangeTextEngine.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 6C4253452043D57C009612AB /* FlangeTextEngine.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		6C4C743F202A79BF00571760 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6C4C743E202A79BF00571760 /* CloudKit.framework */; };
 		6C79A44C203BED1700F0C18B /* PianoAttribute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C79A44B203BED1700F0C18B /* PianoAttribute.swift */; };
-		6C98AB462032CA0D002362F9 /* FlangeTextEngine.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6C98AB452032CA0C002362F9 /* FlangeTextEngine.framework */; };
-		6C98AB482032CA10002362F9 /* FlangeTextEngine.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 6C98AB452032CA0C002362F9 /* FlangeTextEngine.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		6C9932B220242A4800592B5F /* CategoryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C9932B120242A4800592B5F /* CategoryViewController.swift */; };
 		6C9932B420242AF500592B5F /* MemoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C9932B320242AF500592B5F /* MemoViewController.swift */; };
 		75E990361EBDBEB577DDDA32 /* RealmDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E998D3337AA816BF45DE56 /* RealmDataModel.swift */; };
 		75E990A0B16AB48BFE41790D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 75E99D5A7F810B886240B527 /* Assets.xcassets */; };
+		75E993265CAD9B7743D68730 /* Color+hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E99CF1642C919FD2724246 /* Color+hex.swift */; };
 		75E9939A3BB9E533D2A1DD36 /* RealmCloudMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E99D5C3BF6EFCBE835D8A6 /* RealmCloudMapper.swift */; };
 		75E99446BCCE162516E1285D /* CKErrorExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E99B3132DE853F3E155F81 /* CKErrorExtension.swift */; };
 		75E9949EB484325466F04E80 /* RealmImageObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E993ECF9C0B9E21AEC7B49 /* RealmImageObserver.swift */; };
@@ -73,7 +74,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				6C98AB482032CA10002362F9 /* FlangeTextEngine.framework in Embed Frameworks */,
+				6C4253482043D580009612AB /* FlangeTextEngine.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -96,10 +97,10 @@
 		6C2D317820282D85003C715C /* ImageCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ImageCell.xib; sourceTree = "<group>"; };
 		6C2D317920282D85003C715C /* ImageCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageCell.swift; sourceTree = "<group>"; };
 		6C2D317F20282E71003C715C /* FastTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FastTextView.swift; sourceTree = "<group>"; };
+		6C4253452043D57C009612AB /* FlangeTextEngine.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = FlangeTextEngine.framework; sourceTree = "<group>"; };
 		6C4C743D202A79B900571760 /* MemoOverCloud.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MemoOverCloud.entitlements; sourceTree = "<group>"; };
 		6C4C743E202A79BF00571760 /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = System/Library/Frameworks/CloudKit.framework; sourceTree = SDKROOT; };
 		6C79A44B203BED1700F0C18B /* PianoAttribute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PianoAttribute.swift; sourceTree = "<group>"; };
-		6C98AB452032CA0C002362F9 /* FlangeTextEngine.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = FlangeTextEngine.framework; sourceTree = "<group>"; };
 		6C9932B120242A4800592B5F /* CategoryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryViewController.swift; sourceTree = "<group>"; };
 		6C9932B320242AF500592B5F /* MemoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoViewController.swift; sourceTree = "<group>"; };
 		75E9903A3DB1D3E6F6D676D1 /* MemoOverCloudTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoOverCloudTests.swift; sourceTree = "<group>"; };
@@ -121,6 +122,7 @@
 		75E9992BB94D60A648685463 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		75E99A4C6259AA61BD535B46 /* Diff3.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Diff3.swift; sourceTree = "<group>"; };
 		75E99B3132DE853F3E155F81 /* CKErrorExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CKErrorExtension.swift; sourceTree = "<group>"; };
+		75E99CF1642C919FD2724246 /* Color+hex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Color+hex.swift"; sourceTree = "<group>"; };
 		75E99CF2C3808CC5A5658B12 /* MemoOverCloudUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoOverCloudUITests.swift; sourceTree = "<group>"; };
 		75E99D5A7F810B886240B527 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		75E99D5C3BF6EFCBE835D8A6 /* RealmCloudMapper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RealmCloudMapper.swift; sourceTree = "<group>"; };
@@ -150,7 +152,7 @@
 			files = (
 				6C4C743F202A79BF00571760 /* CloudKit.framework in Frameworks */,
 				22B40D73EF1E6C78223215C1 /* Pods_MemoOverCloud.framework in Frameworks */,
-				6C98AB462032CA0D002362F9 /* FlangeTextEngine.framework in Frameworks */,
+				6C4253462043D57C009612AB /* FlangeTextEngine.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -265,7 +267,7 @@
 		75E996C00C171195B6E2E714 = {
 			isa = PBXGroup;
 			children = (
-				6C98AB452032CA0C002362F9 /* FlangeTextEngine.framework */,
+				6C4253452043D57C009612AB /* FlangeTextEngine.framework */,
 				75E992C2BD3038F7176157B3 /* Products */,
 				75E99ACFB0B635E859C80185 /* MemoOverCloud */,
 				75E9988EDF473EC0E797AC2F /* MemoOverCloudTests */,
@@ -323,6 +325,7 @@
 				75E99E9B56FAA6DB8D07F721 /* UniqueIDGenerator.swift */,
 				75E99E7FFE006FC02FF4B72E /* ModelManager.swift */,
 				6C79A44B203BED1700F0C18B /* PianoAttribute.swift */,
+				75E99CF1642C919FD2724246 /* Color+hex.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -659,6 +662,7 @@
 				75E99FDB9B17968899D63AFF /* ModelManager.swift in Sources */,
 				6C018D622046217B00E2C0D8 /* ConflictResolver.swift in Sources */,
 				75E995D7BB12301E99856F05 /* Diff3.swift in Sources */,
+				75E993265CAD9B7743D68730 /* Color+hex.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

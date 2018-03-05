@@ -123,7 +123,7 @@ extension CKRecord {
         guard let id = self[schema.id] as? String,
                 let title = self[schema.title] as? String,
                 let content = self[schema.content] as? String,
-                let attributes = self[schema.attributes] as? String,
+                let attributes = self[schema.attributes] as? Data,
                 let categoryReference = self[schema.categoryRecordName] as? CKReference else {return nil}
         
         let data = NSMutableData()

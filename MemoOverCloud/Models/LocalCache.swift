@@ -26,9 +26,11 @@ class LocalCache {
     }
     
 
-    func updateCacheWithID(id: String, handler: @escaping (() -> Void)) {
+    func updateThumbnailCacheWithID(id: String, width: CGFloat, height: CGFloat, handler: @escaping ((UIImage) -> Void)) {
 
         guard let realm = try? Realm() else {return}
+        //ID without suffix "thumb"
+        let realID = String(id[..<id.index(id.endIndex, offsetBy: -5)])
 
         let refHandler: ((ThreadSafeReference<RealmImageModel>) -> Void) =
                 { [weak self] (ref) in
@@ -37,15 +39,15 @@ class LocalCache {
                             guard let realm = try? Realm(),
                                   let imageModel = realm.resolve(ref) else {return}
 
-                            if let thumbImage = UIImage(data: imageModel.image) {
+                            if let thumbImage = UIImage(data: imageModel.image)?.resizeImage(size: CGSize(width: width, height: height)) {
                                 self?.imageCache.setObject(thumbImage, forKey: id.nsString)
-                                handler()
+                                handler(thumbImage)
                             }
                         }
                     }
                 }
 
-        if let imageModel = realm.object(ofType: RealmImageModel.self, forPrimaryKey: id) {
+        if let imageModel = realm.object(ofType: RealmImageModel.self, forPrimaryKey: realID) {
             //Model is present in realm
 
             let ref = ThreadSafeReference(to: imageModel)
@@ -53,7 +55,7 @@ class LocalCache {
         } else {
             //Model is not present in realm
 
-            observer.setHandler(for: id, handler: refHandler)
+            observer.setHandler(for: realID, handler: refHandler)
         }
 
     }

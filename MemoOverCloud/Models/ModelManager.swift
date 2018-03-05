@@ -126,14 +126,15 @@ class ModelManager {
                     }
                     
                     if updatedModel.isShared {
-                        let newModel = RealmCategoryForSharedModel.getNewModel(recordName: record.recordID.recordName)
+                        let newModel = realm.objects(RealmCategoryForSharedModel.self).filter("recordName = %@", updatedModel.recordName).first ??
+                                RealmCategoryForSharedModel.getNewModel(recordName: updatedModel.recordName)
                         
-                        let categoryForSharedMemoRecord = newModel.getRecord()
-                        categoryForSharedMemoRecord[Schema.categoryForSharedNote.CategoryRecordName] = model.categoryRecordName as CKRecordValue
+                        let categoryForSharedNoteRecord = newModel.getRecord()
+                        categoryForSharedNoteRecord[Schema.categoryForSharedNote.CategoryRecordName] = updatedModel.categoryRecordName as CKRecordValue
                         
                         record[Schema.Note.categoryRecordName] = nil
                         CloudManager.shared.uploadRecordToSharedDB(record: record, completion: cloudCompletion)
-                        CloudManager.shared.uploadRecordToPrivateDB(record: record) {_,_ in }
+                        CloudManager.shared.uploadRecordToPrivateDB(record: categoryForSharedNoteRecord) {_,_ in }
                         LocalDatabase.shared.saveObject(newObject: newModel)
                     } else {
                         CloudManager.shared.uploadRecordToPrivateDB(record: record, completion: cloudCompletion)
