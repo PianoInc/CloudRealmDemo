@@ -123,9 +123,9 @@ class CloudManager {
         self.userID = recordID
         CloudManager.save(userID: recordID)
         Realm.setDefaultRealmForUser(username: recordID.recordName)
-        //refresh UI when this notification observed
-        NotificationCenter.default.post(name: NSNotification.Name.RealmConfigHasChanged, object: nil)
-        
+        //TODO: refresh UI when this notification observed
+        CloudNotificationCenter.shared.postICloudUserChanged()
+
         privateDatabase.userID = recordID
         sharedDatabase.userID = recordID
         privateDatabase.handleNotification()
@@ -138,6 +138,3 @@ class CloudManager {
     }
 }
 
-extension NSNotification.Name {
-    public static let RealmConfigHasChanged: NSNotification.Name = NSNotification.Name(rawValue: "RealmConfigHasChanged")
-}
