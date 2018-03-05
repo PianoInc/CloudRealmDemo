@@ -95,27 +95,19 @@ class CloudCommonDatabase {
                 let (ancestorRec, clientRec, serverRec) = ckError.getMergeRecords()
                 guard let clientRecord = clientRec,
                         let serverRecord = serverRec,
-                        let serverModified = serverRecord.modificationDate else { return completion(nil, error) }
+                        let ancestorRecord = ancestorRec else { return completion(nil, error) }
 
-                let clientModified = clientRecord.modificationDate ?? Date(timeIntervalSince1970: 0)
-                //TODO: resolve merge conflict by diff3 algorithm
-                if clientModified.compare(serverModified) == .orderedDescending {
-                    //client win!
+                //Resolve conflict. If it's false, it means server record has win & no merge happened
+                let merged = ConflictResolver.merge(ancestor: ancestorRecord, myRecord: clientRecord, serverRecord: serverRecord)
 
-//                    serverRecord["title"] = clientRecord["title"]
-//                    serverRecord["content"] = clientRecord["content"]
-//                    serverRecord["pureString"] = clientRecord["pureString"]
-
-                    print("c win")
+                if merged {
                     self.saveRecord(record: serverRecord) { newRecord, error in
                         completion(newRecord, error)
                     }
                 } else {
-                    //server win!
-
-                    print("s win")
                     completion(serverRecord, nil)
                 }
+
                 return
             }
 
