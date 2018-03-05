@@ -16,11 +16,12 @@ class MemoViewController: UIViewController {
     @IBOutlet weak var textView: FastTextView!
     internal var kbHeight: CGFloat?
     var memo: RealmNoteModel!
+    var isSaving = false
 
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        //TODO: make observe notification for server change
         registerKeyboardNotification()
         
         textView.memo = memo
@@ -68,15 +69,20 @@ class MemoViewController: UIViewController {
 
     @objc func saveText() {
         //TODO: make async
+        if isSaving {return}
+        
+        isSaving = true
+        
         let attributedString: NSAttributedString = textView.unmarkedString
         guard let data = try? attributedString.data(from: NSMakeRange(0, attributedString.length), documentAttributes:[.documentType: NSAttributedString.DocumentType.rtf]),
-            let string = String(data: data, encoding: .utf8) else {/* save failed!! */ return}
+            let string = String(data: data, encoding: .utf8) else {/* save failed!! */ isSaving = false;return}
 
         let kv: [String: Any] = ["content": string]
         
         ModelManager.update(model: textView.memo, kv: kv) { error in
             if let error = error {print(error)}
             else {print("happy")}
+            self.isSaving = true
         }
     }
 

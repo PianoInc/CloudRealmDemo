@@ -167,6 +167,9 @@ extension CKRecord {
         newImageModel.recordName = self.recordID.recordName
         newImageModel.ckMetaData = Data(referencing: data)
 
+        defer {
+            try? FileManager.default.removeItem(at: imageAsset.fileURL)
+        }
 
         return newImageModel
     }
