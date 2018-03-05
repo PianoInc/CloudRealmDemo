@@ -37,33 +37,3 @@ extension NSString {
 
 }
 
-extension NSAttributedString {
-    
-    func getTagRanges() -> [(NSRange, String)] {
-        let markup = self.string
-        
-        
-        guard let regex = try? NSRegularExpression(pattern: "(.*?)(<[^>]+>|\\Z)",
-                                                   options: [.caseInsensitive,
-                                                             .dotMatchesLineSeparators]) else {return []}
-        let chunks = regex.matches(in: markup,
-                                   options: NSRegularExpression.MatchingOptions(rawValue: 0),
-                                   range: NSRange(location: 0, length: markup.count))
-        
-        return chunks.map { (chunk) -> (NSRange, String)? in
-            guard let markupRange = markup.range(from: chunk.range) else { return nil }
-            let parts = markup[markupRange].components(separatedBy: "<")
-            
-
-            guard parts.count > 1, let tag = parts.last, tag.hasPrefix(ImageTag.tagName) else {return nil}
-            
-            let range =  markup.index(markupRange.upperBound, offsetBy: -tag.count-1) ..< markupRange.upperBound
-            let adjustedTag = String(markup[range])
-            //      range |========|
-            //              |length|
-            
-            return (markup.nsRange(from: range), adjustedTag)
-            }.flatMap{$0 != nil ? [$0!]: []}
-    }
-}
-

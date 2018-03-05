@@ -13,58 +13,26 @@ class FastTextView: FlangeTextView {
 
     var memo: RealmNoteModel!
 
-    var unmarkedString: NSAttributedString {
-        get {
-            let attributedString = NSMutableAttributedString(attributedString: self.textStorage)
-            
-            textStorage.enumerateAttributes(in: NSMakeRange(0, attributedString.length), options: .reverse) { (dic, range, _) in
-                if let attachment = dic[NSAttributedStringKey.attachment] as? FastTextAttachment {
-                    attributedString.removeAttribute(.attachment, range: range)
-                    attributedString.replaceCharacters(in: range, with: attachment.imageTag.getTagString())
+
+    func set(string: String, with attributes: [PianoAttribute]) {
+        let newAttributedString = NSMutableAttributedString(string: string)
+        attributes.forEach{ newAttributedString.add(attribute: $0) }
+
+        attributedText = newAttributedString
+    }
+
+    func get() -> (string: String, attributes: [PianoAttribute]) {
+        var attributes:[PianoAttribute] = []
+
+        attributedText.enumerateAttributes(in: NSMakeRange(0, attributedText.length), options: .reverse) { (dic, range, _) in
+            for (key, value) in dic {
+                if let pianoAttribute = PianoAttribute(range: range, attribute: (key, value)) {
+                    attributes.append(pianoAttribute)
                 }
             }
-            
-            return attributedString
-        } set {
-            let newAttributedString = NSMutableAttributedString(attributedString: newValue)
-            
-            let tagRanges = newValue.getTagRanges()
-                
-            
-            //Add place holder attributes to `enumerate attachment`
-            tagRanges.forEach {
-                let attachment = NSTextAttachment()
-                attachment.contents = $0.1.data(using: .utf8)
-                newAttributedString.addAttribute(.attachment, value: attachment, range: $0.0)
-            }
-            
-            //Replace placeholder attachments to real attachment
-            newAttributedString.enumerateAttribute(.attachment, in: NSMakeRange(0, newAttributedString.length), options: [.longestEffectiveRangeNotRequired, .reverse]) { (value, range, _) in
-                if let attachment = value as? NSTextAttachment, let data = attachment.contents {
-                    guard let tagString = String(data: data, encoding: .utf8),
-                        let imageTag = ImageTag(tagString: tagString), imageTag.identifier.hasPrefix(memo.id) else {return}
-                    
-                    newAttributedString.removeAttribute(.attachment, range: range)
-                    guard let newAttachment = dequeueAttachment() as? FastTextAttachment else {return}
-                    
-                    newAttachment.imageTag = imageTag
-                    let attachmentString = NSAttributedString(attachment: newAttachment)
-                    
-                    newAttributedString.replaceCharacters(in: range, with: attachmentString)
-                }
-            }
-            
-
-            newAttributedString.enumerateAttribute(.font, in: NSMakeRange(0, newAttributedString.length), options: [.longestEffectiveRangeNotRequired, .reverse]) { (value, range, _) in
-                guard let font = value as? UIFont else {return}
-                
-                print(font)
-            }
-            
-            
-            attributedText = newAttributedString
-
         }
+
+        return (string: attributedText.string, attributes: attributes)
     }
 }
 
