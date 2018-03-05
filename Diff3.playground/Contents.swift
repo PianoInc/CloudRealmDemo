@@ -4,13 +4,13 @@ import UIKit
 import Foundation
 
 enum DiffStatus: CustomStringConvertible {
-    case stable(String)
-    case conflict(String,String,String)
+    case stable(String, NSRange)
+    case conflict(String,String,String, NSRange, NSRange)
     
     var description: String {
         switch self {
-        case .stable(let s): return "stable: \(s)"
-        case .conflict(let an, let a, let b): return "conflicted \no: \(an)\na: \(a)\nb: \(b)"
+        case .stable(let s, _): return "stable: \(s)"
+        case .conflict(let an, let a, let b, _, _): return "conflicted \no: \(an)\na: \(a)\nb: \(b)"
         }
     }
     
@@ -67,45 +67,47 @@ extension Array where Element == String {
     }
 }
 
-extension Array where Element == DiffStatus {
-    func getResolvedString() -> String {
-        return self.reduce("") { (resultString, diffStatus) -> String in
-            var diffString = ""
-            switch diffStatus {
-            case .stable(let stableString): diffString = stableString
-            case .conflict(let ancestor, let myString, let serverString):
-                if ancestor == myString {
-                    diffString = serverString
-                } else if ancestor == serverString || myString == serverString {
-                    diffString = myString
-                } else {
-                    //serious conflict!
-                    diffString = """
-                    Serious Conflict!!!
-                    
-                    my
-                    ---------------------
-                    \(myString)
-                    ---------------------
-                    server
-                    \(serverString)
-                    ---------------------
-                    """
-                }
-            }
-            return resultString + diffString + "\n"
-        }
-    }
-}
+//extension Array where Element == DiffStatus {
+//    func getResolvedString() -> String {
+//        return self.reduce("") { (resultString, diffStatus) -> String in
+//            var diffString = ""
+//            switch diffStatus {
+//            case .stable(let stableString): diffString = stableString
+//            case .conflict(let ancestor, let myString, let serverString):
+//                if ancestor == myString {
+//                    diffString = serverString
+//                } else if ancestor == serverString || myString == serverString {
+//                    diffString = myString
+//                } else {
+//                    //serious conflict!
+//                    diffString = """
+//                    Serious Conflict!!!
+//
+//                    my
+//                    ---------------------
+//                    \(myString)
+//                    ---------------------
+//                    server
+//                    \(serverString)
+//                    ---------------------
+//                    """
+//                }
+//            }
+//            return resultString + diffString + "\n"
+//        }
+//    }
+//}
 
 
 
 class Diff3 {
     
-    static func makeItUP(ancestor: String, a: String, b: String) -> String {
+    static func merge(ancestor: String, a: String, b: String) -> [DiffStatus] {
         var Lo = 0
         var La = 0
         var Lb = 0
+        var lastAChunkIndex = 0
+        var lastBChunkIndex = 0
         var commonLength = 0
         var oWordIndices: [String: ReferenceArray<Int>] = [:]
         var aWordIndices: [String: ReferenceArray<Int>] = [:]
@@ -144,114 +146,137 @@ class Diff3 {
         }
         
         while(Lo+commonLength<oChunks.count && La+commonLength<aChunks.count
-                && Lb+commonLength<bChunks.count) {
-            // whole loop -> add finite conditions!
-            
-            //first step - find longest stable chunk
-            if oChunks[Lo+commonLength] == aChunks[La+commonLength] &&
-                oChunks[Lo+commonLength] == bChunks[Lb+commonLength] && !oChunks[Lo+commonLength].isEmpty {
-                commonLength += 1
-                continue
-            }
-            
-            
-            //second step
-            if commonLength == 0 {
-                // conflict occured!
+            && Lb+commonLength<bChunks.count) {
+                // whole loop -> add finite conditions!
                 
-                var oOffset = 0
-                var trueOffset = 0
-                var a: Int? = nil
-                var b: Int? = nil
-                var minB = Int.max
-                var trueA: Int? = nil
-                var trueB: Int? = nil
+                //first step - find longest stable chunk
+                if oChunks[Lo+commonLength] == aChunks[La+commonLength] &&
+                    oChunks[Lo+commonLength] == bChunks[Lb+commonLength] && !oChunks[Lo+commonLength].isEmpty {
+                    commonLength += 1
+                    continue
+                }
                 
-                while(Lo+oOffset<oChunks.count && oOffset < minB) {
-                    let currentOWord = oChunks[Lo+oOffset]
+                
+                //second step
+                if commonLength == 0 {
+                    // conflict occured!
                     
-                    if let aWordIndex = aWordIndices[currentOWord], let bWordIndex = bWordIndices[currentOWord] {
+                    var oOffset = 0
+                    var trueOffset = 0
+                    var a: Int? = nil
+                    var b: Int? = nil
+                    var minB = Int.max
+                    var trueA: Int? = nil
+                    var trueB: Int? = nil
+                    
+                    while(Lo+oOffset<oChunks.count && oOffset < minB) {
+                        let currentOWord = oChunks[Lo+oOffset]
                         
-                        a = aWordIndex.getFirstElement(largerThan: La)
-                        b = bWordIndex.getFirstElement(largerThan: Lb)
-                        
-                        if a == nil || b == nil || currentOWord.isEmpty {
-                            oOffset += 1
-                            continue
+                        if let aWordIndex = aWordIndices[currentOWord], let bWordIndex = bWordIndices[currentOWord] {
+                            
+                            a = aWordIndex.getFirstElement(largerThan: La)
+                            b = bWordIndex.getFirstElement(largerThan: Lb)
+                            
+                            if a == nil || b == nil || currentOWord.isEmpty {
+                                oOffset += 1
+                                continue
+                            }
+                            
+                            
+                            let tempMinB = (a!-La) + (b!-Lb) + oOffset
+                            
+                            //count and compare minB
+                            if (tempMinB < minB) {
+                                trueOffset = oOffset
+                                trueA = a
+                                trueB = b
+                                minB = tempMinB
+                            }
                         }
                         
-                        
-                        let tempMinB = (a!-La) + (b!-Lb) + oOffset
-                        
-                        //count and compare minB
-                        if (tempMinB < minB) {
-                            trueOffset = oOffset
-                            trueA = a
-                            trueB = b
-                            minB = tempMinB
-                        }
+                        oOffset += 1
                     }
                     
-                    oOffset += 1
+                    
+                    guard let a1 = trueA, let b1 = trueB else {break}
+                    let o = Lo+trueOffset
+                    
+                    let originalChunk = oChunks[Lo..<o].joined(separator: "\n")
+                    let aChunk = aChunks[La..<a1].joined(separator: "\n")
+                    let bChunk = bChunks[Lb..<b1].joined(separator: "\n")
+                    
+                    Lo = o
+                    La = a1
+                    Lb = b1
+                    
+                    
+                    finalChunks.append(.conflict(originalChunk, aChunk, bChunk,
+                                                 NSMakeRange(lastAChunkIndex, aChunk.count),
+                                                 NSMakeRange(lastBChunkIndex, bChunk.count)))
+                    
+                    lastAChunkIndex += (aChunk.count + 1)
+                    lastBChunkIndex += (bChunk.count + 1)
+                    //first match o with a&b, then pop them
+                    //l+offset -> o-1, l+offset -> a-1, l+offset -> b-1 conflict!!!
+                    //l = o, a, b
+                    //if no o then break
+                } else {
+                    // common block add
+                    //l -> l+offset common block
+                    //l = l+offset+1
+                    
+                    let commonChunks = oChunks[Lo..<Lo+commonLength].joined(separator: "\n")
+                    
+                    Lo += commonLength
+                    La += commonLength
+                    Lb += commonLength
+                    
+                    finalChunks.append(.stable(commonChunks,
+                                               NSMakeRange(lastAChunkIndex, commonChunks.count)))
+                    
+                    lastAChunkIndex += commonChunks.count + 1
+                    lastBChunkIndex += commonChunks.count + 1
+                    
+                    commonLength = 0
                 }
-
-                
-                guard let a1 = trueA, let b1 = trueB else {break}
-                let o = Lo+trueOffset
-                
-                let originalChunk = oChunks[Lo..<o].joined(separator: "\n")
-                let aChunk = aChunks[La..<a1].joined(separator: "\n")
-                let bChunk = bChunks[Lb..<b1].joined(separator: "\n")
-                
-                Lo = o
-                La = a1
-                Lb = b1
-                
-                finalChunks.append(.conflict(originalChunk, aChunk, bChunk))
-                //first match o with a&b, then pop them
-                //l+offset -> o-1, l+offset -> a-1, l+offset -> b-1 conflict!!!
-                //l = o, a, b
-                //if no o then break
-            } else {
-                // common block add
-                //l -> l+offset common block
-                //l = l+offset+1
-                
-                let commonChunks = oChunks[Lo..<Lo+commonLength]
-                
-                Lo += commonLength
-                La += commonLength
-                Lb += commonLength
-                
-                finalChunks.append(.stable(commonChunks.joined(separator: "\n")))
-                commonLength = 0
-            }
         }
         
         //third step
         //add final chunks
         
         if commonLength > 0 {
-            let commonChunks = oChunks[Lo..<Lo+commonLength]
+            let commonChunks = oChunks[Lo..<Lo+commonLength].joined(separator: "\n")
             
             Lo += commonLength
             La += commonLength
             Lb += commonLength
             
-            finalChunks.append(.stable(commonChunks.joined(separator: "\n")))
+            finalChunks.append(.stable(commonChunks,
+                                       NSMakeRange(lastAChunkIndex, commonChunks.count)))
+            
+            lastAChunkIndex += commonChunks.count + 1
+            lastBChunkIndex += commonChunks.count + 1
         }
         
         let originalChunk = oChunks[Lo..<oChunks.count].joined(separator: "\n")
         let aChunk = aChunks[La..<aChunks.count].joined(separator: "\n")
         let bChunk = bChunks[Lb..<bChunks.count].joined(separator: "\n")
         
-        finalChunks.append(.conflict(originalChunk, aChunk, bChunk))
-//        finalChunks.forEach{
-//            print($0)
-//        }
+        if originalChunk.count > 0 && aChunk.count > 0 && bChunk.count > 0 {
+            finalChunks.append(.conflict(originalChunk, aChunk, bChunk,
+                                         NSMakeRange(lastAChunkIndex, aChunk.count),
+                                         NSMakeRange(lastBChunkIndex, bChunk.count)))
+            
+            lastAChunkIndex += (aChunk.count + 1)
+            lastBChunkIndex += (bChunk.count + 1)
+        }
         
-//        print("********************************************")
-        return finalChunks.getResolvedString()
+        //        finalChunks.forEach{
+        //            print($0)
+        //        }
+        
+        //        print("********************************************")
+        return finalChunks
     }
 }
 
@@ -509,6 +534,44 @@ End Sub
 #End Region
 """
 
+
+
 //Diff3.makeItUP(ancestor: origin, a: a, b: b)
-print(Diff3.makeItUP(ancestor: origin, a: a, b: b))
+Diff3.merge(ancestor: origin, a: a, b: b).forEach {
+    if $0.isConflict {
+        switch $0 {
+        case .stable(let string, let range):
+            let startIndex = a.index(a.startIndex, offsetBy: range.location)
+            let endIndex = a.index(startIndex, offsetBy: range.length)
+            if a[startIndex..<endIndex] == string {
+                print("good")
+            } else {
+                print("fuck!!")
+            }
+        case .conflict(_, let aString, let bString, let aRange, let bRange):
+        
+            print("\(a.count) \(aRange.location+aRange.length)")
+            print("\(b.count) \(bRange.location+bRange.length)")
+            
+            
+            let aStartIndex = a.index(a.startIndex, offsetBy: aRange.location)
+            let aEndIndex = a.index(aStartIndex, offsetBy: aRange.length)
+            
+            let bStartIndex = b.index(b.startIndex, offsetBy: bRange.location)
+            let bEndIndex = b.index(bStartIndex, offsetBy: bRange.length)
+            
+            if a[aStartIndex..<aEndIndex] == aString {
+                print("agood")
+            } else {
+                print("afuck!!")
+            }
+            
+            if b[bStartIndex..<bEndIndex] == bString {
+                print("bgood")
+            } else {
+                print("bfuck!!")
+            }
+        }
+    }
+}
 
