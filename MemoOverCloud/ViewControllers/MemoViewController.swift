@@ -124,7 +124,6 @@ extension MemoViewController: FlangeTextViewDelegate {
             LocalCache.shared.updateThumbnailCacheWithID(id: attachment.imageID + "thumb", width: attachment.width, height: attachment.height) { image in
                 DispatchQueue.main.async { [weak self] in
                     attachment.image = image
-                    //TODO: reload whole visible range
                     self?.textView.reloadRange(for: range)
                 }
             }

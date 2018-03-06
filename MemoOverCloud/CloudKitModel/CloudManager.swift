@@ -30,10 +30,6 @@ class CloudManager {
         self.setupNotificationHandling()
         
         requestUserInfo()
-        
-        //TODO: these must be removed later
-        privateDatabase.handleNotification()
-        sharedDatabase.handleNotification()
     }
 
     

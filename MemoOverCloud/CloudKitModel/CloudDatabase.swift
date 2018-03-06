@@ -237,10 +237,10 @@ class CloudPrivateDatabase: CloudCommonDatabase {
         let userID = self.userID?.recordName ?? ""
         let serverChangedTokenKey = "ckServerChangeToken\(database.scopeString)\(userID)"
         var changeToken: CKServerChangeToken?
-        //TODO: uncomment these later
-//        if let changeTokenData = UserDefaults.standard.data(forKey: serverChangedTokenKey) {
-//            changeToken = NSKeyedUnarchiver.unarchiveObject(with: changeTokenData) as? CKServerChangeToken
-//        }
+
+        if let changeTokenData = UserDefaults.standard.data(forKey: serverChangedTokenKey) {
+            changeToken = NSKeyedUnarchiver.unarchiveObject(with: changeTokenData) as? CKServerChangeToken
+        }
 
 
         let options = CKFetchRecordZoneChangesOptions()
@@ -343,9 +343,9 @@ class CloudSharedDatabase: CloudCommonDatabase {
         let serverChangedTokenKey = "ckServerChangeToken\(database.scopeString)\(userID)"
         var changeToken: CKServerChangeToken?
 
-//        if let changeTokenData = UserDefaults.standard.data(forKey: serverChangedTokenKey) {
-//            changeToken = NSKeyedUnarchiver.unarchiveObject(with: changeTokenData) as? CKServerChangeToken
-//        }
+        if let changeTokenData = UserDefaults.standard.data(forKey: serverChangedTokenKey) {
+            changeToken = NSKeyedUnarchiver.unarchiveObject(with: changeTokenData) as? CKServerChangeToken
+        }
 
 
         let operation = CKFetchDatabaseChangesOperation(previousServerChangeToken: changeToken)

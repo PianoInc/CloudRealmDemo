@@ -25,10 +25,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         performMigration()
         
         //Remove this chunk if datas need to be persistent
-        let realm = try! Realm()
-        try! realm.write {
-            realm.deleteAll()
-        }
+//        let realm = try! Realm()
+//        try! realm.write {
+//            realm.deleteAll()
+//        }
         
         
 
