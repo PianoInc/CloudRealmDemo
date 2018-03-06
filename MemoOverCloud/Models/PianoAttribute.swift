@@ -55,7 +55,7 @@ extension PianoAttribute: Codable {
 
 extension NSMutableAttributedString {
     func add(attribute: PianoAttribute) {
-        let range = NSMakeRange(attribute.startIndex, attribute.endIndex)
+        let range = NSMakeRange(attribute.startIndex, attribute.endIndex - attribute.startIndex)
 
         self.addAttributes(attribute.style.toNSAttribute(), range: range)
     }
