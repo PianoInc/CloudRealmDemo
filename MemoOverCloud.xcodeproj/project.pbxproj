@@ -19,12 +19,12 @@
 		6C2D317D20282D86003C715C /* ImageCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 6C2D317820282D85003C715C /* ImageCell.xib */; };
 		6C2D317E20282D86003C715C /* ImageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C2D317920282D85003C715C /* ImageCell.swift */; };
 		6C2D318020282E71003C715C /* FastTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C2D317F20282E71003C715C /* FastTextView.swift */; };
-		6C4253462043D57C009612AB /* FlangeTextEngine.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6C4253452043D57C009612AB /* FlangeTextEngine.framework */; };
-		6C4253482043D580009612AB /* FlangeTextEngine.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 6C4253452043D57C009612AB /* FlangeTextEngine.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		6C4C743F202A79BF00571760 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6C4C743E202A79BF00571760 /* CloudKit.framework */; };
 		6C79A44C203BED1700F0C18B /* PianoAttribute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C79A44B203BED1700F0C18B /* PianoAttribute.swift */; };
 		6C9932B220242A4800592B5F /* CategoryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C9932B120242A4800592B5F /* CategoryViewController.swift */; };
 		6C9932B420242AF500592B5F /* MemoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C9932B320242AF500592B5F /* MemoViewController.swift */; };
+		6C9EDE74204E674F005A41D0 /* FastLayoutTextEngine.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6C9EDE72204E674D005A41D0 /* FastLayoutTextEngine.framework */; };
+		6C9EDE75204E674F005A41D0 /* FastLayoutTextEngine.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 6C9EDE72204E674D005A41D0 /* FastLayoutTextEngine.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		75E990361EBDBEB577DDDA32 /* RealmDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E998D3337AA816BF45DE56 /* RealmDataModel.swift */; };
 		75E990A0B16AB48BFE41790D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 75E99D5A7F810B886240B527 /* Assets.xcassets */; };
 		75E993265CAD9B7743D68730 /* Color+hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E99CF1642C919FD2724246 /* Color+hex.swift */; };
@@ -69,13 +69,13 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		6C5D0E79203171B2007106BC /* Embed Frameworks */ = {
+		6C9EDE76204E674F005A41D0 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				6C4253482043D580009612AB /* FlangeTextEngine.framework in Embed Frameworks */,
+				6C9EDE75204E674F005A41D0 /* FastLayoutTextEngine.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -98,12 +98,12 @@
 		6C2D317820282D85003C715C /* ImageCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ImageCell.xib; sourceTree = "<group>"; };
 		6C2D317920282D85003C715C /* ImageCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageCell.swift; sourceTree = "<group>"; };
 		6C2D317F20282E71003C715C /* FastTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FastTextView.swift; sourceTree = "<group>"; };
-		6C4253452043D57C009612AB /* FlangeTextEngine.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = FlangeTextEngine.framework; sourceTree = "<group>"; };
 		6C4C743D202A79B900571760 /* MemoOverCloud.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MemoOverCloud.entitlements; sourceTree = "<group>"; };
 		6C4C743E202A79BF00571760 /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = System/Library/Frameworks/CloudKit.framework; sourceTree = SDKROOT; };
 		6C79A44B203BED1700F0C18B /* PianoAttribute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PianoAttribute.swift; sourceTree = "<group>"; };
 		6C9932B120242A4800592B5F /* CategoryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryViewController.swift; sourceTree = "<group>"; };
 		6C9932B320242AF500592B5F /* MemoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoViewController.swift; sourceTree = "<group>"; };
+		6C9EDE72204E674D005A41D0 /* FastLayoutTextEngine.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = FastLayoutTextEngine.framework; sourceTree = "<group>"; };
 		75E9903A3DB1D3E6F6D676D1 /* MemoOverCloudTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoOverCloudTests.swift; sourceTree = "<group>"; };
 		75E990FDF54CBB7BF79599E4 /* CKAsset+UIImage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CKAsset+UIImage.swift"; sourceTree = "<group>"; };
 		75E993011963A79287F88763 /* Strings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Strings.swift; sourceTree = "<group>"; };
@@ -153,8 +153,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				6C4C743F202A79BF00571760 /* CloudKit.framework in Frameworks */,
+				6C9EDE74204E674F005A41D0 /* FastLayoutTextEngine.framework in Frameworks */,
 				22B40D73EF1E6C78223215C1 /* Pods_MemoOverCloud.framework in Frameworks */,
-				6C4253462043D57C009612AB /* FlangeTextEngine.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -270,7 +270,7 @@
 		75E996C00C171195B6E2E714 = {
 			isa = PBXGroup;
 			children = (
-				6C4253452043D57C009612AB /* FlangeTextEngine.framework */,
+				6C9EDE72204E674D005A41D0 /* FastLayoutTextEngine.framework */,
 				75E992C2BD3038F7176157B3 /* Products */,
 				75E99ACFB0B635E859C80185 /* MemoOverCloud */,
 				75E9988EDF473EC0E797AC2F /* MemoOverCloudTests */,
@@ -341,12 +341,12 @@
 			buildConfigurationList = 75E99BD149113470134EF7B1 /* Build configuration list for PBXNativeTarget "MemoOverCloud" */;
 			buildPhases = (
 				0074BA49D827B3EF6F4C99F4 /* [CP] Check Pods Manifest.lock */,
-				75E9980270695233682D245E /* Sources */,
 				75E99EE315733B886AE3011D /* Frameworks */,
 				75E99C596D935C6F87434A2D /* Resources */,
+				75E9980270695233682D245E /* Sources */,
 				94EBEFC80FC4ADC4324F1D36 /* [CP] Embed Pods Frameworks */,
 				AA444C59044F0DC1A5609DDB /* [CP] Copy Pods Resources */,
-				6C5D0E79203171B2007106BC /* Embed Frameworks */,
+				6C9EDE76204E674F005A41D0 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
