@@ -32,10 +32,15 @@ class CloudNotificationCenter: NSObject {
     }
 
 
-    //TODO: add notification for diff3 conflict!
+    //Notify specific range of
+    func postContentChangeNotification(about record: CKRecord, range: NSRange, attributedString: NSAttributedString) {
+        NotificationCenter.default.post(name: .NoteContentChanged, object: record.recordID.recordName, userInfo: ["range": range,
+                                                                                           "attributedString": attributedString])
+    }
 }
 
 extension Notification.Name {
     public static let RealmConfigHasChanged: NSNotification.Name = NSNotification.Name(rawValue: "RealmConfigHasChanged")
     public static let NoteChangedFromServer: NSNotification.Name = NSNotification.Name(rawValue: "NoteChangedFromServer")
+    public static let NoteContentChanged: NSNotification.Name = NSNotification.Name(rawValue: "NoteContentChanged")
 }

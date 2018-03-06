@@ -22,7 +22,7 @@ class MemoViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         //TODO: make observe notification for server change
-        registerKeyboardNotification()
+        registerNotification()
         
         textView.memo = memo
         textView.adjustsFontForContentSizeCategory = true
@@ -43,6 +43,7 @@ class MemoViewController: UIViewController {
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        unRegisterNotification()
         saveText()
     }
 
@@ -89,6 +90,16 @@ class MemoViewController: UIViewController {
             else {print("happy")}
             self.isSaving = true
         }
+
+    }
+
+    @objc func insertChangedText(notification: Notification) {
+        print("got change!!")
+        guard let recordName = notification.object as? String, recordName == memo.recordName,
+                let range = notification.userInfo?["range"] as? NSRange,
+                let replacementString = notification.userInfo?["attributedString"] as? NSAttributedString else {return}
+
+        textView.textStorage.replaceCharacters(in: range, with: replacementString)
 
     }
 
@@ -188,13 +199,14 @@ extension MemoViewController: PhotoViewDelegate {
 
 
 extension MemoViewController {
-    internal func registerKeyboardNotification(){
+    internal func registerNotification(){
         NotificationCenter.default.addObserver(self, selector: #selector(MemoViewController.keyboardWillShow(notification:)), name: Notification.Name.UIKeyboardWillShow, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(MemoViewController.keyboardWillHide(notification:)), name: Notification.Name.UIKeyboardWillHide, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(MemoViewController.keyboardDidHide(notification:)), name: Notification.Name.UIKeyboardDidHide, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(MemoViewController.insertChangedText(notification:)), name: .NoteContentChanged, object: nil)
     }
     
-    internal func unRegisterKeyboardNotification(){
+    internal func unRegisterNotification(){
         NotificationCenter.default.removeObserver(self)
     }
     

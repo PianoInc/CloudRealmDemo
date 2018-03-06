@@ -62,7 +62,6 @@ class ConflictResolver {
             let chunks = Diff3.merge(ancestor: ancestorContent, a: myContent, b: serverContent)
             chunks.forEach {
                 switch $0 {
-                //TODO: make Notification here
                 case .conflict(let original, let my, let server, let myRange, let serverRange):
                     //resolve conflict if possible
                     
@@ -71,10 +70,16 @@ class ConflictResolver {
                     } else if my == original { //server add
                         let replacementString = serverAttributedString.attributedSubstring(from: serverRange)
                         myAttributedString.replaceCharacters(in: myRange, with: replacementString)
+
+                        CloudNotificationCenter.shared.postContentChangeNotification(about: myRecord, range: myRange,
+                                attributedString: replacementString)
+
                     } else if server == original{ //my add
                         return
                     } else {
                         //true conflict!!
+                        //Consider if conflict is small, compare time and merge
+
                         let myReplacementString = myAttributedString.attributedSubstring(from: myRange)
                         let serverReplacementString = serverAttributedString.attributedSubstring(from: serverRange)
                         
@@ -86,6 +91,9 @@ class ConflictResolver {
                         conflictString.append(NSAttributedString(string: "\n========================\n"))
                         
                         myAttributedString.replaceCharacters(in: myRange, with: conflictString)
+
+                        CloudNotificationCenter.shared.postContentChangeNotification(about: myRecord, range: myRange,
+                                attributedString: conflictString)
                     }
                     
                 default: break
