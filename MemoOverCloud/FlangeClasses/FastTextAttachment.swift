@@ -6,7 +6,7 @@
 //  Copyright © 2018년 piano. All rights reserved.
 //
 
-import FlangeTextEngine
+import FastLayoutTextEngine
 import UIKit
 import CoreGraphics
 

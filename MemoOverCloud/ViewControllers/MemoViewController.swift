@@ -8,7 +8,7 @@
 
 import UIKit
 import RealmSwift
-import FlangeTextEngine
+import FastLayoutTextEngine
 import CloudKit
 
 class MemoViewController: UIViewController {
@@ -17,13 +17,14 @@ class MemoViewController: UIViewController {
     internal var kbHeight: CGFloat?
     var memo: RealmNoteModel!
     var isSaving = false
-
+    var id: String!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         //TODO: make observe notification for server change
         registerNotification()
         
+        id = memo.id
         textView.memo = memo
         textView.adjustsFontForContentSizeCategory = true
 
@@ -72,34 +73,43 @@ class MemoViewController: UIViewController {
 
 
     @objc func saveText() {
-        //TODO: make async
-
-		if isSaving {return}
         
-        isSaving = true
-
-        let (string, attributes) = textView.get()
-        let jsonEncoder = JSONEncoder()
-
-        guard let data = try? jsonEncoder.encode(attributes) else {return}
-
-        let kv: [String: Any] = ["content": string, "attributes": data]
-        
-        ModelManager.update(model: textView.memo, kv: kv) { error in
-            if let error = error {print(error)}
-            else {print("happy")}
+        DispatchQueue.main.async {
+            if self.isSaving {return}
+            
             self.isSaving = true
+            
+            let (string, attributes) = self.textView.get()
+            
+            DispatchQueue.global().async {
+                let jsonEncoder = JSONEncoder()
+                
+                guard let data = try? jsonEncoder.encode(attributes) else {return}
+                
+                let kv: [String: Any] = ["content": string, "attributes": data]
+                
+                ModelManager.update(id: self.id, kv: kv) { [weak self] error in
+                    if let error = error {print(error)}
+                    else {print("happy")}
+                    self?.isSaving = false
+                }
+            }
         }
 
     }
 
     @objc func insertChangedText(notification: Notification) {
-        print("got change!!")
+        
+        print("got change!!1")
         guard let recordName = notification.object as? String, recordName == memo.recordName,
                 let range = notification.userInfo?["range"] as? NSRange,
                 let replacementString = notification.userInfo?["attributedString"] as? NSAttributedString else {return}
-
-        textView.textStorage.replaceCharacters(in: range, with: replacementString)
+        
+        print("got change!!2")
+        DispatchQueue.main.async { [weak self] in
+            self?.textView.textStorage.replaceCharacters(in: range, with: replacementString)
+        }
+        
 
     }
 
@@ -203,7 +213,9 @@ extension MemoViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(MemoViewController.keyboardWillShow(notification:)), name: Notification.Name.UIKeyboardWillShow, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(MemoViewController.keyboardWillHide(notification:)), name: Notification.Name.UIKeyboardWillHide, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(MemoViewController.keyboardDidHide(notification:)), name: Notification.Name.UIKeyboardDidHide, object: nil)
+        
         NotificationCenter.default.addObserver(self, selector: #selector(MemoViewController.insertChangedText(notification:)), name: .NoteContentChanged, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(MemoViewController.saveText), name: .NoteChangedFromServer, object: nil)
     }
     
     internal func unRegisterNotification(){
