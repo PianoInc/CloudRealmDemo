@@ -37,9 +37,9 @@ class ConflictResolver {
     
     private static func mergeNote(ancestor: CKRecord, myRecord: CKRecord, serverRecord: CKRecord, myModified: Date, serverModified: Date) -> Bool {
         var flag = false
-        if serverRecord.changedKeys().contains(Schema.Note.content) ||
-            serverRecord.changedKeys().contains(Schema.Note.attributes) {
-            
+//        if serverRecord.changedKeys().contains(Schema.Note.content) ||
+//            serverRecord.changedKeys().contains(Schema.Note.attributes) {
+        
             flag = true
             
             let ancestorContent = ancestor[Schema.Note.content] as! String
@@ -112,7 +112,7 @@ class ConflictResolver {
             
             serverRecord[Schema.Note.content] = myAttributedString.string as CKRecordValue
             serverRecord[Schema.Note.attributes] = ((try? JSONEncoder().encode(attributes)) ?? Data()) as CKRecordValue
-        }
+//        }
         
         
         if myModified.compare(serverModified) == .orderedDescending {
@@ -123,5 +123,5 @@ class ConflictResolver {
         
         return flag
     }
-    
+
 }

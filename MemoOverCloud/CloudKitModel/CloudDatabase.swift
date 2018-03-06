@@ -252,14 +252,14 @@ class CloudPrivateDatabase: CloudCommonDatabase {
         operation.fetchAllChanges = false
 
         operation.recordChangedBlock = { record in
-            CloudCommonDatabase.syncChanged(record: record, isShared: false)
-
-            if record.recordType == RealmNoteModel.recordTypeString &&
+            if record.recordType == RealmNoteModel.recordTypeString /*&&
                     record.changedKeys().contains(Schema.Note.content) ||
-                    record.changedKeys().contains(Schema.Note.attributes) {
+                    record.changedKeys().contains(Schema.Note.attributes)*/ {
 
                 CloudNotificationCenter.shared.postServerChangeNotification(about: record)
 
+            } else {
+                CloudCommonDatabase.syncChanged(record: record, isShared: false)
             }
         }
 

@@ -120,6 +120,7 @@ class CloudManager {
         CloudManager.save(userID: recordID)
         Realm.setDefaultRealmForUser(username: recordID.recordName)
         //TODO: refresh UI when this notification observed
+        //TODO: check for error messages!!
         CloudNotificationCenter.shared.postICloudUserChanged()
 
         privateDatabase.userID = recordID
