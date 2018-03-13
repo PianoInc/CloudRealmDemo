@@ -26,10 +26,12 @@ class CloudManager {
         self.privateDatabase = CloudPrivateDatabase(database: CKContainer.default().privateCloudDatabase, userID: userID)
         self.sharedDatabase = CloudSharedDatabase(database: CKContainer.default().sharedCloudDatabase, userID: userID)
 
-        self.resumeLongLivedOperationIfPossible()
-        self.setupNotificationHandling()
-        
-        requestUserInfo()
+        defer {
+            resumeLongLivedOperationIfPossible()
+            setupNotificationHandling()
+            
+            requestUserInfo()
+        }
     }
 
     
@@ -70,8 +72,10 @@ class CloudManager {
 
     fileprivate func setupNotificationHandling() {
         // Helpers
+        
         let notificationCenter = NotificationCenter.default
         notificationCenter.addObserver(self, selector: #selector(accountDidChange(_:)), name: Notification.Name.CKAccountChanged, object: nil)
+        
     }
 
     func loadRecordsFromPrivateDBWithID(recordNames: [String], completion handler: @escaping(([CKRecordID: CKRecord]?, Error?) -> Void)) {

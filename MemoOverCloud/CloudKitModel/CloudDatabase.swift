@@ -202,6 +202,7 @@ class CloudPrivateDatabase: CloudCommonDatabase {
 
             let predicate = NSPredicate(value: true)
 
+            
             let subscription = CKQuerySubscription(recordType: $0,
                     predicate: predicate,
                     subscriptionID: "\(subscriptionID)\($0)\(userID)",
@@ -252,15 +253,13 @@ class CloudPrivateDatabase: CloudCommonDatabase {
         operation.fetchAllChanges = false
 
         operation.recordChangedBlock = { record in
-            if record.recordType == RealmNoteModel.recordTypeString /*&&
-                    record.changedKeys().contains(Schema.Note.content) ||
-                    record.changedKeys().contains(Schema.Note.attributes)*/ {
-
-                CloudNotificationCenter.shared.postServerChangeNotification(about: record)
-
-            } else {
-                CloudCommonDatabase.syncChanged(record: record, isShared: false)
+            if record.recordType == RealmNoteModel.recordTypeString {
+                //TODO:Run diff
+                
             }
+            
+            CloudCommonDatabase.syncChanged(record: record, isShared: false)
+            
         }
 
         operation.recordWithIDWasDeletedBlock = { deletedRecordID, recordType in
@@ -418,6 +417,9 @@ class CloudSharedDatabase: CloudCommonDatabase {
         operation.fetchAllChanges = false
 
         operation.recordChangedBlock = { record in
+            if record.recordType == RealmNoteModel.recordTypeString {
+                //TODO:Run diff
+            }
             CloudCommonDatabase.syncChanged(record: record, isShared: true)
         }
 

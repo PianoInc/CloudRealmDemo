@@ -36,22 +36,23 @@ class ConflictResolver {
     }
     
     private static func mergeNote(ancestor: CKRecord, myRecord: CKRecord, serverRecord: CKRecord, myModified: Date, serverModified: Date) -> Bool {
-        var flag = false
-//        if serverRecord.changedKeys().contains(Schema.Note.content) ||
-//            serverRecord.changedKeys().contains(Schema.Note.attributes) {
         
+        var flag = false
+        
+        let ancestorContent = ancestor[Schema.Note.content] as? String ?? ""
+        let myContent = myRecord[Schema.Note.content] as! String
+        let serverContent = serverRecord[Schema.Note.content] as! String
+        
+        
+        
+        let myAttributesData = myRecord[Schema.Note.attributes] as! Data
+        let myAttributes = try! JSONDecoder().decode([PianoAttribute].self, from: myAttributesData)
+        
+        let serverAttributesData = serverRecord[Schema.Note.attributes] as! Data
+        let serverAttributes = try! JSONDecoder().decode([PianoAttribute].self, from: serverAttributesData)
+        
+        if myContent.hashValue != serverContent.hashValue || myAttributesData.hashValue != serverAttributesData.hashValue {
             flag = true
-            
-            let ancestorContent = ancestor[Schema.Note.content] as! String
-            
-            let myContent = myRecord[Schema.Note.content] as! String
-            let serverContent = serverRecord[Schema.Note.content] as! String
-            
-            let myAttributesData = myRecord[Schema.Note.attributes] as! Data
-            let myAttributes = try! JSONDecoder().decode([PianoAttribute].self, from: myAttributesData)
-            
-            let serverAttributesData = serverRecord[Schema.Note.attributes] as! Data
-            let serverAttributes = try! JSONDecoder().decode([PianoAttribute].self, from: serverAttributesData)
             
             let myAttributedString = NSMutableAttributedString(string: myContent)
             myAttributes.forEach {myAttributedString.add(attribute: $0)}
@@ -59,46 +60,43 @@ class ConflictResolver {
             let serverAttributedString = NSMutableAttributedString(string: serverContent)
             serverAttributes.forEach {serverAttributedString.add(attribute: $0)}
             
+            //TODO; notify
             let chunks = Diff3.merge(ancestor: ancestorContent, a: myContent, b: serverContent)
-            chunks.forEach {
-                switch $0 {
-                case .conflict(let original, let my, let server, let myRange, let serverRange):
-                    //resolve conflict if possible
+            _ = chunks.reduce(0) { offset, diff3Chunk -> Int in
+                var currentOffset = offset
+                switch diff3Chunk {
+                    case .add(let index, let serverRange):
+                        let replaceString = serverAttributedString.attributedSubstring(from: serverRange)
+                        myAttributedString.insert(replaceString, at: index + currentOffset)
+                        currentOffset += serverRange.length
                     
-                    if my == server { //false conflict
-                        return
-                    } else if my == original { //server add
-                        let replacementString = serverAttributedString.attributedSubstring(from: serverRange)
-                        myAttributedString.replaceCharacters(in: myRange, with: replacementString)
-
-                        CloudNotificationCenter.shared.postContentChangeNotification(about: myRecord, range: myRange,
-                                attributedString: replacementString)
-
-                    } else if server == original{ //my add
-                        return
-                    } else {
-                        //true conflict!!
-                        //Consider if conflict is small, compare time and merge
-
-                        let myReplacementString = myAttributedString.attributedSubstring(from: myRange)
-                        let serverReplacementString = serverAttributedString.attributedSubstring(from: serverRange)
-                        
-                        let conflictString = NSMutableAttributedString(string: "!@#$ Conflict!!\nMy\n========================\n")
-                        
-                        conflictString.append(myReplacementString)
-                        conflictString.append(NSAttributedString(string: "\nServer\n========================\n"))
-                        conflictString.append(serverReplacementString)
-                        conflictString.append(NSAttributedString(string: "\n========================\n"))
-                        
-                        myAttributedString.replaceCharacters(in: myRange, with: conflictString)
-
-                        CloudNotificationCenter.shared.postContentChangeNotification(about: myRecord, range: myRange,
-                                attributedString: conflictString)
-                    }
+                    case .delete(let range):
+                        myAttributedString.deleteCharacters(in: NSMakeRange(range.location + currentOffset, range.length))
+                        currentOffset -= range.length
                     
-                default: break
+                    case .change(let myRange, let serverRange):
+                        let replaceString = serverAttributedString.attributedSubstring(from: serverRange)
+                        myAttributedString.replaceCharacters(in: NSMakeRange(myRange.location + currentOffset, myRange.length), with: replaceString)
+                        currentOffset += serverRange.length - myRange.length
+                    
+                    case .conflict(let myRange, let serverRange):
+                        let replaceString = serverAttributedString.attributedSubstring(from: serverRange)
+                        let myReplaceString = myAttributedString.attributedSubstring(from: myRange)
+                    
+                        let conflictString = NSMutableAttributedString(string: "************************\nmy\n************************\n")
+                        conflictString.append(myReplaceString)
+                        conflictString.append(NSAttributedString(string: "server\n************************\n"))
+                        conflictString.append(replaceString)
+                        conflictString.append(NSAttributedString(string: "\n************************\n"))
+                    
+                        myAttributedString.replaceCharacters(in: NSMakeRange(myRange.location + currentOffset, myRange.length), with: conflictString)
+                    
+                        currentOffset += conflictString.length - myRange.length
                 }
+                
+                return currentOffset
             }
+            
             
             var attributes:[PianoAttribute] = []
             
@@ -112,7 +110,7 @@ class ConflictResolver {
             
             serverRecord[Schema.Note.content] = myAttributedString.string as CKRecordValue
             serverRecord[Schema.Note.attributes] = ((try? JSONEncoder().encode(attributes)) ?? Data()) as CKRecordValue
-//        }
+        }
         
         
         if myModified.compare(serverModified) == .orderedDescending {

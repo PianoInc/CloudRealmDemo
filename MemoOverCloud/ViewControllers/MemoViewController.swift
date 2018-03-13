@@ -18,6 +18,7 @@ class MemoViewController: UIViewController {
     var memo: RealmNoteModel!
     var isSaving = false
     var id: String!
+    var recordName: String!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -25,6 +26,7 @@ class MemoViewController: UIViewController {
         registerNotification()
         
         id = memo.id
+        recordName = memo.recordName
         textView.memo = memo
         textView.adjustsFontForContentSizeCategory = true
 
@@ -101,7 +103,7 @@ class MemoViewController: UIViewController {
     @objc func insertChangedText(notification: Notification) {
         
         print("got change!!1")
-        guard let recordName = notification.object as? String, recordName == memo.recordName,
+        guard let recordName = notification.object as? String, recordName == self.recordName,
                 let range = notification.userInfo?["range"] as? NSRange,
                 let replacementString = notification.userInfo?["attributedString"] as? NSAttributedString else {return}
         
