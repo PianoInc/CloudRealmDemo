@@ -5,283 +5,351 @@
 
 import Foundation
 
-enum DiffStatus: CustomStringConvertible {
-    case stable(String,NSRange)
-    case conflict(String,String,String,NSRange,NSRange)
-    
-    var description: String {
-        switch self {
-        case .stable(let s, _): return "stable: \(s)"
-        case .conflict(let an, let a, let b, _, _): return "conflicted \no: \(an)\na: \(a)\nb: \(b)"
-        }
-    }
-    
-    var isConflict: Bool {
-        switch self {
-        case .stable: return false
-        case .conflict: return true
-        }
-    }
-    
-    
-}
 
-class ReferenceArray<T>: CustomStringConvertible {
-    var description: String {
-        return array.description
-    }
+struct Stack<Element> {
+    
+    private var items = [Element]()
     
     var count: Int {
-        return array.count
+        return items.count
     }
     
-    private var array:[T] = []
-    
-    
-    func append(_ newElement: T) {
-        array.append(newElement)
+    mutating func push(_ item: Element) {
+        items.append(item)
     }
     
-    subscript(_ index: Int) -> T {
-        get {
-            return array[index]
-        } set {
-            array[index] = newValue
-        }
+    mutating func pop() -> Element? {
+        return count == 0 ? nil : items.removeLast()
     }
     
-}
-
-extension ReferenceArray where T == Int {
-    func getFirstElement(largerThan value: Int) -> Int? {
-        guard let index = array.index(where: { (element) -> Bool in
-            return element >= value
-        }) else {return nil}
-        
-        return array[index]
+    
+    
+    func isEmpty() -> Bool {
+        return self.count == 0
     }
 }
 
-extension String {
-    func commonSuffix<T>(with aString: T, options: String.CompareOptions) -> String where T : StringProtocol {
-        let myReverse = String(self.reversed())
-        let yourReverse = String(aString.reversed())
-        
-        return myReverse.commonPrefix(with: yourReverse)
-    }
+enum Diff3Block {
+    case add(Int, NSRange)
+    case delete(NSRange)
+    case change(NSRange, NSRange)
+    case conflict(NSRange, NSRange)
 }
-
-
-extension Array where Element == String {
-    func combineChunks() -> String {
-        return String(self.reduce("") { (resultString, element) -> String in
-            resultString+element+"\n"
-            }.dropLast())
-    }
-}
-
-//extension Array where Element == DiffStatus {
-//    func getResolvedString() -> String {
-//        return self.reduce("") { (resultString, diffStatus) -> String in
-//            var diffString = ""
-//            switch diffStatus {
-//            case .stable(let stableString): diffString = stableString
-//            case .conflict(let ancestor, let myString, let serverString):
-//                if ancestor == myString {
-//                    diffString = serverString
-//                } else if ancestor == serverString || myString == serverString {
-//                    diffString = myString
-//                } else {
-//                    //serious conflict!
-//                    diffString = """
-//                    Serious Conflict!!!
-//
-//                    my
-//                    ---------------------
-//                    \(myString)
-//                    ---------------------
-//                    server
-//                    \(serverString)
-//                    ---------------------
-//                    """
-//                }
-//            }
-//            return resultString + diffString + "\n"
-//        }
-//    }
-//}
-
 
 
 class Diff3 {
     
-    static func merge(ancestor: String, a: String, b: String) -> [DiffStatus] {
-        var Lo = 0
-        var La = 0
-        var Lb = 0
-        var lastAChunkIndex = 0
-        var lastBChunkIndex = 0
-        var commonLength = 0
-        var oWordIndices: [String: ReferenceArray<Int>] = [:]
-        var aWordIndices: [String: ReferenceArray<Int>] = [:]
-        var bWordIndices: [String: ReferenceArray<Int>] = [:]
+    static func merge(ancestor: String, a: String, b: String) -> [Diff3Block] {
+        let aDiffMaker = DiffMaker(aString: ancestor, bString: a)
+        let bDiffMaker = DiffMaker(aString: ancestor, bString: b)
         
-        //chunk it up & make indice lists
+        let oaDiffChunks = aDiffMaker.parseTwoStrings()
+        let obDiffChunks = bDiffMaker.parseTwoStrings()
         
-        let oChunks = ancestor.components(separatedBy: "\n")
-        let aChunks = a.components(separatedBy: "\n")
-        let bChunks = b.components(separatedBy: "\n")
-        var finalChunks:[DiffStatus] = []
+        var diff3Chunks: [Diff3Block] = []
+        var conflictArray: [(bIndices: [Int], aIndices:[Int])] = []// bChunks, aChunks
+        var offsetArray = [Int](repeating: 0, count: obDiffChunks.count)
         
-        for (index, string) in oChunks.enumerated() {
-            let array = oWordIndices[string] ?? ReferenceArray<Int>()
-            
-            if oWordIndices[string] == nil { oWordIndices[string] = array }
-            
-            array.append(index)
+        
+        //do it by graph!!!
+        //if number is larger than obCount than it's oa
+        //
+        var edges: Dictionary<Int,[Int]> = [:]
+        
+        for i in 0...oaDiffChunks.count+obDiffChunks.count {
+            edges[i] = []
         }
         
-        
-        for (index, string) in aChunks.enumerated() {
-            let array = aWordIndices[string] ?? ReferenceArray<Int>()
+        _ = obDiffChunks.enumerated().reduce(0) { index, diffChunk -> Int in
+            let myRange = diffChunk.element.getARange()
+            var currentAIndex = index
             
-            if aWordIndices[string] == nil { aWordIndices[string] = array }
-            
-            array.append(index)
-        }
-        
-        for (index, string) in bChunks.enumerated() {
-            let array = bWordIndices[string] ?? ReferenceArray<Int>()
-            
-            if bWordIndices[string] == nil { bWordIndices[string] = array }
-            
-            array.append(index)
-        }
-        
-        while(Lo+commonLength<oChunks.count && La+commonLength<aChunks.count
-            && Lb+commonLength<bChunks.count) {
-                // whole loop -> add finite conditions!
+            while currentAIndex < oaDiffChunks.count && myRange.upperBound > oaDiffChunks[currentAIndex].getARange().lowerBound {
                 
-                //first step - find longest stable chunk
-                if oChunks[Lo+commonLength] == aChunks[La+commonLength] &&
-                    oChunks[Lo+commonLength] == bChunks[Lb+commonLength] && !oChunks[Lo+commonLength].isEmpty {
-                    commonLength += 1
-                    continue
+                if let _ = myRange.intersection(oaDiffChunks[currentAIndex].getARange()) {
+                    
+                    edges[diffChunk.offset]!.append(currentAIndex + obDiffChunks.count)
+                    edges[currentAIndex + obDiffChunks.count]!.append(diffChunk.offset)
+                    
                 }
                 
+                currentAIndex += 1
+            }
+            
+            //If add & add matches
+            
+            if currentAIndex < oaDiffChunks.count && myRange == oaDiffChunks[currentAIndex].getARange() {
+                edges[diffChunk.offset]!.append(currentAIndex + obDiffChunks.count)
+                edges[currentAIndex + obDiffChunks.count]!.append(diffChunk.offset)
+            }
+            
+            return currentAIndex > 0 ? currentAIndex - 1 : currentAIndex
+        }
+        
+        var visited = stride(from: 0, through: oaDiffChunks.count+obDiffChunks.count, by: 1).map{_ in return false}
+        
+        for i in 0..<obDiffChunks.count {
+            if visited[i] {continue}
+            
+            //get conflicts
+            var connectedBs: [Int] = []
+            var connectedAs: [Int] = []
+            
+            
+            var stack = Stack<Int>()
+            stack.push(i)
+            
+            while !stack.isEmpty() {
+                let currentPoint = stack.pop()!
                 
-                //second step
-                if commonLength == 0 {
-                    // conflict occured!
-                    
-                    var oOffset = 0
-                    var trueOffset = 0
-                    var a: Int? = nil
-                    var b: Int? = nil
-                    var minB = Int.max
-                    var trueA: Int? = nil
-                    var trueB: Int? = nil
-                    
-                    while(Lo+oOffset<oChunks.count && oOffset < minB) {
-                        let currentOWord = oChunks[Lo+oOffset]
+                visited[currentPoint] = true
+                
+                if currentPoint >= obDiffChunks.count {
+                    connectedAs.append(currentPoint - obDiffChunks.count)
+                } else {
+                    connectedBs.append(currentPoint)
+                }
+                
+                if let myEdges = edges[currentPoint] {
+                    myEdges.filter{!visited[$0]}.forEach {
+                        stack.push($0)
+                    }
+                }
+            }
+            
+            conflictArray.append((connectedBs.sorted(), connectedAs.sorted()))
+        }
+        
+        
+        _ = obDiffChunks.enumerated().reduce((0, 0)) { offsetTuple, diffblock -> (Int, Int) in
+            var currentIndex = offsetTuple.0
+            var currentOffset = offsetTuple.1
+            
+            let myRange = diffblock.element.getARange()
+            
+            while currentIndex < oaDiffChunks.count && oaDiffChunks[currentIndex].getARange().upperBound < myRange.lowerBound {
+                
+                switch oaDiffChunks[currentIndex] {
+                case .add(_, let range) : currentOffset += range.length
+                case .delete(let range, _) : currentOffset -= range.length
+                case .change(let oldRange, let newRange) : currentOffset += newRange.length - oldRange.length
+                default: break
+                }
+                
+                currentIndex += 1
+            }
+            
+            offsetArray[diffblock.offset] = currentOffset
+            
+            return (currentIndex, currentOffset)
+        }
+        
+        
+        for conflicts in conflictArray {
+            
+            let aBlock: DiffBlock
+            let bBlock: DiffBlock
+            
+            if conflicts.aIndices.count == 0 {
+                aBlock = .empty
+            } else if conflicts.aIndices.count == 1 {
+                aBlock = oaDiffChunks[conflicts.aIndices.first!]
+            } else {
+                let myFirstRange = oaDiffChunks[conflicts.aIndices.first!].getBRange()
+                let myLastRange = oaDiffChunks[conflicts.aIndices.last!].getBRange()
+                let oFirstRange = oaDiffChunks[conflicts.aIndices.first!].getARange()
+                let oLastRange = oaDiffChunks[conflicts.aIndices.last!].getARange()
+                
+                aBlock = .change(oFirstRange.union(oLastRange), myFirstRange.union(myLastRange))
+            }
+            
+            if conflicts.bIndices.count == 0 {
+                bBlock = .empty
+            } else if conflicts.bIndices.count == 1 {
+                bBlock = obDiffChunks[conflicts.bIndices.first!]
+            } else {
+                let myFirstRange = obDiffChunks[conflicts.bIndices.first!].getBRange()
+                let myLastRange = obDiffChunks[conflicts.bIndices.last!].getBRange()
+                let oFirstRange = obDiffChunks[conflicts.bIndices.first!].getARange()
+                let oLastRange = obDiffChunks[conflicts.bIndices.last!].getARange()
+                
+                bBlock = .change(oFirstRange.union(oLastRange), myFirstRange.union(myLastRange))
+            }
+            
+            
+            switch bBlock {
+            case .add(let index, let bRange):
+                let offset = offsetArray[conflicts.bIndices.first!]
+                let start: Int
+                switch aBlock {
+                case .delete(_, let index): start = index
+                case .change(_, let range) : start = range.location
+                case .add(let oaIndex, let aRange):
+                    if index == oaIndex {
+                        let aSubString = aDiffMaker.bChunks[aRange.location..<aRange.upperBound].joined(separator: "\n")
+                        let bSubString = bDiffMaker.bChunks[bRange.location..<bRange.upperBound].joined(separator: "\n")
                         
-                        if let aWordIndex = aWordIndices[currentOWord], let bWordIndex = bWordIndices[currentOWord] {
-                            
-                            a = aWordIndex.getFirstElement(largerThan: La)
-                            b = bWordIndex.getFirstElement(largerThan: Lb)
-                            
-                            if a == nil || b == nil || currentOWord.isEmpty {
-                                oOffset += 1
-                                continue
-                            }
-                            
-                            
-                            let tempMinB = (a!-La) + (b!-Lb) + oOffset
-                            
-                            //count and compare minB
-                            if (tempMinB < minB) {
-                                trueOffset = oOffset
-                                trueA = a
-                                trueB = b
-                                minB = tempMinB
-                            }
+                        if aSubString.hashValue == bSubString.hashValue {
+                            continue
                         }
                         
-                        oOffset += 1
+                    }
+                    fallthrough
+                default: start = index+offset
+                }
+                diff3Chunks.append(Diff3Block.add(start, bRange))
+                
+            case .delete(let oRange, _):
+                let offset = offsetArray[conflicts.bIndices.first!]
+                switch aBlock {
+                case .add(let index, let aRange):
+                    let firstRange = NSMakeRange(oRange.location+offset, index - oRange.location)
+                    let secondRange = NSMakeRange(aRange.upperBound, oRange.length - firstRange.length)
+                    if firstRange.length == 0 {
+                        diff3Chunks.append(.delete(secondRange))
+                    } else if secondRange.length == 0 {
+                        diff3Chunks.append(.delete(firstRange))
+                    } else {
+                        diff3Chunks.append(.delete(firstRange))
+                        diff3Chunks.append(.delete(secondRange))
+                    }
+                case .delete(let range, let aIndex):
+                    if range == oRange {break}
+                    let differences = oRange.difference(to: range)
+                    
+                    if differences.0 == nil && differences.1 == nil {break}
+                    if differences.0 == nil {
+                        diff3Chunks.append(.delete(NSMakeRange(aIndex, differences.1!.length)))
+                    } else if differences.1 == nil {
+                        diff3Chunks.append(.delete(NSMakeRange(aIndex - differences.0!.length, differences.0!.length)))
+                    } else {
+                        diff3Chunks.append(.delete(NSMakeRange(aIndex - differences.0!.length, differences.0!.length)))
+                        diff3Chunks.append(.delete(NSMakeRange(aIndex, differences.1!.length)))
+                    }
+                case .change(let oaRange, let aaRange):
+                    let differences = oRange.difference(to: oaRange)
+                    
+                    if differences.0 == nil && differences.1 == nil {break}
+                    if differences.0 == nil {
+                        diff3Chunks.append(.delete(NSMakeRange(aaRange.upperBound, differences.1!.length)))
+                    } else if differences.1 == nil {
+                        diff3Chunks.append(.delete(NSMakeRange(aaRange.location - differences.0!.length, differences.0!.length)))
+                    } else {
+                        diff3Chunks.append(.delete(NSMakeRange(aaRange.location - differences.0!.length, differences.0!.length)))
+                        diff3Chunks.append(.delete(NSMakeRange(aaRange.upperBound, differences.1!.length)))
+                    }
+                case .empty:
+                    diff3Chunks.append(.delete(NSMakeRange(oRange.location+offset, oRange.length)))
+                    
+                }
+            case .change(let oRange, let bRange):
+                let offset = offsetArray[conflicts.bIndices.first!]
+                switch aBlock {
+                case .add(let index, let aRange):
+                    let firstRange = NSMakeRange(oRange.location, index - oRange.location)
+                    let secondRange = NSMakeRange(index, oRange.length - firstRange.length)
+                    diff3Chunks.append(.conflict(NSMakeRange(aRange.location - firstRange.length, aRange.length + firstRange.length + secondRange.length), bRange))
+                case .delete(let oaRange, let index):
+                    let differences = oRange.difference(to: oaRange)
+                    
+                    if differences.0 == nil && differences.1 == nil {
+                        diff3Chunks.append(.add(index, bRange))
+                    } else if differences.0 == nil {
+                        diff3Chunks.append(.change(NSMakeRange(index, differences.1!.length), bRange))
+                    } else if differences.1 == nil {
+                        diff3Chunks.append(.change(NSMakeRange(index - differences.0!.length, differences.0!.length), bRange))
+                    } else {
+                        diff3Chunks.append(.change(NSMakeRange(index - differences.0!.length, differences.0!.length + differences.1!.length), bRange))
+                    }
+                case .change(let oaRange, let aaRange):
+                    
+                    let aSubString = aDiffMaker.bChunks[aaRange.location..<aaRange.upperBound].joined(separator: "\n")
+                    let bSubString = bDiffMaker.bChunks[bRange.location..<bRange.upperBound].joined(separator: "\n")
+                    
+                    if aSubString.hashValue == bSubString.hashValue {
+                        continue
                     }
                     
+                    let differences = oRange.difference(to: oaRange)
                     
-                    guard let a1 = trueA, let b1 = trueB else {break}
-                    let o = Lo+trueOffset
+                    if differences.0 == nil && differences.1 == nil {
+                        diff3Chunks.append(.conflict(aaRange, bRange))
+                    } else if differences.0 == nil {
+                        diff3Chunks.append(.conflict(NSMakeRange(aaRange.location, aaRange.length + differences.1!.length), bRange))
+                    } else if differences.1 == nil {
+                        diff3Chunks.append(.conflict(NSMakeRange(aaRange.location - differences.0!.length, aaRange.length + differences.0!.length), bRange))
+                    } else {
+                        diff3Chunks.append(.conflict(NSMakeRange(aaRange.location - differences.0!.length, aaRange.length + differences.0!.length + differences.1!.length), bRange))
+                    }
                     
-                    let originalChunk = oChunks[Lo..<o].joined(separator: "\n")
-                    let aChunk = aChunks[La..<a1].joined(separator: "\n")
-                    let bChunk = bChunks[Lb..<b1].joined(separator: "\n")
-                    
-                    Lo = o
-                    La = a1
-                    Lb = b1
-                    
-                    
-                    finalChunks.append(.conflict(originalChunk, aChunk, bChunk,
-                                        NSMakeRange(lastAChunkIndex, aChunk.count),
-                                        NSMakeRange(lastBChunkIndex, bChunk.count)))
-                    
-                    lastAChunkIndex += (aChunk.count + 1)
-                    lastBChunkIndex += (bChunk.count + 1)
-                    //first match o with a&b, then pop them
-                    //l+offset -> o-1, l+offset -> a-1, l+offset -> b-1 conflict!!!
-                    //l = o, a, b
-                    //if no o then break
-                } else {
-                    // common block add
-                    //l -> l+offset common block
-                    //l = l+offset+1
-                    
-                    let commonChunks = oChunks[Lo..<Lo+commonLength].joined(separator: "\n")
-                    
-                    Lo += commonLength
-                    La += commonLength
-                    Lb += commonLength
-                    
-                    finalChunks.append(.stable(commonChunks,
-                                        NSMakeRange(lastAChunkIndex, commonChunks.count)))
-                    
-                    lastAChunkIndex += commonChunks.count + 1
-                    lastBChunkIndex += commonChunks.count + 1
-                    
-                    commonLength = 0
+                case .empty:
+                    diff3Chunks.append(.change(NSMakeRange(oRange.location+offset, oRange.length), bRange))
                 }
+                
+            default: break
+            }
         }
         
-        //third step
-        //add final chunks
+        let aLineRanges = aDiffMaker.bLineRanges
+        let bLineRanges = bDiffMaker.bLineRanges
         
-        if commonLength > 0 {
-            let commonChunks = oChunks[Lo..<Lo+commonLength].joined(separator: "\n")
+        return diff3Chunks.map {
             
-            Lo += commonLength
-            La += commonLength
-            Lb += commonLength
-            
-            finalChunks.append(.stable(commonChunks,
-                                NSMakeRange(lastAChunkIndex, commonChunks.count)))
-            
-            lastAChunkIndex += commonChunks.count + 1
-            lastBChunkIndex += commonChunks.count + 1
+            switch $0 {
+            case .add(let index, let range):
+                
+                let indexFromLine = aLineRanges[index-1].upperBound
+                let bLowerBound = bLineRanges[range.lowerBound].lowerBound
+                let bUpperBound = bLineRanges[range.upperBound-1].upperBound
+                
+                
+                return Diff3Block.add(indexFromLine, NSMakeRange(bLowerBound, bUpperBound - bLowerBound))
+            case .delete(let range):
+                let aLowerBound = aLineRanges[range.lowerBound].lowerBound
+                let aUpperBound = aLineRanges[range.upperBound-1].upperBound
+                
+                return Diff3Block.delete(NSMakeRange(aLowerBound, aUpperBound - aLowerBound))
+            case .change(let aRange, let bRange):
+                let aLowerBound = aLineRanges[aRange.lowerBound].lowerBound
+                let aUpperBound = aLineRanges[aRange.upperBound-1].upperBound
+                
+                let bLowerBound = bLineRanges[bRange.lowerBound].lowerBound
+                let bUpperBound = bLineRanges[bRange.upperBound-1].upperBound
+                
+                return Diff3Block.change(NSMakeRange(aLowerBound, aUpperBound - aLowerBound), NSMakeRange(bLowerBound, bUpperBound - bLowerBound))
+            case .conflict(let aRange, let bRange):
+                let aLowerBound = aLineRanges[aRange.lowerBound].lowerBound
+                let aUpperBound = aLineRanges[aRange.upperBound-1].upperBound
+                
+                let bLowerBound = bLineRanges[bRange.lowerBound].lowerBound
+                let bUpperBound = bLineRanges[bRange.lowerBound-1].upperBound
+                
+                return Diff3Block.conflict(NSMakeRange(aLowerBound, aUpperBound - aLowerBound), NSMakeRange(bLowerBound, bUpperBound - bLowerBound))
+            }
         }
-        
-        let originalChunk = oChunks[Lo..<oChunks.count].joined(separator: "\n")
-        let aChunk = aChunks[La..<aChunks.count].joined(separator: "\n")
-        let bChunk = bChunks[Lb..<bChunks.count].joined(separator: "\n")
-        
-        
-        if originalChunk.count > 0 && aChunk.count > 0 && bChunk.count > 0 {
-            finalChunks.append(.conflict(originalChunk, aChunk, bChunk,
-                                         NSMakeRange(lastAChunkIndex, aChunk.count),
-                                         NSMakeRange(lastBChunkIndex, bChunk.count)))
-        }
+    }
+    
+}
 
-        return finalChunks
+extension NSRange {
+
+
+    func difference(to range: NSRange) -> (NSRange?, NSRange?) {
+        if let intersection = self.intersection(range) {
+            
+            if intersection.location == self.location {
+                return intersection.length == self.length ? (nil,nil): (nil,NSMakeRange(self.location + intersection.length, self.length - intersection.length))
+            } else {
+                let firstChunk = NSMakeRange(self.location, intersection.location - self.location)
+                let secondChunk = NSMakeRange(intersection.upperBound, self.upperBound - intersection.upperBound)
+                
+                if secondChunk.length == 0 {
+                    return (firstChunk, nil)
+                } else {
+                    return (firstChunk,secondChunk)
+                }
+            }
+        }
+        return (self, nil)
     }
 }
