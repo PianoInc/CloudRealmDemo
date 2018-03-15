@@ -41,6 +41,7 @@
 		75E997483FA312ACA18FB93A /* LocalCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E99E5982F1A096D94D1817 /* LocalCache.swift */; };
 		75E997FB260C7F52D1254235 /* MemoOverCloudUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E99CF2C3808CC5A5658B12 /* MemoOverCloudUITests.swift */; };
 		75E998C981615B3460BDC315 /* UniqueIDGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E99E9B56FAA6DB8D07F721 /* UniqueIDGenerator.swift */; };
+		75E99924C50EEE995760FB16 /* NoteSynchronizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E992DD9B7A05CFEC61B207 /* NoteSynchronizer.swift */; };
 		75E99A1D0A954E7668F0F423 /* CloudDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E9953B186650F09A234D58 /* CloudDatabase.swift */; };
 		75E99A1D9AB722D31CE646C6 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E9992BB94D60A648685463 /* AppDelegate.swift */; };
 		75E99D3281309019294883E4 /* Sync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E9931F132C4336F1FFC4DC /* Sync.swift */; };
@@ -108,6 +109,7 @@
 		6CED385A20520CE200429CD2 /* Diff.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Diff.swift; sourceTree = "<group>"; };
 		75E9903A3DB1D3E6F6D676D1 /* MemoOverCloudTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoOverCloudTests.swift; sourceTree = "<group>"; };
 		75E990FDF54CBB7BF79599E4 /* CKAsset+UIImage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CKAsset+UIImage.swift"; sourceTree = "<group>"; };
+		75E992DD9B7A05CFEC61B207 /* NoteSynchronizer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NoteSynchronizer.swift; sourceTree = "<group>"; };
 		75E993011963A79287F88763 /* Strings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Strings.swift; sourceTree = "<group>"; };
 		75E9931F132C4336F1FFC4DC /* Sync.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Sync.swift; sourceTree = "<group>"; };
 		75E99332E1A14691085512DD /* ImageTag.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageTag.swift; sourceTree = "<group>"; };
@@ -246,6 +248,7 @@
 				75E99D5C3BF6EFCBE835D8A6 /* RealmCloudMapper.swift */,
 				75E990FDF54CBB7BF79599E4 /* CKAsset+UIImage.swift */,
 				75E99A0A80BA063034D4D177 /* CloudNotificationCenter.swift */,
+				75E992DD9B7A05CFEC61B207 /* NoteSynchronizer.swift */,
 			);
 			path = CloudKitModel;
 			sourceTree = "<group>";
@@ -671,6 +674,7 @@
 				6C018D622046217B00E2C0D8 /* ConflictResolver.swift in Sources */,
 				75E995D7BB12301E99856F05 /* Diff3.swift in Sources */,
 				75E993265CAD9B7743D68730 /* Color+hex.swift in Sources */,
+				75E99924C50EEE995760FB16 /* NoteSynchronizer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

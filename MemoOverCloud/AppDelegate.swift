@@ -20,9 +20,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Override point for customization after application launch.
         
         application.registerForRemoteNotifications()
+        performMigration()
         _ = CloudManager.shared
         
-        performMigration()
+        
         
         //Remove this chunk if datas need to be persistent
 //        let realm = try! Realm()
@@ -92,7 +93,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-        
+        print("oh yeah!!")
     }
     
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {

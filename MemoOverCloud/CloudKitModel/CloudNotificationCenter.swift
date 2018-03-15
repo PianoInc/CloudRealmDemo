@@ -33,9 +33,26 @@ class CloudNotificationCenter: NSObject {
 
 
     //Notify specific range of
-    func postContentChangeNotification(about record: CKRecord, range: NSRange, attributedString: NSAttributedString) {
-        NotificationCenter.default.post(name: .NoteContentChanged, object: record.recordID.recordName, userInfo: ["range": range,
-                                                                                           "attributedString": attributedString])
+    func postContentChangeNotification(about record: CKRecord, diffBlock: DiffBlock, attributedString: NSAttributedString? = nil) {
+        var userInfo: [String: Any] = ["diff": diffBlock]
+        if let replace = attributedString {
+            userInfo["replace"] = replace
+        }
+        
+        NotificationCenter.default.post(name: .NoteContentChanged, object: record.recordID.recordName, userInfo: userInfo)
+    }
+    
+    func postContentChangeNotification(about record: CKRecord, diffBlock: Diff3Block, attributedString: NSAttributedString? = nil) {
+        var userInfo: [String: Any] = ["diff": diffBlock]
+        if let replace = attributedString {
+            userInfo["replace"] = replace
+        }
+        
+        NotificationCenter.default.post(name: .NoteContentChanged, object: record.recordID.recordName, userInfo: userInfo)
+    }
+    
+    func postAttributeChangeNotification(about record: CKRecord, attributes: [PianoAttribute]) {
+        NotificationCenter.default.post(name: .NoteAttributeChanged, object: record.recordID.recordName, userInfo: ["attribute": attributes])
     }
 }
 
@@ -43,4 +60,5 @@ extension Notification.Name {
     public static let RealmConfigHasChanged: NSNotification.Name = NSNotification.Name(rawValue: "RealmConfigHasChanged")
     public static let NoteChangedFromServer: NSNotification.Name = NSNotification.Name(rawValue: "NoteChangedFromServer")
     public static let NoteContentChanged: NSNotification.Name = NSNotification.Name(rawValue: "NoteContentChanged")
+    public static let NoteAttributeChanged: NSNotification.Name = NSNotification.Name(rawValue: "NoteAttributeChanged")
 }

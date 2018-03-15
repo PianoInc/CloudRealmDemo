@@ -25,6 +25,18 @@ struct PianoAttribute {
     }
 }
 
+extension PianoAttribute: Hashable {
+    var hashValue: Int {
+        return startIndex.hashValue ^ endIndex.hashValue ^ style.hashValue
+    }
+    
+    static func ==(lhs: PianoAttribute, rhs: PianoAttribute) -> Bool {
+        return lhs.startIndex == rhs.startIndex && lhs.endIndex == rhs.endIndex && lhs.style == rhs.style
+    }
+    
+    
+}
+
 extension PianoAttribute: Codable {
 
     private enum CodingKeys: CodingKey {
@@ -88,6 +100,7 @@ enum Style {
                 //TODO: What if font is both bold&italic?
                 guard let font = attribute.value as? UIFont, font.fontDescriptor.symbolicTraits.contains(.traitBold) else {return nil}
                 if font.fontDescriptor.symbolicTraits.contains(.traitBold) {
+                    
                     self = .bold
                 } else if font.fontDescriptor.symbolicTraits.contains(.traitItalic) {
                     self = .italic
@@ -117,6 +130,65 @@ enum Style {
                 return [NSAttributedStringKey.attachment: attachment]
         }
     }
+}
+
+extension Style: Hashable {
+    var hashValue: Int {
+        switch self {
+            case .backgroundColor(let hex): return "backgroundColor".hashValue ^ hex.hashValue
+            case .foregroundColor(let hex): return "foregroundColor".hashValue ^ hex.hashValue
+            case .strikethrough: return "strikethrough".hashValue
+            case .underline: return "underline".hashValue
+            case .bold: return "bold".hashValue
+            case .italic: return "italic".hashValue
+            case.image(let id, let width, let height): return id.hashValue ^ width.hashValue ^ height.hashValue
+        }
+    }
+    
+    static func ==(lhs: Style, rhs: Style) -> Bool {
+        switch lhs {
+            case .backgroundColor(let hex):
+                if case let .backgroundColor(rHex) = rhs {
+                    if hex == rHex {return true}
+                }
+                return false
+            case .foregroundColor(let hex):
+                if case let .foregroundColor(rHex) = rhs {
+                    if hex == rHex {return true}
+                }
+                return false
+            case .strikethrough:
+                if case .strikethrough = rhs {
+                    return true
+                }
+                return false
+            case .underline:
+                if case .underline = rhs {
+                    return true
+                }
+                return false
+            case .bold:
+                if case .bold = rhs {
+                    return true
+                }
+                return false
+            case .italic:
+                if case .italic = rhs {
+                    return true
+                }
+                return false
+            case .image(let id, let width, let height):
+                if case let .image(rID, rWidth, rHeight) = rhs {
+                    if id == rID && width == rWidth && height == rHeight {
+                        return true
+                    }
+                }
+                return false
+        }
+        
+    }
+    
+    
 }
 
 extension Style: Codable {

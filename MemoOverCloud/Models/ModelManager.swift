@@ -8,6 +8,7 @@ import CloudKit
 import RealmSwift
 
 //TODO: Repetetive code. Refactor it by generic
+
 class ModelManager {
     
     private func getTypeFrom(recordType string: String) -> Object.Type? {
@@ -73,7 +74,7 @@ class ModelManager {
 
 
     static func save(model: RealmNoteModel, completion: ((Error?) -> Void)? = nil) {
-
+        
         let record = model.getRecord()
         LocalDatabase.shared.saveObject(newObject: model)
 

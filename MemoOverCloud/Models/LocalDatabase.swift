@@ -46,7 +46,6 @@ class LocalDatabase {
 
                 try? realm.write {
                     object.setValuesForKeys(kv)
-                    object.setValue(Date(), forKey: "isModified")
                 }
                 handler?()
             }
@@ -55,6 +54,20 @@ class LocalDatabase {
 
     }
 
+    func updateObject(id: String, kv: [String: Any], type: Object.Type, completion handler: (() -> Void)? = nil) {
+        databaseQueue.async {
+
+            autoreleasepool {
+                guard let realm = try? Realm(),
+                        let object = realm.object(ofType: type.self, forPrimaryKey: id) else {return}
+
+                try? realm.write {
+                    object.setValuesForKeys(kv)
+                }
+                handler?()
+            }
+        }
+    }
 
     /*
      * This method is for deleting objects.
