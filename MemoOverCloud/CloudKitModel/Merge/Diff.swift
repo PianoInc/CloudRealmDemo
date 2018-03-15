@@ -70,7 +70,7 @@ class DiffMaker {
     
     let aChunks: [String]
     let bChunks: [String]
-    private let separater = "\n"
+    private let separator: String
     
     private var mapping: [Int: Int]
     private var v: [Int]
@@ -80,38 +80,48 @@ class DiffMaker {
     private var n: Int { return bChunks.count }
     private var matchD = -1
     
-    let aLineRanges: [NSRange]
-    let bLineRanges: [NSRange]
+    let aRealRanges: [NSRange]
+    let bRealRanges: [NSRange]
+    let startOffset: Int
     
-    init(aString: String, bString: String) {
-        self.aChunks = aString.components(separatedBy: separater)
-        self.bChunks = bString.components(separatedBy: separater)
+    init(aString: String, bString: String, separator: String = "\n") {
+        self.separator = separator
+        let aInitialChunks = aString.components(separatedBy: separator)
+        let bInitialChunks = bString.components(separatedBy: separator)
+        
+        let aChunks = aInitialChunks.enumerated().map{ $0.offset == (aInitialChunks.count - 1) ? $0.element : $0.element + separator}
+        let bChunks = bInitialChunks.enumerated().map{ $0.offset == (bInitialChunks.count - 1) ? $0.element : $0.element + separator}
+        
+        self.aChunks = aChunks
+        self.bChunks = bChunks
         
         var lowerBound = 0
-        let aLastIndex = self.aChunks.count - 1
-        
-        self.aLineRanges = self.aChunks.enumerated().map{
-            let length = $0.offset == aLastIndex ? $0.element.count : $0.element.count + 1
-            let range = NSMakeRange(lowerBound, length)
-            lowerBound += length
-            
+
+        self.aRealRanges = self.aChunks.map{
+            let range = NSMakeRange(lowerBound, $0.count)
+            lowerBound += $0.count
             return range
         }
         
         lowerBound = 0
-        let bLastIndex = self.bChunks.count - 1
         
-        self.bLineRanges = self.bChunks.enumerated().map {
-            let length = $0.offset == bLastIndex ? $0.element.count : $0.element.count + 1
-            let range = NSMakeRange(lowerBound, length)
-            lowerBound += length
-            
+        self.bRealRanges = self.bChunks.map {
+            let range = NSMakeRange(lowerBound, $0.count)
+            lowerBound += $0.count
             return range
         }
         
-        let max = aChunks.count+bChunks.count
         
-        self.v = Array<Int>(repeating: 0, count: 2*(max)+1)
+        let max = aChunks.count+bChunks.count
+        var offset  = 0
+        
+        while offset < aChunks.count && offset < bChunks.count && aChunks[offset] == bChunks[offset] {
+            offset += 1
+        }
+        
+        self.startOffset = offset
+        
+        self.v = Array<Int>(repeating: offset, count: 2*(max)+1)
         
         self.mapping = stride(from: -(max), through: max, by: 1).enumerated().reduce([Int: Int]()) { (resultDic, enumerated) in
             var dict = resultDic
@@ -120,6 +130,21 @@ class DiffMaker {
         }
         
         path.append([:])
+        
+    }
+
+    func realRange(from range: NSRange, inA: Bool) -> NSRange {
+        let realRanges = inA ? aRealRanges : bRealRanges
+
+        let lowerBound = realRanges[range.lowerBound].lowerBound
+        let upperBound = realRanges[range.upperBound-1].upperBound
+        return NSMakeRange(lowerBound, upperBound - lowerBound)
+    }
+
+    func realIndex(from index: Int, inA: Bool) -> Int {
+        let realRange = inA ? aRealRanges : bRealRanges
+
+        return index == 0 ? 0 : realRange[index-1].upperBound
     }
     
     private func fillPath() {
@@ -171,66 +196,85 @@ class DiffMaker {
     
     private func getPath() -> [DiffBlock] {
         var currentPair = Pair(x: m, y: n)
-        var edgePair = Pair(x: m, y: n)
         
-        var paths: [DiffBlock] = []
+        var paths: [Pair] = [currentPair]
         
         while matchD > 0 {
-            guard let prevPath = path[matchD][currentPair] else {return []}
             
-            if !currentPair.isAdjacent(to: prevPath) {
-                
-                let xOffset = edgePair.x - currentPair.x
-                let yOffset = edgePair.y - currentPair.y
-                
-                if xOffset + yOffset > 0 {
-                    if xOffset == 0 {
-                        //add
-                        paths.insert(.add(currentPair.x, NSMakeRange(currentPair.y, yOffset)), at: 0)
-                    } else if yOffset == 0 {
-                        //delete
-                        paths.insert(.delete(NSMakeRange(currentPair.x, xOffset), currentPair.y), at: 0)
-                    } else {
-                        //change
-                        paths.insert(.change(NSMakeRange(currentPair.x, xOffset), NSMakeRange(currentPair.y, yOffset)), at: 0)
-                    }
-                }
-                
-                edgePair = prevPath
-                
-                //get k
-                //get hor or ver
-                //insert path
-                let currentK = currentPair.x - currentPair.y
-                let previousK = prevPath.x - prevPath.y
-                if currentK > previousK {
-                    //horizontal
-                    edgePair = Pair(x: prevPath.x + 1, y: prevPath.y)
-                } else {
-                    //vertical
-                    edgePair = Pair(x: prevPath.x, y: prevPath.y + 1)
-                }
-            }
-            
+            guard let prevPath = path[matchD][currentPair] else {break}
+            paths.insert(prevPath, at: 0)
             currentPair = prevPath
             
             matchD -= 1
         }
         
-        let xOffset = edgePair.x - 0
-        let yOffset = edgePair.y - 0
+        var chunks: [DiffBlock] = []
+        var prevAnchor: Pair?
         
-        if xOffset + yOffset > 0 {
-            if xOffset == 0 {
-                //add
-                paths.insert(.add(0, NSMakeRange(0, yOffset)), at: 0)
-            } else if yOffset == 0 {
-                //delete
-                paths.insert(.delete(NSMakeRange(0, xOffset), 0), at: 0)
+        for (index, point) in paths.enumerated() {
+            if let previousAnchor = prevAnchor {
+                if point.isAdjacent(to: paths[index-1]) {
+                    continue
+                } else {
+                    
+                    let currentK = point.x - point.y
+                    let previousK = paths[index-1].x - paths[index-1].y
+                    
+                    var xOffset = paths[index-1].x - previousAnchor.x
+                    var yOffset = paths[index-1].y - previousAnchor.y
+                    
+                    if currentK > previousK {
+                        //horizontal
+                        xOffset += 1
+                    } else {
+                        //vertical
+                        yOffset += 1
+                    }
+                    
+                    if xOffset + yOffset > 0 {
+                        if xOffset == 0 {
+                            //add
+                            chunks.append(.add(previousAnchor.x, NSMakeRange(previousAnchor.y, yOffset)))
+                        } else if yOffset == 0 {
+                            //delete
+                            chunks.append(.delete(NSMakeRange(previousAnchor.x, xOffset), previousAnchor.y))
+                        } else {
+                            //change
+                            chunks.append(.change(NSMakeRange(previousAnchor.x, xOffset), NSMakeRange(previousAnchor.y, yOffset)))
+                        }
+                        
+                    }
+                    
+                    
+                    
+                    prevAnchor = point
+                }
+            } else {
+                prevAnchor = point
             }
         }
         
-        return paths
+        //add final adjacent paths with prevAnchor
+        
+        if prevAnchor != paths.last {
+            if let prevAnchor = prevAnchor, let last = paths.last {
+                let xOffset = last.x - prevAnchor.x
+                let yOffset = last.y - prevAnchor.y
+                
+                if xOffset == 0 {
+                    //add
+                    chunks.append(.add(prevAnchor.x, NSMakeRange(prevAnchor.y, yOffset)))
+                } else if yOffset == 0 {
+                    //delete
+                    chunks.append(.delete(NSMakeRange(prevAnchor.x, xOffset), prevAnchor.y))
+                } else {
+                    //change
+                    chunks.append(.change(NSMakeRange(prevAnchor.x, xOffset), NSMakeRange(prevAnchor.y, yOffset)))
+                }
+            }
+        }
+        
+        return chunks
     }
     
     
@@ -239,5 +283,31 @@ class DiffMaker {
         
         //merge adjacent blocks
         return getPath()
+    }
+    
+    func parseWithoutLineInterpreted() -> [DiffBlock] {
+        fillPath()
+        
+        
+        return getPath().map {
+            print($0)
+            switch $0 {
+            case .add(let index, let range):
+                let transformedIndex = realIndex(from: index, inA: true)
+                let transformedRange = realRange(from: range, inA: false)
+
+                return DiffBlock.add(transformedIndex, transformedRange)
+            case .delete(let range, _):
+                let transformedRange = realRange(from: range, inA: true)
+
+                return DiffBlock.delete(transformedRange, 0)
+            case .change(let aRange, let bRange):
+                let transformedARange = realRange(from: aRange, inA: true)
+                let transformedBRange = realRange(from: bRange, inA: false)
+
+                return DiffBlock.change(transformedARange, transformedBRange)
+            case .empty: return .empty
+            }
+        }
     }
 }

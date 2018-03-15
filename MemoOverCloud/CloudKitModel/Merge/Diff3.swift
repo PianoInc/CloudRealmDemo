@@ -32,8 +32,8 @@ struct Stack<Element> {
 enum Diff3Block {
     case add(Int, NSRange)
     case delete(NSRange)
-    case change(NSRange, NSRange)
-    case conflict(NSRange, NSRange)
+    case change(NSRange, NSRange, NSRange) // o a b
+    case conflict(NSRange, NSRange, NSRange)// o a b
 }
 
 
@@ -186,10 +186,10 @@ class Diff3 {
                 case .change(_, let range) : start = range.location
                 case .add(let oaIndex, let aRange):
                     if index == oaIndex {
-                        let aSubString = aDiffMaker.bChunks[aRange.location..<aRange.upperBound].joined(separator: "\n")
-                        let bSubString = bDiffMaker.bChunks[bRange.location..<bRange.upperBound].joined(separator: "\n")
+                        let aSubString = aDiffMaker.bChunks[aRange.location..<aRange.upperBound]
+                        let bSubString = bDiffMaker.bChunks[bRange.location..<bRange.upperBound]
                         
-                        if aSubString.hashValue == bSubString.hashValue {
+                        if String(describing: aSubString).hashValue == String(describing: bSubString).hashValue {
                             continue
                         }
                         
@@ -263,10 +263,10 @@ class Diff3 {
                     }
                 case .change(let oaRange, let aaRange):
                     
-                    let aSubString = aDiffMaker.bChunks[aaRange.location..<aaRange.upperBound].joined(separator: "\n")
-                    let bSubString = bDiffMaker.bChunks[bRange.location..<bRange.upperBound].joined(separator: "\n")
-                    
-                    if aSubString.hashValue == bSubString.hashValue {
+                    let aSubString = aDiffMaker.bChunks[aaRange.location..<aaRange.upperBound]
+                    let bSubString = bDiffMaker.bChunks[bRange.location..<bRange.upperBound]
+
+                    if String(describing: aSubString).hashValue == String(describing: bSubString).hashValue {
                         continue
                     }
                     
@@ -290,41 +290,31 @@ class Diff3 {
             }
         }
         
-        let aLineRanges = aDiffMaker.bLineRanges
-        let bLineRanges = bDiffMaker.bLineRanges
-        
         return diff3Chunks.map {
             
             switch $0 {
             case .add(let index, let range):
+
+                let transformedIndex = aDiffMaker.realIndex(from: index, inA: false)
+                let transformedRange = bDiffMaker.realRange(from: range, inA: false)
                 
-                let indexFromLine = aLineRanges[index-1].upperBound
-                let bLowerBound = bLineRanges[range.lowerBound].lowerBound
-                let bUpperBound = bLineRanges[range.upperBound-1].upperBound
-                
-                
-                return Diff3Block.add(indexFromLine, NSMakeRange(bLowerBound, bUpperBound - bLowerBound))
+                return Diff3Block.add(transformedIndex, transformedRange)
             case .delete(let range):
-                let aLowerBound = aLineRanges[range.lowerBound].lowerBound
-                let aUpperBound = aLineRanges[range.upperBound-1].upperBound
-                
-                return Diff3Block.delete(NSMakeRange(aLowerBound, aUpperBound - aLowerBound))
+
+                let transformedRange = aDiffMaker.realRange(from: range, inA: false)
+
+                return Diff3Block.delete(transformedRange)
             case .change(let aRange, let bRange):
-                let aLowerBound = aLineRanges[aRange.lowerBound].lowerBound
-                let aUpperBound = aLineRanges[aRange.upperBound-1].upperBound
-                
-                let bLowerBound = bLineRanges[bRange.lowerBound].lowerBound
-                let bUpperBound = bLineRanges[bRange.upperBound-1].upperBound
-                
-                return Diff3Block.change(NSMakeRange(aLowerBound, aUpperBound - aLowerBound), NSMakeRange(bLowerBound, bUpperBound - bLowerBound))
+
+                let transformedARange = aDiffMaker.realRange(from: aRange, inA: false)
+                let transformedBRange = bDiffMaker.realRange(from: bRange, inA: false)
+
+                return Diff3Block.change(transformedARange, transformedBRange)
             case .conflict(let aRange, let bRange):
-                let aLowerBound = aLineRanges[aRange.lowerBound].lowerBound
-                let aUpperBound = aLineRanges[aRange.upperBound-1].upperBound
-                
-                let bLowerBound = bLineRanges[bRange.lowerBound].lowerBound
-                let bUpperBound = bLineRanges[bRange.lowerBound-1].upperBound
-                
-                return Diff3Block.conflict(NSMakeRange(aLowerBound, aUpperBound - aLowerBound), NSMakeRange(bLowerBound, bUpperBound - bLowerBound))
+                let transformedARange = aDiffMaker.realRange(from: aRange, inA: false)
+                let transformedBRange = bDiffMaker.realRange(from: bRange, inA: false)
+
+                return Diff3Block.conflict(transformedARange, transformedBRange)
             }
         }
     }
