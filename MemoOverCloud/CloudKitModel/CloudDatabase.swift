@@ -4,11 +4,13 @@
 //
 
 import CloudKit
+import UIKit
 
 class CloudCommonDatabase {
     fileprivate let database: CKDatabase
     public let subscriptionID: String
     var userID: CKRecordID?
+    var synchronizers: [String: NoteSynchronizer] = [:]
 
     init(database: CKDatabase, userID: CKRecordID?) {
         self.database = database
@@ -98,7 +100,7 @@ class CloudCommonDatabase {
                         let ancestorRecord = ancestorRec else { return completion(nil, error) }
 
                 //Resolve conflict. If it's false, it means server record has win & no merge happened
-                let merged = ConflictResolver.merge(ancestor: ancestorRecord, myRecord: clientRecord, serverRecord: serverRecord)
+                let merged = merge(ancestor: ancestorRecord, myRecord: clientRecord, serverRecord: serverRecord)
 
                 if merged {
                     self.saveRecord(record: serverRecord) { newRecord, error in
@@ -158,6 +160,14 @@ class CloudCommonDatabase {
      * It will be implemented by subclassing
      */
     public func handleNotification() {}
+
+    public func registerSynchronizer(_ synchronizer: NoteSynchronizer) {
+        synchronizers[synchronizer.recordName] = synchronizer
+    }
+
+    public func unregisterSynchronizer(recordName: String) {
+        synchronizers.removeValue(forKey: recordName)
+    }
 }
 
 
@@ -195,7 +205,9 @@ class CloudPrivateDatabase: CloudCommonDatabase {
                            RealmCategoryForSharedModel.recordTypeString]
 
         recordTypes.forEach {
-            let subscriptionKey = "ckSubscriptionSaved\($0)\(database.scopeString)\(userID)"
+
+            let uuid = UIDevice.current.identifierForVendor?.uuidString ?? ""
+            let subscriptionKey = "ckSubscriptionSaved\($0)\(database.scopeString)\(userID)\(uuid)"
             let alreadySaved = UserDefaults.standard.bool(forKey: subscriptionKey)
             guard !alreadySaved else {return}
 
@@ -205,7 +217,7 @@ class CloudPrivateDatabase: CloudCommonDatabase {
             
             let subscription = CKQuerySubscription(recordType: $0,
                     predicate: predicate,
-                    subscriptionID: "\(subscriptionID)\($0)\(userID)",
+                    subscriptionID: "\(subscriptionID)\($0)",
                     options: [.firesOnRecordCreation, .firesOnRecordDeletion, .firesOnRecordUpdate])
 
 
@@ -253,13 +265,7 @@ class CloudPrivateDatabase: CloudCommonDatabase {
         operation.fetchAllChanges = false
 
         operation.recordChangedBlock = { record in
-            if record.recordType == RealmNoteModel.recordTypeString {
-                //TODO:Run diff
-                
-            }
-            
             CloudCommonDatabase.syncChanged(record: record, isShared: false)
-            
         }
 
         operation.recordWithIDWasDeletedBlock = { deletedRecordID, recordType in
@@ -310,7 +316,8 @@ class CloudSharedDatabase: CloudCommonDatabase {
         //Check If I had saved subscription before
 
         let userID = self.userID?.recordName ?? ""
-        let subscriptionKey = "ckSubscriptionSaved\(database.scopeString)\(userID)"
+        let uuid = UIDevice.current.identifierForVendor?.uuidString ?? ""
+        let subscriptionKey = "ckSubscriptionSaved\(database.scopeString)\(userID)\(uuid)"
         let alreadySaved = UserDefaults.standard.bool(forKey: subscriptionKey)
         guard !alreadySaved else {return}
 
@@ -417,9 +424,6 @@ class CloudSharedDatabase: CloudCommonDatabase {
         operation.fetchAllChanges = false
 
         operation.recordChangedBlock = { record in
-            if record.recordType == RealmNoteModel.recordTypeString {
-                //TODO:Run diff
-            }
             CloudCommonDatabase.syncChanged(record: record, isShared: true)
         }
 

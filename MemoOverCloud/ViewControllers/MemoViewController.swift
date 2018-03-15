@@ -19,11 +19,13 @@ class MemoViewController: UIViewController {
     var isSaving = false
     var id: String!
     var recordName: String!
+    var synchronizer: NoteSynchronizer!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        //TODO: make observe notification for server change
         registerNotification()
+
+        synchronizer = NoteSynchronizer(textView: textView)
         
         id = memo.id
         recordName = memo.recordName
@@ -48,6 +50,7 @@ class MemoViewController: UIViewController {
         super.viewWillDisappear(animated)
         unRegisterNotification()
         saveText()
+        synchronizer.unregisterFromCloud()
     }
 
     override func didReceiveMemoryWarning() {
@@ -101,29 +104,69 @@ class MemoViewController: UIViewController {
     }
 
     @objc func insertChangedText(notification: Notification) {
+        //TODO: refactor it later
         
-        print("got change!!1")
-        guard let recordName = notification.object as? String, recordName == self.recordName,
-                let range = notification.userInfo?["range"] as? NSRange,
-                let replacementString = notification.userInfo?["attributedString"] as? NSAttributedString else {return}
+        guard let recordName = notification.object as? String, recordName == self.recordName else {return}
         
-        print("got change!!2")
-        DispatchQueue.main.async { [weak self] in
-            self?.textView.textStorage.replaceCharacters(in: range, with: replacementString)
+        if let diffBlock = notification.userInfo?["diff"] as? DiffBlock {
+            
+            switch diffBlock {
+            case .add(let index, _):
+                guard let replace = notification.userInfo?["replace"] as? NSAttributedString else {return}
+                print(replace.string)
+                DispatchQueue.main.async { [weak self] in
+                    self?.textView.textStorage.insert(replace, at: index)
+                }
+            case .delete(let range, _):
+                DispatchQueue.main.async { [weak self] in
+                    self?.textView.textStorage.deleteCharacters(in: range)
+                }
+            case .change(let myRange, _):
+                guard let replace = notification.userInfo?["replace"] as? NSAttributedString else {return}
+                print(replace.string)
+                DispatchQueue.main.async { [weak self] in
+                    self?.textView.textStorage.replaceCharacters(in: myRange, with: replace)
+                }
+            default:break
+            }
+            
+        } else if let diff3Block = notification.userInfo?["diff"] as? Diff3Block {
+            
+            switch diff3Block {
+            case .add(let index, _):
+                guard let replace = notification.userInfo?["replace"] as? NSAttributedString else {return}
+                DispatchQueue.main.async { [weak self] in
+                    self?.textView.textStorage.insert(replace, at: index)
+                }
+            case .delete(let range):
+                DispatchQueue.main.async { [weak self] in
+                    self?.textView.textStorage.deleteCharacters(in: range)
+                }
+            case .change(let myRange, _):
+                guard let replace = notification.userInfo?["replace"] as? NSAttributedString else {return}
+                DispatchQueue.main.async { [weak self] in
+                    self?.textView.textStorage.replaceCharacters(in: myRange, with: replace)
+                }
+            case .conflict(let myRange, _):
+                guard let replace = notification.userInfo?["replace"] as? NSAttributedString else {return}
+                DispatchQueue.main.async { [weak self] in
+                    self?.textView.textStorage.replaceCharacters(in: myRange, with: replace)
+                }
+            }
         }
-        
 
     }
 
     
     @IBAction func albumButtonTouched(_ sender: UIButton) {
-        sender.isSelected = !sender.isSelected
-
-        if sender.isSelected {
-            addPhotoView()
-        } else {
-            removePhotoView()
-        }
+        saveText()
+//        sender.isSelected = !sender.isSelected
+//
+//        if sender.isSelected {
+//            addPhotoView()
+//        } else {
+//            removePhotoView()
+//        }
 //        presentShare(sender)
     }
     
@@ -131,7 +174,11 @@ class MemoViewController: UIViewController {
 
 extension MemoViewController: UITextViewDelegate {
     func textViewDidChange(_ textView: UITextView) {
-        saveText()
+//        saveText()
+    }
+
+    func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+        return !self.textView.isSyncing
     }
 }
 

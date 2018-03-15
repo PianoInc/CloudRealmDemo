@@ -12,6 +12,7 @@ import UIKit
 class FastTextView: FlangeTextView {
 
     var memo: RealmNoteModel!
+    var isSyncing = false
 
 
     func set(string: String, with attributes: [PianoAttribute]) {
@@ -22,18 +23,9 @@ class FastTextView: FlangeTextView {
     }
 
     func get() -> (string: String, attributes: [PianoAttribute]) {
-        var attributes:[PianoAttribute] = []
-
-        attributedText.enumerateAttributes(in: NSMakeRange(0, attributedText.length), options: .reverse) { (dic, range, _) in
-            for (key, value) in dic {
-                if let pianoAttribute = PianoAttribute(range: range, attribute: (key, value)) {
-                    attributes.append(pianoAttribute)
-                }
-            }
-        }
-
-        return (string: attributedText.string, attributes: attributes)
+        return attributedText.getStringWithPianoAttributes()
     }
+
 }
 
 extension FastTextView {
@@ -47,5 +39,21 @@ extension FastTextView {
         if location < attributedText.length && attributedText.attributedSubstring(from: NSMakeRange(location, 1)).string != "\n" {
             insertText("\n")
         }
+    }
+}
+
+extension NSAttributedString {
+    func getStringWithPianoAttributes() -> (string: String, attributes: [PianoAttribute]) {
+        var attributes: [PianoAttribute] = []
+
+         self.enumerateAttributes(in: NSMakeRange(0, self.length), options: .reverse) { (dic, range, _) in
+            for (key, value) in dic {
+                if let pianoAttribute = PianoAttribute(range: range, attribute: (key, value)) {
+                    attributes.append(pianoAttribute)
+                }
+            }
+        }
+
+        return (string: self.string, attributes: attributes)
     }
 }
