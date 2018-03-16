@@ -41,6 +41,7 @@
 		75E998C981615B3460BDC315 /* UniqueIDGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E99E9B56FAA6DB8D07F721 /* UniqueIDGenerator.swift */; };
 		75E99A1D0A954E7668F0F423 /* CloudDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E9953B186650F09A234D58 /* CloudDatabase.swift */; };
 		75E99A1D9AB722D31CE646C6 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E9992BB94D60A648685463 /* AppDelegate.swift */; };
+		75E99C6A99FAA71CF5762340 /* FontManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E994EEF0D23E7F0D3D0C92 /* FontManager.swift */; };
 		75E99D3281309019294883E4 /* Sync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E9931F132C4336F1FFC4DC /* Sync.swift */; };
 		75E99D4BA031EE3A22CE3CEC /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E998D2DA08766A9D4E4D0D /* ViewController.swift */; };
 		75E99DDF8A05D3CC84F19623 /* CKAsset+UIImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E990FDF54CBB7BF79599E4 /* CKAsset+UIImage.swift */; };
@@ -109,6 +110,7 @@
 		75E9931F132C4336F1FFC4DC /* Sync.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Sync.swift; sourceTree = "<group>"; };
 		75E99332E1A14691085512DD /* ImageTag.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageTag.swift; sourceTree = "<group>"; };
 		75E993ECF9C0B9E21AEC7B49 /* RealmImageObserver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RealmImageObserver.swift; sourceTree = "<group>"; };
+		75E994EEF0D23E7F0D3D0C92 /* FontManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FontManager.swift; sourceTree = "<group>"; };
 		75E994FCB9FD59A3CF169678 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.info; path = Info.plist; sourceTree = "<group>"; };
 		75E9953B186650F09A234D58 /* CloudDatabase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CloudDatabase.swift; sourceTree = "<group>"; };
 		75E996B81E5D6E13B5BF99DB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -326,6 +328,7 @@
 				75E99E7FFE006FC02FF4B72E /* ModelManager.swift */,
 				6C79A44B203BED1700F0C18B /* PianoAttribute.swift */,
 				75E99CF1642C919FD2724246 /* Color+hex.swift */,
+				75E994EEF0D23E7F0D3D0C92 /* FontManager.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -663,6 +666,7 @@
 				6C018D622046217B00E2C0D8 /* ConflictResolver.swift in Sources */,
 				75E995D7BB12301E99856F05 /* Diff3.swift in Sources */,
 				75E993265CAD9B7743D68730 /* Color+hex.swift in Sources */,
+				75E99C6A99FAA71CF5762340 /* FontManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
