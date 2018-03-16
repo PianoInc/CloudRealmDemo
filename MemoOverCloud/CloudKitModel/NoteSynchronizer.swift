@@ -145,8 +145,8 @@ class NoteSynchronizer {
         }
     }
 
-    func resolveConflict(myRecord: CKRecord, serverRecord: CKRecord) -> Bool {
-        //TODO: make change to serverRecord & apply it
+    func resolveConflict(myRecord: CKRecord, serverRecord: CKRecord, completion: @escaping  (Bool) -> ()) {
+        
         let myContent = myRecord[Schema.Note.content] as! String
         let serverContent = serverRecord[Schema.Note.content] as! String
 
@@ -160,40 +160,46 @@ class NoteSynchronizer {
 
         textView.isSyncing = true
         
-        let currentString = textView.textStorage.string
+        
 
         if myContent != serverContent {
-            let diff3Maker = Diff3Maker(ancestor: myContent, a: currentString, b: serverContent)
-            let diff3Chunks = diff3Maker.mergeInLineLevel().flatMap { chunk -> [Diff3Block] in
-                if case let .change(oRange, aRange, bRange) = chunk {
-                    let oString = myContent.substring(with: oRange)
-                    let aString = currentString.substring(with: aRange)
-                    let bString = serverContent.substring(with: bRange)
-
-                    let wordDiffMaker = Diff3Maker(ancestor: oString, a: aString, b: bString, separator: "")
-                    return wordDiffMaker.mergeInWordLevel(oOffset: oRange.lowerBound, aOffset: aRange.lowerBound, bOffset: bRange.lowerBound)
-
-                } else if case let .conflict(oRange, aRange, bRange) = chunk {
-                    let oString = myContent.substring(with: oRange)
-                    let aString = currentString.substring(with: aRange)
-                    let bString = serverContent.substring(with: bRange)
-
-                    let wordDiffMaker = Diff3Maker(ancestor: oString, a: aString, b: bString, separator: "")
-                    return wordDiffMaker.mergeInWordLevel(oOffset: oRange.lowerBound, aOffset: aRange.lowerBound, bOffset: bRange.lowerBound)
-                } else { return [chunk] }
+            DispatchQueue.main.sync {
+                let currentString = self.textView.textStorage.string
+                
+                DispatchQueue.global(qos: .utility).async { [weak self] in
+                    let diff3Maker = Diff3Maker(ancestor: myContent, a: currentString, b: serverContent)
+                    let diff3Chunks = diff3Maker.mergeInLineLevel().flatMap { chunk -> [Diff3Block] in
+                        if case let .change(oRange, aRange, bRange) = chunk {
+                            let oString = myContent.substring(with: oRange)
+                            let aString = currentString.substring(with: aRange)
+                            let bString = serverContent.substring(with: bRange)
+                            
+                            let wordDiffMaker = Diff3Maker(ancestor: oString, a: aString, b: bString, separator: "")
+                            return wordDiffMaker.mergeInWordLevel(oOffset: oRange.lowerBound, aOffset: aRange.lowerBound, bOffset: bRange.lowerBound)
+                            
+                        } else if case let .conflict(oRange, aRange, bRange) = chunk {
+                            let oString = myContent.substring(with: oRange)
+                            let aString = currentString.substring(with: aRange)
+                            let bString = serverContent.substring(with: bRange)
+                            
+                            let wordDiffMaker = Diff3Maker(ancestor: oString, a: aString, b: bString, separator: "")
+                            return wordDiffMaker.mergeInWordLevel(oOffset: oRange.lowerBound, aOffset: aRange.lowerBound, bOffset: bRange.lowerBound)
+                        } else { return [chunk] }
+                    }
+                    
+                    self?.sync(with: diff3Chunks, and: serverAttributedString, serverRecord: serverRecord)
+                    self?.textView.isSyncing = false
+                    completion(true)
+                }
             }
-
-            sync(with: diff3Chunks, and: serverAttributedString, serverRecord: serverRecord)
-            textView.isSyncing = false
-            return true
         } else if myAttributesData != serverAttributesData {
             //Let's just union it
 
             textView.isSyncing = false
-            return true
+            completion(true)
         } else {
             textView.isSyncing = false
-            return false
+            completion(false)
         }
     }
 

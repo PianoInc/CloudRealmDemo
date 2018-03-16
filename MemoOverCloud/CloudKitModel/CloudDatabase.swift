@@ -100,16 +100,15 @@ class CloudCommonDatabase {
                         let ancestorRecord = ancestorRec else { return completion(nil, error) }
 
                 //Resolve conflict. If it's false, it means server record has win & no merge happened
-                let merged = self.merge(ancestor: ancestorRecord, myRecord: clientRecord, serverRecord: serverRecord)
-
-                if merged {
-                    self.saveRecord(record: serverRecord) { newRecord, error in
-                        completion(newRecord, error)
+                self.merge(ancestor: ancestorRecord, myRecord: clientRecord, serverRecord: serverRecord) { merged in
+                    if merged {
+                        self.saveRecord(record: serverRecord) { newRecord, error in
+                            completion(newRecord, error)
+                        }
+                    } else {
+                        completion(serverRecord, nil)
                     }
-                } else {
-                    completion(serverRecord, nil)
                 }
-
                 return
             }
 

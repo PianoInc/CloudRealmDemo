@@ -9,39 +9,46 @@
 import CloudKit
 
 extension CloudCommonDatabase {
-    func merge(ancestor: CKRecord, myRecord: CKRecord, serverRecord: CKRecord) -> Bool {
+    func merge(ancestor: CKRecord, myRecord: CKRecord, serverRecord: CKRecord, completion: @escaping (Bool)->()) {
         guard let myModified = myRecord.modificationDate,
-              let serverModified = serverRecord.modificationDate else {return false}
-
+              let serverModified = serverRecord.modificationDate else {return}
+ 
         switch ancestor.recordType {
         case RealmNoteModel.recordTypeString:
-            return mergeNote(ancestor: ancestor, myRecord: myRecord, serverRecord: serverRecord, myModified: myModified, serverModified: serverModified)
+            mergeNote(ancestor: ancestor, myRecord: myRecord, serverRecord: serverRecord, myModified: myModified, serverModified: serverModified, completion: completion)
             
         case RealmCategoryModel.recordTypeString:
             
             if myModified.compare(serverModified) == .orderedDescending {
                 serverRecord[Schema.Category.name] = myRecord[Schema.Category.name]
+                completion(true)
+            } else {
+                completion(false)
             }
             
         case RealmCategoryForSharedModel.recordTypeString:
             
             if myModified.compare(serverModified) == .orderedDescending {
                 serverRecord[Schema.categoryForSharedNote.CategoryRecordName] = myRecord[Schema.categoryForSharedNote.CategoryRecordName]
+                completion(true)
+            } else {
+                completion(false)
             }
         
         default: break
         }
 
-        return myModified.compare(serverModified) == .orderedDescending
+        
     }
     
-    private func mergeNote(ancestor: CKRecord, myRecord: CKRecord, serverRecord: CKRecord, myModified: Date, serverModified: Date) -> Bool {
+    private func mergeNote(ancestor: CKRecord, myRecord: CKRecord, serverRecord: CKRecord, myModified: Date, serverModified: Date, completion: @escaping (Bool) -> ()) {
         
         var flag = false
 
         if let synchronizer = synchronizers[myRecord.recordID.recordName] {
             //DO diff3 here with ancestor: myrecord, a: textView.text b: b
-            flag = synchronizer.resolveConflict(myRecord: myRecord, serverRecord: serverRecord)
+            synchronizer.resolveConflict(myRecord: myRecord, serverRecord: serverRecord, completion: completion)
+            return
         }
         
 
@@ -50,21 +57,22 @@ extension CloudCommonDatabase {
                     let myTitle = myRecord[Schema.Note.title] as? String,
                     serverTitle != myTitle {
 
-                flag = true
                 serverRecord[Schema.Note.title] = myRecord[Schema.Note.title]
-
+                completion(true)
+                return
             }
 
             if let serverCategory = serverRecord[Schema.Note.categoryRecordName] as? String,
                     let myCategory = myRecord[Schema.Note.categoryRecordName] as? String,
                     serverCategory != myCategory {
 
-                flag = true
                 serverRecord[Schema.Note.categoryRecordName] = myRecord[Schema.Note.categoryRecordName]
+                completion(true)
+                return
             }
         }
         
-        return flag
+        completion(false)
     }
 
 }
