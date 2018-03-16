@@ -145,7 +145,7 @@ class Diff3Maker {
         }
     }
 
-    //TODO: add word-level logic
+    
     func mergeInLineLevel() -> [Diff3Block] {
         var diff3Chunks: [Diff3Block] = []
 
@@ -183,6 +183,7 @@ class Diff3Maker {
                 bBlock = .change(oFirstRange.union(oLastRange), myFirstRange.union(myLastRange))
             }
 
+            
             switch bBlock {
             case .add(let index, let bRange):
                 let offset = offsetArray[conflict.bIndices.first!]
@@ -261,7 +262,7 @@ class Diff3Maker {
                     let unionedRange = oRange.union(oaRange)
 
                     if differences.0 == nil && differences.1 == nil {
-                        diff3Chunks.append(.add(index, bRange))
+                        diff3Chunks.append(.change(oRange, NSMakeRange(index, 0), bRange))
                     } else if differences.0 == nil {
                         diff3Chunks.append(.change(unionedRange, NSMakeRange(index, differences.1!.length), bRange))
                     } else if differences.1 == nil {
@@ -339,6 +340,7 @@ class Diff3Maker {
         fillConflicts()
         getOffsets()
 
+        
         for conflict in conflictArray {
             let aBlock: DiffBlock
             let bBlock: DiffBlock
@@ -369,6 +371,12 @@ class Diff3Maker {
                 bBlock = .change(oFirstRange.union(oLastRange), myFirstRange.union(myLastRange))
             }
 
+           
+//            print("anc:\n\(aDiffMaker.aChunks.joined())")
+//            print("\na:\n\(aDiffMaker.bChunks.joined())")
+//            print("\nb:\n\(bDiffMaker.bChunks.joined())")
+//            print(aBlock, bBlock)
+            
             switch bBlock {
                 case .add(let index, let bRange):
                     let offset = offsetArray[conflict.bIndices.first!]
@@ -442,7 +450,9 @@ class Diff3Maker {
                             let unionedRange = oRange.union(oaRange)
 
                             if differences.0 == nil && differences.1 == nil {
-                                diff3Chunks.append(.add(index, bRange))
+                                
+                                diff3Chunks.append(.add(index, oRange))
+                                //add line & change it!!
                             } else if differences.0 == nil {
                                 diff3Chunks.append(.change(unionedRange, NSMakeRange(index, differences.1!.length), bRange))
                             } else if differences.1 == nil {

@@ -25,8 +25,6 @@ class MemoViewController: UIViewController {
         super.viewDidLoad()
         registerNotification()
 
-        synchronizer = NoteSynchronizer(textView: textView)
-        
         id = memo.id
         recordName = memo.recordName
         textView.memo = memo
@@ -35,6 +33,9 @@ class MemoViewController: UIViewController {
         textView.flangeDelegate = self
         textView.delegate = self
 
+        synchronizer = NoteSynchronizer(textView: textView)
+        synchronizer.registerToCloud()
+        
         do {
             let jsonDecoder = JSONDecoder()
             let attributes = try jsonDecoder.decode([PianoAttribute].self, from: memo.attributes)

@@ -99,34 +99,43 @@ class NoteSynchronizer {
 
             textView.isSyncing = true
             if oldNote.content != noteModel.content {
-                let currentString = textView.text ?? ""
-
-                let serverAttributesData = noteModel.attributes
-                let serverAttributes = try! JSONDecoder().decode([PianoAttribute].self, from: serverAttributesData)
-                let serverAttributedString = NSMutableAttributedString(string: noteModel.content)
-                serverAttributes.forEach { serverAttributedString.add(attribute: $0) }
-
-                let diff3Maker = Diff3Maker(ancestor: oldNote.content, a: currentString, b: noteModel.content)
-                let diff3Chunks = diff3Maker.mergeInLineLevel().flatMap { chunk -> [Diff3Block] in
-                    if case let .change(oRange, aRange, bRange) = chunk {
-                        let oString = oldNote.content.substring(with: oRange)
-                        let aString = currentString.substring(with: aRange)
-                        let bString = noteModel.content.substring(with: bRange)
-
-                        let wordDiffMaker = Diff3Maker(ancestor: oString, a: aString, b: bString, separator: "")
-                        return wordDiffMaker.mergeInWordLevel(oOffset: oRange.lowerBound, aOffset: aRange.lowerBound, bOffset: bRange.lowerBound)
-
-                    } else if case let .conflict(oRange, aRange, bRange) = chunk {
-                        let oString = oldNote.content.substring(with: oRange)
-                        let aString = currentString.substring(with: aRange)
-                        let bString = noteModel.content.substring(with: bRange)
-
-                        let wordDiffMaker = Diff3Maker(ancestor: oString, a: aString, b: bString, separator: "")
-                        return wordDiffMaker.mergeInWordLevel(oOffset: oRange.lowerBound, aOffset: aRange.lowerBound, bOffset: bRange.lowerBound)
-                    } else { return [chunk] }
+                let oldContent = oldNote.content
+                let serverContent = noteModel.content
+                DispatchQueue.main.sync {
+                    let currentString = textView.textStorage.string
+                    
+                    DispatchQueue.global(qos: .utility).async { [weak self] in
+                        let serverAttributesData = noteModel.attributes
+                        let serverAttributes = try! JSONDecoder().decode([PianoAttribute].self, from: serverAttributesData)
+                        let serverAttributedString = NSMutableAttributedString(string: noteModel.content)
+                        serverAttributes.forEach { serverAttributedString.add(attribute: $0) }
+                        
+                        let diff3Maker = Diff3Maker(ancestor: oldContent, a: currentString, b: serverContent)
+                        let diff3Chunks = diff3Maker.mergeInLineLevel().flatMap { chunk -> [Diff3Block] in
+                            if case let .change(oRange, aRange, bRange) = chunk {
+                                let oString = oldContent.substring(with: oRange)
+                                let aString = currentString.substring(with: aRange)
+                                let bString = serverContent.substring(with: bRange)
+                                
+                                let wordDiffMaker = Diff3Maker(ancestor: oString, a: aString, b: bString, separator: "")
+                                return wordDiffMaker.mergeInWordLevel(oOffset: oRange.lowerBound, aOffset: aRange.lowerBound, bOffset: bRange.lowerBound)
+                                
+                            } else if case let .conflict(oRange, aRange, bRange) = chunk {
+                                let oString = oldContent.substring(with: oRange)
+                                let aString = currentString.substring(with: aRange)
+                                let bString = serverContent.substring(with: bRange)
+                                
+                                let wordDiffMaker = Diff3Maker(ancestor: oString, a: aString, b: bString, separator: "")
+                                return wordDiffMaker.mergeInWordLevel(oOffset: oRange.lowerBound, aOffset: aRange.lowerBound, bOffset: bRange.lowerBound)
+                            } else { return [chunk] }
+                        }
+                        
+                        self?.sync(with: diff3Chunks, and: serverAttributedString)
+                    }
                 }
+                
 
-                sync(with: diff3Chunks, and: serverAttributedString)
+                
 
             } else if oldNote.attributes != noteModel.attributes {
                 //TODO: attribute sync logic!!
@@ -150,7 +159,8 @@ class NoteSynchronizer {
         serverAttributes.forEach { serverAttributedString.add(attribute: $0) }
 
         textView.isSyncing = true
-        let currentString = textView.text ?? ""
+        
+        let currentString = textView.textStorage.string
 
         if myContent != serverContent {
             let diff3Maker = Diff3Maker(ancestor: myContent, a: currentString, b: serverContent)
