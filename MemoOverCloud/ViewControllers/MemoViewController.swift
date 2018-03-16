@@ -103,61 +103,6 @@ class MemoViewController: UIViewController {
 
     }
 
-    @objc func insertChangedText(notification: Notification) {
-        //TODO: refactor it later
-        
-        guard let recordName = notification.object as? String, recordName == self.recordName else {return}
-        
-        if let diffBlock = notification.userInfo?["diff"] as? DiffBlock {
-            
-            switch diffBlock {
-            case .add(let index, _):
-                guard let replace = notification.userInfo?["replace"] as? NSAttributedString else {return}
-                print(replace.string)
-                DispatchQueue.main.async { [weak self] in
-                    self?.textView.textStorage.insert(replace, at: index)
-                }
-            case .delete(let range, _):
-                DispatchQueue.main.async { [weak self] in
-                    self?.textView.textStorage.deleteCharacters(in: range)
-                }
-            case .change(let myRange, _):
-                guard let replace = notification.userInfo?["replace"] as? NSAttributedString else {return}
-                print(replace.string)
-                DispatchQueue.main.async { [weak self] in
-                    self?.textView.textStorage.replaceCharacters(in: myRange, with: replace)
-                }
-            default:break
-            }
-            
-        } else if let diff3Block = notification.userInfo?["diff"] as? Diff3Block {
-            
-            switch diff3Block {
-            case .add(let index, _):
-                guard let replace = notification.userInfo?["replace"] as? NSAttributedString else {return}
-                DispatchQueue.main.async { [weak self] in
-                    self?.textView.textStorage.insert(replace, at: index)
-                }
-            case .delete(let range):
-                DispatchQueue.main.async { [weak self] in
-                    self?.textView.textStorage.deleteCharacters(in: range)
-                }
-            case .change(let myRange, _):
-                guard let replace = notification.userInfo?["replace"] as? NSAttributedString else {return}
-                DispatchQueue.main.async { [weak self] in
-                    self?.textView.textStorage.replaceCharacters(in: myRange, with: replace)
-                }
-            case .conflict(let myRange, _):
-                guard let replace = notification.userInfo?["replace"] as? NSAttributedString else {return}
-                DispatchQueue.main.async { [weak self] in
-                    self?.textView.textStorage.replaceCharacters(in: myRange, with: replace)
-                }
-            }
-        }
-
-    }
-
-    
     @IBAction func albumButtonTouched(_ sender: UIButton) {
         saveText()
 //        sender.isSelected = !sender.isSelected
@@ -262,9 +207,6 @@ extension MemoViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(MemoViewController.keyboardWillShow(notification:)), name: Notification.Name.UIKeyboardWillShow, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(MemoViewController.keyboardWillHide(notification:)), name: Notification.Name.UIKeyboardWillHide, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(MemoViewController.keyboardDidHide(notification:)), name: Notification.Name.UIKeyboardDidHide, object: nil)
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(MemoViewController.insertChangedText(notification:)), name: .NoteContentChanged, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(MemoViewController.saveText), name: .NoteChangedFromServer, object: nil)
     }
     
     internal func unRegisterNotification(){
