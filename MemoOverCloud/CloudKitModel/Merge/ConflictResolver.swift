@@ -42,8 +42,6 @@ extension CloudCommonDatabase {
     }
     
     private func mergeNote(ancestor: CKRecord, myRecord: CKRecord, serverRecord: CKRecord, myModified: Date, serverModified: Date, completion: @escaping (Bool) -> ()) {
-        
-        var flag = false
 
         if let synchronizer = synchronizers[myRecord.recordID.recordName] {
             //DO diff3 here with ancestor: myrecord, a: textView.text b: b
