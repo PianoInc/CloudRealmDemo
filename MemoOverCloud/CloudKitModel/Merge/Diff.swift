@@ -86,8 +86,8 @@ class DiffMaker {
     
     init(aString: String, bString: String, separator: String = "\n") {
         self.separator = separator
-        let aInitialChunks = aString.components(separatedBy: separator)
-        let bInitialChunks = bString.components(separatedBy: separator)
+        let aInitialChunks = separator.isEmpty ? aString.map(String.init): aString.components(separatedBy: separator)
+        let bInitialChunks = separator.isEmpty ? bString.map(String.init): bString.components(separatedBy: separator)
         
         let aChunks = aInitialChunks.enumerated().map{ $0.offset == (aInitialChunks.count - 1) ? $0.element : $0.element + separator}
         let bChunks = bInitialChunks.enumerated().map{ $0.offset == (bInitialChunks.count - 1) ? $0.element : $0.element + separator}

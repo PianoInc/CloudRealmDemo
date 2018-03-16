@@ -21,8 +21,6 @@ class NoteSynchronizer {
         self.textView = textView
     }
 
-
-
     private func sync(with blocks: [Diff3Block], and attributedString: NSAttributedString) {
         var offset = 0
 
@@ -42,22 +40,41 @@ class NoteSynchronizer {
                 default: break
             }
         }
+
+
+
     }
 
+    private func sync(with blocks: [Diff3Block], and attributedString: NSAttributedString, serverRecord: CKRecord) {
+        sync(with: blocks, and: attributedString)
+
+        DispatchQueue.main.sync { [weak self] in
+            guard let attributedString = self?.textView.attributedText else {
+                return
+            }
+            let (content, attributes) = attributedString.getStringWithPianoAttributes()
+            let attributeData = (try? JSONEncoder().encode(attributes)) ?? Data()
+
+            serverRecord[Schema.Note.content] = content as CKRecordValue
+            serverRecord[Schema.Note.attributes] = attributeData as CKRecordValue
+        }
+    }
+
+
     private func insert(_ attributedString: NSAttributedString, at index: Int) {
-        DispatchQueue.main.async { [weak self] in
+        DispatchQueue.main.sync { [weak self] in
             self?.textView.textStorage.insert(attributedString, at: index)
         }
     }
 
     private func delete(in range: NSRange) {
-        DispatchQueue.main.async { [weak self] in
+        DispatchQueue.main.sync { [weak self] in
             self?.textView.textStorage.deleteCharacters(in: range)
         }
     }
 
     private func replace(in range: NSRange, with attributedString: NSAttributedString) {
-        DispatchQueue.main.async { [weak self] in
+        DispatchQueue.main.sync { [weak self] in
             self?.textView.textStorage.replaceCharacters(in: range, with: attributedString)
         }
     }
@@ -89,13 +106,31 @@ class NoteSynchronizer {
                 let serverAttributedString = NSMutableAttributedString(string: noteModel.content)
                 serverAttributes.forEach { serverAttributedString.add(attribute: $0) }
 
-                let diff3Chunks = Diff3.merge(ancestor: oldNote.content, a: currentString, b: noteModel.content)
-                //TODO: diff again with word level!!
+                let diff3Maker = Diff3Maker(ancestor: oldNote.content, a: currentString, b: noteModel.content)
+                let diff3Chunks = diff3Maker.mergeInLineLevel().flatMap { chunk -> [Diff3Block] in
+                    if case let .change(oRange, aRange, bRange) = chunk {
+                        let oString = oldNote.content.substring(with: oRange)
+                        let aString = currentString.substring(with: aRange)
+                        let bString = noteModel.content.substring(with: bRange)
+
+                        let wordDiffMaker = Diff3Maker(ancestor: oString, a: aString, b: bString, separator: "")
+                        return wordDiffMaker.mergeInWordLevel(oOffset: oRange.lowerBound, aOffset: aRange.lowerBound, bOffset: bRange.lowerBound)
+
+                    } else if case let .conflict(oRange, aRange, bRange) = chunk {
+                        let oString = oldNote.content.substring(with: oRange)
+                        let aString = currentString.substring(with: aRange)
+                        let bString = noteModel.content.substring(with: bRange)
+
+                        let wordDiffMaker = Diff3Maker(ancestor: oString, a: aString, b: bString, separator: "")
+                        return wordDiffMaker.mergeInWordLevel(oOffset: oRange.lowerBound, aOffset: aRange.lowerBound, bOffset: bRange.lowerBound)
+                    } else { return [chunk] }
+                }
 
                 sync(with: diff3Chunks, and: serverAttributedString)
 
             } else if oldNote.attributes != noteModel.attributes {
                 //TODO: attribute sync logic!!
+                //Use both substraction
             }
             textView.isSyncing = false
         }
@@ -109,11 +144,45 @@ class NoteSynchronizer {
         let myAttributesData = myRecord[Schema.Note.attributes] as! Data
         let serverAttributesData = serverRecord[Schema.Note.attributes] as! Data
 
+        let serverAttributes = try! JSONDecoder().decode([PianoAttribute].self, from: serverAttributesData)
+
+        let serverAttributedString = NSMutableAttributedString(string: serverContent)
+        serverAttributes.forEach { serverAttributedString.add(attribute: $0) }
+
+        textView.isSyncing = true
+        let currentString = textView.text ?? ""
+
         if myContent != serverContent {
+            let diff3Maker = Diff3Maker(ancestor: myContent, a: currentString, b: serverContent)
+            let diff3Chunks = diff3Maker.mergeInLineLevel().flatMap { chunk -> [Diff3Block] in
+                if case let .change(oRange, aRange, bRange) = chunk {
+                    let oString = myContent.substring(with: oRange)
+                    let aString = currentString.substring(with: aRange)
+                    let bString = serverContent.substring(with: bRange)
 
+                    let wordDiffMaker = Diff3Maker(ancestor: oString, a: aString, b: bString, separator: "")
+                    return wordDiffMaker.mergeInWordLevel(oOffset: oRange.lowerBound, aOffset: aRange.lowerBound, bOffset: bRange.lowerBound)
+
+                } else if case let .conflict(oRange, aRange, bRange) = chunk {
+                    let oString = myContent.substring(with: oRange)
+                    let aString = currentString.substring(with: aRange)
+                    let bString = serverContent.substring(with: bRange)
+
+                    let wordDiffMaker = Diff3Maker(ancestor: oString, a: aString, b: bString, separator: "")
+                    return wordDiffMaker.mergeInWordLevel(oOffset: oRange.lowerBound, aOffset: aRange.lowerBound, bOffset: bRange.lowerBound)
+                } else { return [chunk] }
+            }
+
+            sync(with: diff3Chunks, and: serverAttributedString, serverRecord: serverRecord)
+            textView.isSyncing = false
+            return true
         } else if myAttributesData != serverAttributesData {
+            //Let's just union it
 
+            textView.isSyncing = false
+            return true
         } else {
+            textView.isSyncing = false
             return false
         }
     }
