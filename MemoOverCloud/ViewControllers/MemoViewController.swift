@@ -123,7 +123,7 @@ class MemoViewController: UIViewController {
 
         if memo.isShared {
             //get zoneID from record
-            let coder = NSKeyedUnarchiver(forReadingWith: self.ckMetaData)
+            let coder = NSKeyedUnarchiver(forReadingWith: textView.memo.ckMetaData)
             coder.requiresSecureCoding = true
             guard let record = CKRecord(coder: coder) else {fatalError("Data poluted!!")}
             coder.finishDecoding()
