@@ -25,6 +25,7 @@
 		6C9932B420242AF500592B5F /* MemoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C9932B320242AF500592B5F /* MemoViewController.swift */; };
 		6C9EDE74204E674F005A41D0 /* FastLayoutTextEngine.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6C9EDE72204E674D005A41D0 /* FastLayoutTextEngine.framework */; };
 		6C9EDE75204E674F005A41D0 /* FastLayoutTextEngine.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 6C9EDE72204E674D005A41D0 /* FastLayoutTextEngine.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		6CD8B523205F7698006E3EA5 /* SearchViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CD8B522205F7698006E3EA5 /* SearchViewController.swift */; };
 		6CED385B20520CE200429CD2 /* Diff.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CED385A20520CE200429CD2 /* Diff.swift */; };
 		75E990361EBDBEB577DDDA32 /* RealmDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E998D3337AA816BF45DE56 /* RealmDataModel.swift */; };
 		75E990A0B16AB48BFE41790D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 75E99D5A7F810B886240B527 /* Assets.xcassets */; };
@@ -106,6 +107,7 @@
 		6C9932B120242A4800592B5F /* CategoryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryViewController.swift; sourceTree = "<group>"; };
 		6C9932B320242AF500592B5F /* MemoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoViewController.swift; sourceTree = "<group>"; };
 		6C9EDE72204E674D005A41D0 /* FastLayoutTextEngine.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = FastLayoutTextEngine.framework; sourceTree = "<group>"; };
+		6CD8B522205F7698006E3EA5 /* SearchViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchViewController.swift; sourceTree = "<group>"; };
 		6CED385A20520CE200429CD2 /* Diff.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Diff.swift; sourceTree = "<group>"; };
 		75E9903A3DB1D3E6F6D676D1 /* MemoOverCloudTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoOverCloudTests.swift; sourceTree = "<group>"; };
 		75E990FDF54CBB7BF79599E4 /* CKAsset+UIImage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CKAsset+UIImage.swift"; sourceTree = "<group>"; };
@@ -259,6 +261,7 @@
 				75E998D2DA08766A9D4E4D0D /* ViewController.swift */,
 				6C9932B120242A4800592B5F /* CategoryViewController.swift */,
 				6C9932B320242AF500592B5F /* MemoViewController.swift */,
+				6CD8B522205F7698006E3EA5 /* SearchViewController.swift */,
 			);
 			path = ViewControllers;
 			sourceTree = "<group>";
@@ -654,6 +657,7 @@
 				6C2D317E20282D86003C715C /* ImageCell.swift in Sources */,
 				75E99A1D9AB722D31CE646C6 /* AppDelegate.swift in Sources */,
 				6C9932B420242AF500592B5F /* MemoViewController.swift in Sources */,
+				6CD8B523205F7698006E3EA5 /* SearchViewController.swift in Sources */,
 				6C2BD494202AB65600910B93 /* CloudManager.swift in Sources */,
 				75E99D4BA031EE3A22CE3CEC /* ViewController.swift in Sources */,
 				75E990361EBDBEB577DDDA32 /* RealmDataModel.swift in Sources */,
