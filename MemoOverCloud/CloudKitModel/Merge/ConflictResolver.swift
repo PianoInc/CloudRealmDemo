@@ -104,7 +104,7 @@ class ConflictResolver {
         if myModified.compare(serverModified) == .orderedDescending {
             flag = true
             serverRecord[Schema.Note.title] = myRecord[Schema.Note.title]
-            serverRecord[Schema.Note.categoryRecordName] = myRecord[Schema.Note.categoryRecordName]
+            serverRecord[Schema.Note.categoryRecordNames] = myRecord[Schema.Note.categoryRecordNames]
         }
         
         return flag

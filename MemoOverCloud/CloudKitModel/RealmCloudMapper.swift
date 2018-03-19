@@ -35,8 +35,9 @@ extension RealmNoteModel {
         coder.requiresSecureCoding = true
         guard let record = CKRecord(coder: coder) else {fatalError("Data poluted!!")}
         coder.finishDecoding()
-        
-        let categoryRecordID = CKRecordID(recordName: self.categoryRecordName, zoneID: record.recordID.zoneID)
+
+
+        let categoryRecordIDs = self.categoryRecordNames.components(separatedBy: "!").map{ CKRecordID(recordName: $0, zoneID: record.recordID.zoneID) }
         
 
         record[scheme.id] = self.id as CKRecordValue
@@ -45,7 +46,7 @@ extension RealmNoteModel {
         record[scheme.attributes] = self.attributes as CKRecordValue
 
 
-        record[scheme.categoryRecordName] = CKReference(recordID: categoryRecordID, action: .deleteSelf)
+        record[scheme.categoryRecordNames] = (categoryRecordIDs.map{ CKReference(recordID: $0, action: .deleteSelf)}) as CKRecordValue
 
         return record
 
@@ -106,7 +107,7 @@ extension CKRecord {
                 let title = self[schema.title] as? String,
                 let content = self[schema.content] as? String,
                 let attributes = self[schema.attributes] as? Data,
-                let categoryReference = self[schema.categoryRecordName] as? CKReference else {return nil}
+                let categoryReferences = self[schema.categoryRecordNames] as? [CKReference] else {return nil}
         
         let data = NSMutableData()
         let coder = NSKeyedArchiver.init(forWritingWith: data)
@@ -122,7 +123,8 @@ extension CKRecord {
         newNoteModel.recordName = self.recordID.recordName
         newNoteModel.ckMetaData = Data(referencing: data)
         newNoteModel.isModified = self.modificationDate ?? Date()
-        newNoteModel.categoryRecordName = categoryReference.recordID.recordName
+        newNoteModel.categoryRecordNames = categoryReferences.map {$0.recordID.recordName}.joined(separator: "!")
+        //TODO: add count property of categoryRecordNames
 
         return newNoteModel
     }

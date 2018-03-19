@@ -62,7 +62,7 @@ class RealmNoteModel: Object {
     @objc dynamic var isShared = false
 
 
-    @objc dynamic var categoryRecordName = ""
+    @objc dynamic var categoryRecordNames = ""
 
     override static func primaryKey() -> String? {
         return "id"
@@ -87,7 +87,7 @@ class RealmNoteModel: Object {
         newModel.ckMetaData = Data(referencing: data)
         newModel.id = id
         newModel.title = title
-        newModel.categoryRecordName = categoryRecordName
+        newModel.categoryRecordNames = categoryRecordName
         newModel.content = ""
 
         return newModel

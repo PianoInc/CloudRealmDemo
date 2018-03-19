@@ -24,7 +24,7 @@ struct Schema {
         static let content = "content"
         static let attributes = "attributes"
 
-        static let categoryRecordName = "categoryRecordName"
+        static let categoryRecordNames = "categoryRecordNames"
 
     }
 
