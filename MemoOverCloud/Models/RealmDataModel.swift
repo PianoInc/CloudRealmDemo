@@ -141,33 +141,3 @@ class RealmImageModel: Object {
     }
 }
 
-class RealmCategoryForSharedModel: Object {
-    
-    static let recordTypeString = "RealmCategoryForSharedModel"
-    
-    @objc dynamic var recordName = ""
-    @objc dynamic var ckMetaData = Data()
-    @objc dynamic var categoryRecordName = ""
-    
-    
-    override static func ignoredProperties() -> [String] {
-        return ["recordTypeString"]
-    }
-    
-    static func getNewModel(recordName: String) -> RealmCategoryForSharedModel {
-        let zoneID = CloudManager.shared.privateDatabase.zoneID
-        let recordID = CKRecordID(recordName: recordName, zoneID: zoneID)
-        let record = CKRecord(recordType: RealmCategoryForSharedModel.recordTypeString, recordID: recordID)
-        
-        let data = NSMutableData()
-        let coder = NSKeyedArchiver(forWritingWith: data)
-        coder.requiresSecureCoding = true
-        record.encodeSystemFields(with: coder)
-        coder.finishEncoding()
-        
-        let newModel = RealmCategoryForSharedModel()
-        newModel.ckMetaData = Data(referencing: data)
-        
-        return newModel
-    }
-}

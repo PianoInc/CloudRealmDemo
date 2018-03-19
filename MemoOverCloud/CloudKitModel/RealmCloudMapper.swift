@@ -75,24 +75,6 @@ extension RealmImageModel {
     }
 }
 
-extension RealmCategoryForSharedModel {
-    
-    func getRecord() -> CKRecord {
-        let scheme = Schema.categoryForSharedNote.self
-        
-        let coder = NSKeyedUnarchiver(forReadingWith: self.ckMetaData)
-        coder.requiresSecureCoding = true
-        guard let record = CKRecord(coder: coder) else {fatalError("Data poluted!!")}
-        coder.finishDecoding()
-        
-        let categoryRecordID = CKRecordID(recordName: categoryRecordName, zoneID: record.recordID.zoneID)
-        
-        record[scheme.CategoryRecordName] = CKReference(recordID: categoryRecordID, action: .none)//NOTE: It's not sure
-        
-        return record
-    }
-}
-
 
 extension CKRecord {
     func parseCategoryRecord() -> RealmCategoryModel? {
@@ -171,24 +153,4 @@ extension CKRecord {
         return newImageModel
     }
     
-    func parseCategoryForSharedNoteRecord() -> RealmCategoryForSharedModel? {
-        let newCategoryForSharedNoteModel = RealmCategoryForSharedModel()
-        let schema = Schema.categoryForSharedNote.self
-        
-        guard let categoryReference = self[schema.CategoryRecordName] as? CKReference else {return nil}
-        
-        let data = NSMutableData()
-        let coder = NSKeyedArchiver(forWritingWith: data)
-        coder.requiresSecureCoding = true
-        self.encodeSystemFields(with: coder)
-        coder.finishEncoding()
-        
-        newCategoryForSharedNoteModel.categoryRecordName = categoryReference.recordID.recordName
-        newCategoryForSharedNoteModel.recordName = self.recordID.recordName
-        newCategoryForSharedNoteModel.ckMetaData = Data(referencing: data)
-        
-        return newCategoryForSharedNoteModel
-        
-    }
-
 }

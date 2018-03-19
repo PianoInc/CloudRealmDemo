@@ -23,12 +23,6 @@ class ConflictResolver {
                 serverRecord[Schema.Category.name] = myRecord[Schema.Category.name]
             }
             
-        case RealmCategoryForSharedModel.recordTypeString:
-            
-            if myModified.compare(serverModified) == .orderedDescending {
-                serverRecord[Schema.categoryForSharedNote.CategoryRecordName] = myRecord[Schema.categoryForSharedNote.CategoryRecordName]
-            }
-        
         default: break
         }
 

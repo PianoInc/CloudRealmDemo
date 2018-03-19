@@ -36,10 +36,6 @@ struct Schema {
         static let noteRecordName = "noteRecordName"
 
     }
-
-    struct categoryForSharedNote {
-        static let CategoryRecordName = "categoryRecordName"
-    }
 }
 
 enum RealmRecordTypeString: String {
@@ -47,7 +43,6 @@ enum RealmRecordTypeString: String {
         case category = "Category"
         case note = "Note"
         case image = "Image"
-        case categoryForSharedNote = "categoryForSharedNote"
 }
 
 
@@ -61,7 +56,6 @@ extension CloudCommonDatabase {
             case .category: saveCategoryRecord(record)
             case .note: saveNoteRecord(record, isShared: isShared)
             case .image: saveImageRecord(record, isShared: isShared)
-            case .categoryForSharedNote: saveCategoryForSharedNote(record)
         }
 
     }
@@ -73,7 +67,6 @@ extension CloudCommonDatabase {
             case .category: deleteCategoryRecord(recordID.recordName)
             case .note: deleteNoteRecord(recordID.recordName)
             case .image: deleteImageRecord(recordID.recordName)
-            case .categoryForSharedNote: deleteCategoryForSharedNoteRecord(recordID.recordName)
         }
     }
 
@@ -91,16 +84,7 @@ extension CloudCommonDatabase {
 
         noteModel.isShared = isShared
         
-        if isShared {
-            if let realm = try? Realm(),
-                let oldNote = realm.object(ofType: RealmNoteModel.self, forPrimaryKey: noteModel.id) {
-                noteModel.categoryRecordName = oldNote.categoryRecordName
-            }
-        }
-        
         LocalDatabase.shared.saveObject(newObject: noteModel)
-
-        
     }
 
     private static func saveImageRecord(_ record: CKRecord, isShared: Bool) {
@@ -111,19 +95,6 @@ extension CloudCommonDatabase {
         LocalDatabase.shared.saveObject(newObject: imageModel)
     }
 
-    private static func saveCategoryForSharedNote(_ record: CKRecord) {
-        
-        guard let realm = try? Realm(),
-                let noteModel = realm.objects(RealmNoteModel.self).filter("recordName = %@", record.recordID.recordName).first,
-                let categoryForSharedNoteModel = record.parseCategoryForSharedNoteRecord() else {return}
-
-        let categoryRecordName = categoryForSharedNoteModel.categoryRecordName
-        let kv = [Schema.Note.categoryRecordName: categoryRecordName]
-        let ref = ThreadSafeReference(to: noteModel)
-
-        LocalDatabase.shared.updateObject(ref: ref, kv: kv)
-        LocalDatabase.shared.saveObject(newObject: categoryForSharedNoteModel)
-    }
 
     private static func deleteCategoryRecord(_ recordName: String) {
 
@@ -143,10 +114,7 @@ extension CloudCommonDatabase {
         guard let realm = try? Realm(),
                 let noteModel = realm.objects(RealmNoteModel.self).filter("recordName = %@", recordName).first else {return}
 
-        if noteModel.isShared {
-            deleteCategoryForSharedNoteRecord(recordName)
-        }
-        
+
         let images = realm.objects(RealmImageModel.self).filter("noteRecordName = %@", recordName)
 
         let noteRef = ThreadSafeReference(to: noteModel)
@@ -165,13 +133,5 @@ extension CloudCommonDatabase {
         LocalDatabase.shared.deleteObject(ref: ref)
     }
 
-    private static func deleteCategoryForSharedNoteRecord(_ recordName: String) {
-        
-        guard let realm = try? Realm(),
-                let categoryForSharedNoteModel = realm.objects(RealmCategoryForSharedModel.self).filter("recordName = %@", recordName).first else {return}
-
-        let ref = ThreadSafeReference(to: categoryForSharedNoteModel)
-        LocalDatabase.shared.deleteObject(ref: ref)
-    }
 }
 
