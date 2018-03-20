@@ -4,56 +4,56 @@
 <dict>
 	<key>files</key>
 	<dict>
-		<key>Headers/FlangeTextEngine-Swift.h</key>
+		<key>Headers/FastLayoutTextEngine-Swift.h</key>
 		<data>
-		5oS0r5mAkGlcIiHAaJqpL82e7QQ=
+		w/cPphK3QpmMHDcrGpzoNb+d8Bk=
 		</data>
-		<key>Headers/FlangeTextEngine.h</key>
+		<key>Headers/FastLayoutTextEngine_iOS.h</key>
 		<data>
-		ZFTSm6+wyGUiCwVdVrraggoad0c=
+		7dR92MmOEKjPa6YOOV1dgJOroKU=
 		</data>
 		<key>Info.plist</key>
 		<data>
-		Ub138aJHmscafE6WYcr4wMQwKeM=
+		mVQZkY88b6ULZ0l/gWwQl1AjlqE=
 		</data>
-		<key>Modules/FlangeTextEngine.swiftmodule/arm64.swiftdoc</key>
+		<key>Modules/FastLayoutTextEngine.swiftmodule/arm64.swiftdoc</key>
 		<data>
 		bL5VbmSkVeTXX983Hlnbqh2JpUY=
 		</data>
-		<key>Modules/FlangeTextEngine.swiftmodule/arm64.swiftmodule</key>
+		<key>Modules/FastLayoutTextEngine.swiftmodule/arm64.swiftmodule</key>
 		<data>
-		zDhX722ONMoRe97BT6Lln/Y0E6M=
+		WJjia+CZo4E6R/HBOnfVXHUfF+4=
 		</data>
 		<key>Modules/module.modulemap</key>
 		<data>
-		ZsDHIB+OXi1NVb0QiKa+MUZJz7U=
+		ibdHE9af79KxU4f9g3G43am4cy0=
 		</data>
 	</dict>
 	<key>files2</key>
 	<dict>
-		<key>Headers/FlangeTextEngine-Swift.h</key>
+		<key>Headers/FastLayoutTextEngine-Swift.h</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			5oS0r5mAkGlcIiHAaJqpL82e7QQ=
+			w/cPphK3QpmMHDcrGpzoNb+d8Bk=
 			</data>
 			<key>hash2</key>
 			<data>
-			DfkrwtbfSTHM4MnYh2b1hob5uc7ZiunLHAlHb4Y20Vc=
+			+GjL45USjP3WD19dB8nyGZ2OkjTlUtrpNXMKVatBY0M=
 			</data>
 		</dict>
-		<key>Headers/FlangeTextEngine.h</key>
+		<key>Headers/FastLayoutTextEngine_iOS.h</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			ZFTSm6+wyGUiCwVdVrraggoad0c=
+			7dR92MmOEKjPa6YOOV1dgJOroKU=
 			</data>
 			<key>hash2</key>
 			<data>
-			5V5ZXAC/5CAiBBXEPhfNBfW8t8qKbFhNdhqromwXaiE=
+			QBYofc24fBEhR5vc/KPI/KnGM56wULkcA2oLT+ltK+o=
 			</data>
 		</dict>
-		<key>Modules/FlangeTextEngine.swiftmodule/arm64.swiftdoc</key>
+		<key>Modules/FastLayoutTextEngine.swiftmodule/arm64.swiftdoc</key>
 		<dict>
 			<key>hash</key>
 			<data>
@@ -64,26 +64,26 @@
 			sKIW4oJfP1ntxbTJ6Omonbb0HG1K4bXdua0Vu5qpGF8=
 			</data>
 		</dict>
-		<key>Modules/FlangeTextEngine.swiftmodule/arm64.swiftmodule</key>
+		<key>Modules/FastLayoutTextEngine.swiftmodule/arm64.swiftmodule</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			zDhX722ONMoRe97BT6Lln/Y0E6M=
+			WJjia+CZo4E6R/HBOnfVXHUfF+4=
 			</data>
 			<key>hash2</key>
 			<data>
-			T0MnB+WqJ5R20zu3qFfZ/jAixchmrvV8vRQkm5+Ppa8=
+			XbPhYxh//q9iYjVSDsHI1YLXfxfzgNZJwbimhjzVbno=
 			</data>
 		</dict>
 		<key>Modules/module.modulemap</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			ZsDHIB+OXi1NVb0QiKa+MUZJz7U=
+			ibdHE9af79KxU4f9g3G43am4cy0=
 			</data>
 			<key>hash2</key>
 			<data>
-			zF4iuzle0mDn8A3gTKfl5Hk7LPbJRm6PHPx4ZzGtvEg=
+			go/ahbBhaVgNLZCy4LMBGDuCYpzWnvGowuIYRLDK+Hw=
 			</data>
 		</dict>
 	</dict>
