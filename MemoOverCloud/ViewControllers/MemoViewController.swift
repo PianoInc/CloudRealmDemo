@@ -120,14 +120,14 @@ class MemoViewController: UIViewController {
     }
 
     @IBAction func albumButtonTouched(_ sender: UIButton) {
-        saveText()
-//        sender.isSelected = !sender.isSelected
-//
-//        if sender.isSelected {
-//            addPhotoView()
-//        } else {
-//            removePhotoView()
-//        }
+
+        sender.isSelected = !sender.isSelected
+
+        if sender.isSelected {
+            addPhotoView()
+        } else {
+            removePhotoView()
+        }
 //        presentShare(sender)
     }
 
@@ -141,7 +141,8 @@ class MemoViewController: UIViewController {
 
         let currentImageRecordNames = Set<String>(imageRecordNames)
 
-        let deletedImageRecordNames = Array<String>(initialImageRecordNames.subtract(currentImageRecordNames))
+        initialImageRecordNames.subtract(currentImageRecordNames)
+        let deletedImageRecordNames = Array<String>(initialImageRecordNames)
 
         if memo.isShared {
             //get zoneID from record
@@ -150,7 +151,7 @@ class MemoViewController: UIViewController {
             guard let record = CKRecord(coder: coder) else {fatalError("Data poluted!!")}
             coder.finishDecoding()
             CloudManager.shared.deleteInSharedDB(recordNames: deletedImageRecordNames, in: record.recordID.zoneID) { error in
-                guard error == nil else { return print(error) }
+                guard error == nil else { return print(error!) }
             }
         } else {
             CloudManager.shared.deleteInPrivateDB(recordNames: deletedImageRecordNames) { error in
