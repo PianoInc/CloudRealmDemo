@@ -61,9 +61,10 @@ class MemoViewController: UIViewController {
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
 
+        saveText()
         unRegisterNotification()
         removeGarbageImages()
-        saveText()
+        
 
         synchronizer.unregisterFromCloud()
 
