@@ -16,6 +16,7 @@ class MemoViewController: UIViewController {
     @IBOutlet weak var textView: FastTextView!
     internal var kbHeight: CGFloat?
     var memo: RealmNoteModel!
+    var initialImageRecordNames: Set<String>!
     var isSaving = false
     var id: String!
     var recordName: String!
@@ -33,14 +34,24 @@ class MemoViewController: UIViewController {
         textView.flangeDelegate = self
         textView.delegate = self
 
+        initialImageRecordNames = []
+      
         synchronizer = NoteSynchronizer(textView: textView)
         synchronizer.registerToCloud()
         
+
         do {
             let jsonDecoder = JSONDecoder()
             let attributes = try jsonDecoder.decode([PianoAttribute].self, from: memo.attributes)
-            
+
             textView.set(string: memo.content, with: attributes)
+
+            let imageRecordNames = attributes.map { attribute -> String in
+                if case let .image(id, _, _) = attribute.style {return id}
+                else {return ""}
+            }.filter{!$0.isEmpty}
+
+            initialImageRecordNames = Set<String>(imageRecordNames)
         } catch {
             print(error)
         }
@@ -49,9 +60,13 @@ class MemoViewController: UIViewController {
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+
         unRegisterNotification()
+        removeGarbageImages()
         saveText()
+
         synchronizer.unregisterFromCloud()
+
     }
 
     override func didReceiveMemoryWarning() {
@@ -114,6 +129,34 @@ class MemoViewController: UIViewController {
 //            removePhotoView()
 //        }
 //        presentShare(sender)
+    }
+
+    private func removeGarbageImages() {
+        let (_, attributes) = textView.attributedText.getStringWithPianoAttributes()
+
+        let imageRecordNames = attributes.map { attribute -> String in
+                if case let .image(id, _, _) = attribute.style {return id}
+                else {return ""}
+            }.filter{!$0.isEmpty}
+
+        let currentImageRecordNames = Set<String>(imageRecordNames)
+
+        let deletedImageRecordNames = Array<String>(initialImageRecordNames.subtract(currentImageRecordNames))
+
+        if memo.isShared {
+            //get zoneID from record
+            let coder = NSKeyedUnarchiver(forReadingWith: textView.memo.ckMetaData)
+            coder.requiresSecureCoding = true
+            guard let record = CKRecord(coder: coder) else {fatalError("Data poluted!!")}
+            coder.finishDecoding()
+            CloudManager.shared.deleteInSharedDB(recordNames: deletedImageRecordNames, in: record.recordID.zoneID) { error in
+                guard error == nil else { return print(error) }
+            }
+        } else {
+            CloudManager.shared.deleteInPrivateDB(recordNames: deletedImageRecordNames) { error in
+                guard error == nil else { return print(error!) }
+            }
+        }
     }
     
 }
