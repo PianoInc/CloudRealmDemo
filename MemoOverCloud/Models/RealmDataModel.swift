@@ -62,7 +62,7 @@ class RealmNoteModel: Object {
     @objc dynamic var isShared = false
 
 
-    @objc dynamic var categoryRecordName = ""
+    @objc dynamic var categoryRecordNames = ""
 
     override static func primaryKey() -> String? {
         return "id"
@@ -87,7 +87,7 @@ class RealmNoteModel: Object {
         newModel.ckMetaData = Data(referencing: data)
         newModel.id = id
         newModel.title = title
-        newModel.categoryRecordName = categoryRecordName
+        newModel.categoryRecordNames = categoryRecordName
         newModel.content = ""
 
         return newModel
@@ -141,33 +141,3 @@ class RealmImageModel: Object {
     }
 }
 
-class RealmCategoryForSharedModel: Object {
-    
-    static let recordTypeString = "RealmCategoryForSharedModel"
-    
-    @objc dynamic var recordName = ""
-    @objc dynamic var ckMetaData = Data()
-    @objc dynamic var categoryRecordName = ""
-    
-    
-    override static func ignoredProperties() -> [String] {
-        return ["recordTypeString"]
-    }
-    
-    static func getNewModel(recordName: String) -> RealmCategoryForSharedModel {
-        let zoneID = CloudManager.shared.privateDatabase.zoneID
-        let recordID = CKRecordID(recordName: recordName, zoneID: zoneID)
-        let record = CKRecord(recordType: RealmCategoryForSharedModel.recordTypeString, recordID: recordID)
-        
-        let data = NSMutableData()
-        let coder = NSKeyedArchiver(forWritingWith: data)
-        coder.requiresSecureCoding = true
-        record.encodeSystemFields(with: coder)
-        coder.finishEncoding()
-        
-        let newModel = RealmCategoryForSharedModel()
-        newModel.ckMetaData = Data(referencing: data)
-        
-        return newModel
-    }
-}

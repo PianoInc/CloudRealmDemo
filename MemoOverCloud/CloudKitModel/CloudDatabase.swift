@@ -200,8 +200,7 @@ class CloudPrivateDatabase: CloudCommonDatabase {
         let userID = self.userID?.recordName ?? ""
         let recordTypes = [RealmCategoryModel.recordTypeString,
                            RealmNoteModel.recordTypeString,
-                           RealmImageModel.recordTypeString,
-                           RealmCategoryForSharedModel.recordTypeString]
+                           RealmImageModel.recordTypeString]
 
         recordTypes.forEach {
 

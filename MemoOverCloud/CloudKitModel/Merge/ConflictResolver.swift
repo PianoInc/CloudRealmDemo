@@ -25,16 +25,6 @@ extension CloudCommonDatabase {
             } else {
                 completion(false)
             }
-            
-        case RealmCategoryForSharedModel.recordTypeString:
-            
-            if myModified.compare(serverModified) == .orderedDescending {
-                serverRecord[Schema.categoryForSharedNote.CategoryRecordName] = myRecord[Schema.categoryForSharedNote.CategoryRecordName]
-                completion(true)
-            } else {
-                completion(false)
-            }
-        
         default: break
         }
 
@@ -51,6 +41,7 @@ extension CloudCommonDatabase {
         
 
         if myModified.compare(serverModified) == .orderedDescending {
+
             if let serverTitle = serverRecord[Schema.Note.title] as? String,
                     let myTitle = myRecord[Schema.Note.title] as? String,
                     serverTitle != myTitle {
@@ -68,6 +59,7 @@ extension CloudCommonDatabase {
                 completion(true)
                 return
             }
+
         }
         
         completion(false)
