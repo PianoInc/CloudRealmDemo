@@ -30,6 +30,15 @@ class ViewController: UIViewController {
         
         validateToken()
         NotificationCenter.default.addObserver(self, selector: #selector(validateToken), name: NSNotification.Name.RealmConfigHasChanged, object: nil)
+        
+        let searchViewController = self.storyboard!.instantiateViewController(withIdentifier: "search") as! SearchViewController
+        
+        let searchController = UISearchController(searchResultsController: searchViewController)
+        searchController.searchResultsUpdater = searchViewController
+        searchController.obscuresBackgroundDuringPresentation = true
+        searchController.searchBar.placeholder = "Search Notes"
+        navigationItem.searchController = searchController
+        definesPresentationContext = true
     }
 
 

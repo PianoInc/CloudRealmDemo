@@ -79,8 +79,13 @@ extension CloudCommonDatabase {
     }
 
     private static func saveNoteRecord(_ record: CKRecord, isShared: Bool) {
-        
         guard let noteModel = record.parseNoteRecord() else {return}
+        let database = isShared ? CloudManager.shared.sharedDatabase : CloudManager.shared.privateDatabase
+
+
+        if let synchronizer = database.synchronizers[record.recordID.recordName] {
+            synchronizer.serverContentChanged(record)
+        }
 
         noteModel.isShared = isShared
         

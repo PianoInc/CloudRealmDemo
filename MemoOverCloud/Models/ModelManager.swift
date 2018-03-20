@@ -8,7 +8,17 @@ import CloudKit
 import RealmSwift
 
 //TODO: Repetetive code. Refactor it by generic
+
 class ModelManager {
+    
+    private func getTypeFrom(recordType string: String) -> Object.Type? {
+        switch string {
+            case RealmCategoryModel.recordTypeString: return RealmCategoryModel.self
+            case RealmNoteModel.recordTypeString: return RealmNoteModel.self
+            case RealmImageModel.recordTypeString: return RealmImageModel.self
+            default: return nil
+        }
+    }
 
     static func save(model: RealmCategoryModel, completion: ((Error?) -> Void)? = nil) {
         let record = model.getRecord()
@@ -64,7 +74,7 @@ class ModelManager {
 
 
     static func save(model: RealmNoteModel, completion: ((Error?) -> Void)? = nil) {
-
+        
         let record = model.getRecord()
         LocalDatabase.shared.saveObject(newObject: model)
 
@@ -104,15 +114,17 @@ class ModelManager {
         LocalDatabase.shared.deleteObject(ref: ref)
     }
 
-    static func update(model: RealmNoteModel, kv: [String: Any], completion: ((Error?) -> Void)? = nil) {
-        
+    static func update(id: String, kv: [String: Any], completion: ((Error?) -> Void)? = nil) {
+        //TODO: refactor it. It's test code & dangerous
+        let realm = try! Realm()
+        let model = realm.object(ofType: RealmNoteModel.self, forPrimaryKey: id)!
         let ref = ThreadSafeReference(to: model)
-        let id = model.id
         
         LocalDatabase.shared.updateObject(ref: ref, kv: kv) {
             LocalDatabase.shared.databaseQueue.sync {
                 autoreleasepool {
                     guard let realm = try? Realm(), let updatedModel = realm.object(ofType: RealmNoteModel.self, forPrimaryKey: id) else {return}
+        
                     
                     let record = updatedModel.getRecord()
                     let cloudCompletion: (CKRecord?, Error?) -> Void = { (conflicted, error) in

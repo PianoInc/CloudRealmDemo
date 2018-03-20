@@ -8,7 +8,7 @@
 
 import UIKit
 import RealmSwift
-import FlangeTextEngine
+import FastLayoutTextEngine
 import CloudKit
 
 class MemoViewController: UIViewController {
@@ -16,24 +16,42 @@ class MemoViewController: UIViewController {
     @IBOutlet weak var textView: FastTextView!
     internal var kbHeight: CGFloat?
     var memo: RealmNoteModel!
-
+    var initialImageRecordNames: Set<String>!
+    var isSaving = false
+    var id: String!
+    var recordName: String!
+    var synchronizer: NoteSynchronizer!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        registerKeyboardNotification()
-        
+        registerNotification()
+
+        id = memo.id
+        recordName = memo.recordName
         textView.memo = memo
         textView.adjustsFontForContentSizeCategory = true
 
         textView.flangeDelegate = self
         textView.delegate = self
 
+        initialImageRecordNames = []
+      
+        synchronizer = NoteSynchronizer(textView: textView)
+        synchronizer.registerToCloud()
+        
+
         do {
             let jsonDecoder = JSONDecoder()
             let attributes = try jsonDecoder.decode([PianoAttribute].self, from: memo.attributes)
-            
+
             textView.set(string: memo.content, with: attributes)
+
+            let imageRecordNames = attributes.map { attribute -> String in
+                if case let .image(id, _, _) = attribute.style {return id}
+                else {return ""}
+            }.filter{!$0.isEmpty}
+
+            initialImageRecordNames = Set<String>(imageRecordNames)
         } catch {
             print(error)
         }
@@ -42,7 +60,13 @@ class MemoViewController: UIViewController {
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+
+        unRegisterNotification()
+        removeGarbageImages()
         saveText()
+
+        synchronizer.unregisterFromCloud()
+
     }
 
     override func didReceiveMemoryWarning() {
@@ -70,38 +94,80 @@ class MemoViewController: UIViewController {
 
 
     @objc func saveText() {
-        //TODO: make async
-        let (string, attributes) = textView.get()
-        let jsonEncoder = JSONEncoder()
-
-        guard let data = try? jsonEncoder.encode(attributes) else {return}
-
-        let kv: [String: Any] = ["content": string, "attributes": data]
         
-        ModelManager.update(model: textView.memo, kv: kv) { error in
-            if let error = error {print(error)}
-            else {print("happy")}
+        DispatchQueue.main.async {
+            if self.isSaving {return}
+            
+            self.isSaving = true
+            
+            let (string, attributes) = self.textView.get()
+            
+            DispatchQueue.global().async {
+                let jsonEncoder = JSONEncoder()
+                
+                guard let data = try? jsonEncoder.encode(attributes) else {return}
+                
+                let kv: [String: Any] = ["content": string, "attributes": data]
+                
+                ModelManager.update(id: self.id, kv: kv) { [weak self] error in
+                    if let error = error {print(error)}
+                    else {print("happy")}
+                    self?.isSaving = false
+                }
+            }
         }
 
     }
 
-    
     @IBAction func albumButtonTouched(_ sender: UIButton) {
-        sender.isSelected = !sender.isSelected
-
-        if sender.isSelected {
-            addPhotoView()
-        } else {
-            removePhotoView()
-        }
+        saveText()
+//        sender.isSelected = !sender.isSelected
+//
+//        if sender.isSelected {
+//            addPhotoView()
+//        } else {
+//            removePhotoView()
+//        }
 //        presentShare(sender)
+    }
+
+    private func removeGarbageImages() {
+        let (_, attributes) = textView.attributedText.getStringWithPianoAttributes()
+
+        let imageRecordNames = attributes.map { attribute -> String in
+                if case let .image(id, _, _) = attribute.style {return id}
+                else {return ""}
+            }.filter{!$0.isEmpty}
+
+        let currentImageRecordNames = Set<String>(imageRecordNames)
+
+        let deletedImageRecordNames = Array<String>(initialImageRecordNames.subtract(currentImageRecordNames))
+
+        if memo.isShared {
+            //get zoneID from record
+            let coder = NSKeyedUnarchiver(forReadingWith: textView.memo.ckMetaData)
+            coder.requiresSecureCoding = true
+            guard let record = CKRecord(coder: coder) else {fatalError("Data poluted!!")}
+            coder.finishDecoding()
+            CloudManager.shared.deleteInSharedDB(recordNames: deletedImageRecordNames, in: record.recordID.zoneID) { error in
+                guard error == nil else { return print(error) }
+            }
+        } else {
+            CloudManager.shared.deleteInPrivateDB(recordNames: deletedImageRecordNames) { error in
+                guard error == nil else { return print(error!) }
+            }
+        }
     }
     
 }
 
 extension MemoViewController: UITextViewDelegate {
     func textViewDidChange(_ textView: UITextView) {
-        saveText()
+//        saveText()
+    }
+
+    func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+        return !self.textView.isSyncing
     }
 }
 
@@ -117,7 +183,6 @@ extension MemoViewController: FlangeTextViewDelegate {
             LocalCache.shared.updateThumbnailCacheWithID(id: attachment.imageID + "thumb", width: attachment.width, height: attachment.height) { image in
                 DispatchQueue.main.async { [weak self] in
                     attachment.image = image
-                    //TODO: reload whole visible range
                     self?.textView.reloadRange(for: range)
                 }
             }
@@ -182,13 +247,13 @@ extension MemoViewController: PhotoViewDelegate {
 
 
 extension MemoViewController {
-    internal func registerKeyboardNotification(){
+    internal func registerNotification(){
         NotificationCenter.default.addObserver(self, selector: #selector(MemoViewController.keyboardWillShow(notification:)), name: Notification.Name.UIKeyboardWillShow, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(MemoViewController.keyboardWillHide(notification:)), name: Notification.Name.UIKeyboardWillHide, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(MemoViewController.keyboardDidHide(notification:)), name: Notification.Name.UIKeyboardDidHide, object: nil)
     }
     
-    internal func unRegisterKeyboardNotification(){
+    internal func unRegisterNotification(){
         NotificationCenter.default.removeObserver(self)
     }
     

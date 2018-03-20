@@ -26,14 +26,12 @@ class CloudManager {
         self.privateDatabase = CloudPrivateDatabase(database: CKContainer.default().privateCloudDatabase, userID: userID)
         self.sharedDatabase = CloudSharedDatabase(database: CKContainer.default().sharedCloudDatabase, userID: userID)
 
-        self.resumeLongLivedOperationIfPossible()
-        self.setupNotificationHandling()
-        
-        requestUserInfo()
-        
-        //TODO: these must be removed later
-        privateDatabase.handleNotification()
-        sharedDatabase.handleNotification()
+        defer {
+            resumeLongLivedOperationIfPossible()
+            setupNotificationHandling()
+            
+            requestUserInfo()
+        }
     }
 
     
@@ -74,8 +72,10 @@ class CloudManager {
 
     fileprivate func setupNotificationHandling() {
         // Helpers
+        
         let notificationCenter = NotificationCenter.default
         notificationCenter.addObserver(self, selector: #selector(accountDidChange(_:)), name: Notification.Name.CKAccountChanged, object: nil)
+        
     }
 
     func loadRecordsFromPrivateDBWithID(recordNames: [String], completion handler: @escaping(([CKRecordID: CKRecord]?, Error?) -> Void)) {
@@ -123,9 +123,10 @@ class CloudManager {
         self.userID = recordID
         CloudManager.save(userID: recordID)
         Realm.setDefaultRealmForUser(username: recordID.recordName)
-        //refresh UI when this notification observed
-        NotificationCenter.default.post(name: NSNotification.Name.RealmConfigHasChanged, object: nil)
-        
+        //TODO: refresh UI when this notification observed
+        //TODO: check for error messages!!
+        CloudNotificationCenter.shared.postICloudUserChanged()
+
         privateDatabase.userID = recordID
         sharedDatabase.userID = recordID
         privateDatabase.handleNotification()
@@ -138,6 +139,3 @@ class CloudManager {
     }
 }
 
-extension NSNotification.Name {
-    public static let RealmConfigHasChanged: NSNotification.Name = NSNotification.Name(rawValue: "RealmConfigHasChanged")
-}
