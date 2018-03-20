@@ -8,7 +8,6 @@
 
 import FastLayoutTextEngine
 import UIKit
-import RealmSwift
 
 class FastTextView: FlangeTextView {
 
@@ -41,46 +40,6 @@ extension FastTextView {
             insertText("\n")
         }
     }
-}
-
-extension FastTextView {
-    override func copy(_ sender: Any?) {
-        guard let realm = try? Realm() else {return}
-        let pasteboard = UIPasteboard.general
-
-        let selectedAttributedString = NSMutableAttributedString(attributedString: self.attributedText.attributedSubstring(from: selectedRange))
-
-        selectedAttributedString.enumerateAttribute(.attachment, in: NSMakeRange(0, selectedAttributedString.length),
-                options: .longestEffectiveRangeNotRequired) { value, range, _ in
-            if let attachment = value as? FastTextAttachment,
-                let imageModel = realm.object(ofType: RealmImageModel.self, forPrimaryKey: attachment.imageID),
-                let image = UIImage(data: imageModel.image) {
-
-                let newAttachment = NSTextAttachment()
-                newAttachment.image = image
-
-                let replacement = NSAttributedString(attachment: newAttachment)
-
-                selectedAttributedString.replaceCharacters(in: range, with: replacement)
-            }
-        }
-
-        let data = (try? selectedAttributedString.data(from: NSMakeRange(0, selectedAttributedString.length)
-                , documentAttributes:[.documentType: NSAttributedString.DocumentType.rtf])) ?? Data()
-
-        pasteboard.setData(data, forPasteboardType: "com.apple.flat-rtfd")
-
-    }
-
-    override func cut(_ sender: Any?) {
-        copy(sender)
-        self.textStorage.deleteCharacters(in: selectedRange)
-    }
-
-    override func paste(_ sender: Any?) {
-
-    }
-
 }
 
 extension NSAttributedString {

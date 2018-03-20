@@ -51,11 +51,11 @@ extension CloudCommonDatabase {
                 return
             }
 
-            if let serverCategory = serverRecord[Schema.Note.categoryRecordNames] as? String,
-                    let myCategory = myRecord[Schema.Note.categoryRecordNames] as? String,
+            if let serverCategory = serverRecord[Schema.Note.categoryRecordName] as? String,
+                    let myCategory = myRecord[Schema.Note.categoryRecordName] as? String,
                     serverCategory != myCategory {
 
-                serverRecord[Schema.Note.categoryRecordNames] = myRecord[Schema.Note.categoryRecordNames]
+                serverRecord[Schema.Note.categoryRecordName] = myRecord[Schema.Note.categoryRecordName]
                 completion(true)
                 return
             }
