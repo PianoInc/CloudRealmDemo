@@ -185,11 +185,11 @@ typedef unsigned int swift_uint4  __attribute__((__ext_vector_type__(4)));
 #pragma clang diagnostic ignored "-Wunknown-pragmas"
 #pragma clang diagnostic ignored "-Wnullability"
 
-SWIFT_MODULE_NAMESPACE_PUSH("FlangeTextEngine")
+SWIFT_MODULE_NAMESPACE_PUSH("FastLayoutTextEngine")
 @class UIImage;
 @class NSCoder;
 
-SWIFT_CLASS("_TtC16FlangeTextEngine20FlangeTextAttachment")
+SWIFT_CLASS("_TtC20FastLayoutTextEngine20FlangeTextAttachment")
 @interface FlangeTextAttachment : NSTextAttachment
 @property (nonatomic, strong) UIImage * _Nullable image;
 - (nonnull instancetype)initWithData:(NSData * _Nullable)contentData ofType:(NSString * _Nullable)uti OBJC_DESIGNATED_INITIALIZER SWIFT_AVAILABILITY(ios,introduced=7.0);
@@ -201,7 +201,7 @@ SWIFT_CLASS("_TtC16FlangeTextEngine20FlangeTextAttachment")
 @class NSTextContainer;
 @class UITextRange;
 
-SWIFT_CLASS("_TtC16FlangeTextEngine14FlangeTextView")
+SWIFT_CLASS("_TtC20FastLayoutTextEngine14FlangeTextView")
 @interface FlangeTextView : UITextView
 - (nonnull instancetype)initWithFrame:(CGRect)frame textContainer:(NSTextContainer * _Nullable)textContainer OBJC_DESIGNATED_INITIALIZER;
 - (nullable instancetype)initWithCoder:(NSCoder * _Nonnull)aDecoder OBJC_DESIGNATED_INITIALIZER;

@@ -4,11 +4,13 @@
 //
 
 import CloudKit
+import UIKit
 
 class CloudCommonDatabase {
     fileprivate let database: CKDatabase
     public let subscriptionID: String
     var userID: CKRecordID?
+    var synchronizers: [String: NoteSynchronizer] = [:]
 
     init(database: CKDatabase, userID: CKRecordID?) {
         self.database = database
@@ -98,16 +100,15 @@ class CloudCommonDatabase {
                         let ancestorRecord = ancestorRec else { return completion(nil, error) }
 
                 //Resolve conflict. If it's false, it means server record has win & no merge happened
-                let merged = ConflictResolver.merge(ancestor: ancestorRecord, myRecord: clientRecord, serverRecord: serverRecord)
-
-                if merged {
-                    self.saveRecord(record: serverRecord) { newRecord, error in
-                        completion(newRecord, error)
+                self.merge(ancestor: ancestorRecord, myRecord: clientRecord, serverRecord: serverRecord) { merged in
+                    if merged {
+                        self.saveRecord(record: serverRecord) { newRecord, error in
+                            completion(newRecord, error)
+                        }
+                    } else {
+                        completion(serverRecord, nil)
                     }
-                } else {
-                    completion(serverRecord, nil)
                 }
-
                 return
             }
 
@@ -158,6 +159,14 @@ class CloudCommonDatabase {
      * It will be implemented by subclassing
      */
     public func handleNotification() {}
+
+    public func registerSynchronizer(_ synchronizer: NoteSynchronizer) {
+        synchronizers[synchronizer.recordName] = synchronizer
+    }
+
+    public func unregisterSynchronizer(recordName: String) {
+        synchronizers.removeValue(forKey: recordName)
+    }
 }
 
 
@@ -195,16 +204,19 @@ class CloudPrivateDatabase: CloudCommonDatabase {
                            RealmCategoryForSharedModel.recordTypeString]
 
         recordTypes.forEach {
-            let subscriptionKey = "ckSubscriptionSaved\($0)\(database.scopeString)\(userID)"
+
+            let uuid = UIDevice.current.identifierForVendor?.uuidString ?? ""
+            let subscriptionKey = "ckSubscriptionSaved\($0)\(database.scopeString)\(userID)\(uuid)"
             let alreadySaved = UserDefaults.standard.bool(forKey: subscriptionKey)
             guard !alreadySaved else {return}
 
 
             let predicate = NSPredicate(value: true)
 
+            
             let subscription = CKQuerySubscription(recordType: $0,
                     predicate: predicate,
-                    subscriptionID: "\(subscriptionID)\($0)\(userID)",
+                    subscriptionID: "\(subscriptionID)\($0)",
                     options: [.firesOnRecordCreation, .firesOnRecordDeletion, .firesOnRecordUpdate])
 
 
@@ -237,10 +249,10 @@ class CloudPrivateDatabase: CloudCommonDatabase {
         let userID = self.userID?.recordName ?? ""
         let serverChangedTokenKey = "ckServerChangeToken\(database.scopeString)\(userID)"
         var changeToken: CKServerChangeToken?
-        //TODO: uncomment these later
-//        if let changeTokenData = UserDefaults.standard.data(forKey: serverChangedTokenKey) {
-//            changeToken = NSKeyedUnarchiver.unarchiveObject(with: changeTokenData) as? CKServerChangeToken
-//        }
+
+        if let changeTokenData = UserDefaults.standard.data(forKey: serverChangedTokenKey) {
+            changeToken = NSKeyedUnarchiver.unarchiveObject(with: changeTokenData) as? CKServerChangeToken
+        }
 
 
         let options = CKFetchRecordZoneChangesOptions()
@@ -249,7 +261,7 @@ class CloudPrivateDatabase: CloudCommonDatabase {
         let optionDic = [zoneID: options]
 
         let operation = CKFetchRecordZoneChangesOperation(recordZoneIDs: [zoneID], optionsByRecordZoneID: optionDic)
-        operation.fetchAllChanges = true //TODO: change it to false
+        operation.fetchAllChanges = false
 
         operation.recordChangedBlock = { record in
             CloudCommonDatabase.syncChanged(record: record, isShared: false)
@@ -266,11 +278,13 @@ class CloudPrivateDatabase: CloudCommonDatabase {
             UserDefaults.standard.set(changedTokenData, forKey: serverChangedTokenKey)
         }
 
-        operation.recordZoneFetchCompletionBlock = { zoneID, changeToken, data, more, error in
+        operation.recordZoneFetchCompletionBlock = { [weak self] zoneID, changeToken, data, more, error in
             guard error == nil, let changedToken = changeToken else { return }
 
             let changedTokenData = NSKeyedArchiver.archivedData(withRootObject: changedToken)
             UserDefaults.standard.set(changedTokenData, forKey: serverChangedTokenKey)
+
+            if more { self?.handleNotification() }
         }
 
 
@@ -301,7 +315,8 @@ class CloudSharedDatabase: CloudCommonDatabase {
         //Check If I had saved subscription before
 
         let userID = self.userID?.recordName ?? ""
-        let subscriptionKey = "ckSubscriptionSaved\(database.scopeString)\(userID)"
+        let uuid = UIDevice.current.identifierForVendor?.uuidString ?? ""
+        let subscriptionKey = "ckSubscriptionSaved\(database.scopeString)\(userID)\(uuid)"
         let alreadySaved = UserDefaults.standard.bool(forKey: subscriptionKey)
         guard !alreadySaved else {return}
 
@@ -333,13 +348,13 @@ class CloudSharedDatabase: CloudCommonDatabase {
         let serverChangedTokenKey = "ckServerChangeToken\(database.scopeString)\(userID)"
         var changeToken: CKServerChangeToken?
 
-//        if let changeTokenData = UserDefaults.standard.data(forKey: serverChangedTokenKey) {
-//            changeToken = NSKeyedUnarchiver.unarchiveObject(with: changeTokenData) as? CKServerChangeToken
-//        }
+        if let changeTokenData = UserDefaults.standard.data(forKey: serverChangedTokenKey) {
+            changeToken = NSKeyedUnarchiver.unarchiveObject(with: changeTokenData) as? CKServerChangeToken
+        }
 
 
         let operation = CKFetchDatabaseChangesOperation(previousServerChangeToken: changeToken)
-        operation.fetchAllChanges = true //TODO: change it to false
+        operation.fetchAllChanges = false
 
 
         operation.changeTokenUpdatedBlock = { changedToken in
@@ -349,11 +364,13 @@ class CloudSharedDatabase: CloudCommonDatabase {
 
         }
 
-        operation.fetchDatabaseChangesCompletionBlock = { changeToken, _, error in
+        operation.fetchDatabaseChangesCompletionBlock = { [weak self] changeToken, more, error in
             guard error == nil, let changedToken = changeToken else {return}
 
             let changedTokenData = NSKeyedArchiver.archivedData(withRootObject: changedToken)
             UserDefaults.standard.set(changedTokenData, forKey: serverChangedTokenKey)
+
+            if more { self?.handleNotification() }
         }
 
         operation.recordZoneWithIDChangedBlock = { [weak self] zoneID in
@@ -363,12 +380,20 @@ class CloudSharedDatabase: CloudCommonDatabase {
 
         operation.recordZoneWithIDWasDeletedBlock = { [weak self] zoneID in
             self?.zoneIDs.remove(zoneID)
-            //TODO:delete all models related to zoneID
+            self?.fetchChangesInZone(zoneID)
+
+            let serverChangedTokenKey = "ckServerChangeToken\(self?.database.scopeString ?? "") \(zoneID)\(userID)"
+            UserDefaults.standard.removeObject(forKey: serverChangedTokenKey)
+            //TODO:check if it works
         }
 
-        operation.recordZoneWithIDWasPurgedBlock = { zoneID in
-            
-            //TODO:delete all model related to zoneID
+        operation.recordZoneWithIDWasPurgedBlock = { [weak self] zoneID in
+            self?.zoneIDs.remove(zoneID)
+            self?.fetchChangesInZone(zoneID)
+
+            let serverChangedTokenKey = "ckServerChangeToken\(self?.database.scopeString ?? "") \(zoneID)\(userID)"
+            UserDefaults.standard.removeObject(forKey: serverChangedTokenKey)
+            //TODO:check if it works
         }
 
 
@@ -395,7 +420,7 @@ class CloudSharedDatabase: CloudCommonDatabase {
                                                           optionsByRecordZoneID: [zoneID: options])
 
 
-        operation.fetchAllChanges = true //TODO: change it to false
+        operation.fetchAllChanges = false
 
         operation.recordChangedBlock = { record in
             CloudCommonDatabase.syncChanged(record: record, isShared: true)
@@ -412,11 +437,13 @@ class CloudSharedDatabase: CloudCommonDatabase {
             UserDefaults.standard.set(changedTokenData, forKey: serverChangedTokenKey)
         }
 
-        operation.recordZoneFetchCompletionBlock = { zoneID, changeToken, data, more, error in
+        operation.recordZoneFetchCompletionBlock = { [weak self] zoneID, changeToken, data, more, error in
             guard error == nil, let changedToken = changeToken else { return }
 
             let changedTokenData = NSKeyedArchiver.archivedData(withRootObject: changedToken)
             UserDefaults.standard.set(changedTokenData, forKey: serverChangedTokenKey)
+
+            if more { self?.fetchChangesInZone(zoneID) }
         }
 
         operation.qualityOfService = .utility

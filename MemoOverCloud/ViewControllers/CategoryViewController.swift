@@ -124,8 +124,7 @@ extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             guard let note = notes?[indexPath.row] else {return}
-            let noteRef = ThreadSafeReference(to: note)
-            LocalDatabase.shared.deleteObject(ref: noteRef)
+            ModelManager.delete(model: note)
         }
     }
 }
