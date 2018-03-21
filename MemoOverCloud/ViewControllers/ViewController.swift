@@ -98,7 +98,7 @@ class ViewController: UIViewController {
 
         let newCategory = RealmCategoryModel.getNewModel(name: "new Category\(count)")
 
-        ModelManager.save(model: newCategory) { error in
+        ModelManager.saveNew(model: newCategory) { error in
             if let error = error {
                 print(error)
             } else {
@@ -145,7 +145,8 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
 
-            ModelManager.delete(model: categories[indexPath.row])
+            let id = categories[indexPath.row].id
+            ModelManager.delete(id: id, type: RealmCategoryModel.self)
         }
     }
 }

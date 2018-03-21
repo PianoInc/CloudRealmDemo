@@ -114,7 +114,7 @@ class MemoViewController: UIViewController {
                 
                 let kv: [String: Any] = ["content": string, "attributes": data]
                 
-                ModelManager.update(id: self.id, kv: kv) { [weak self] error in
+                ModelManager.update(id: self.id, type: RealmNoteModel.self, kv: kv) { [weak self] error in
                     if let error = error {print(error)}
                     else {print("happy")}
                     self?.isSaving = false
@@ -226,7 +226,7 @@ extension MemoViewController: PhotoViewDelegate {
                 let newImageModel = RealmImageModel.getNewModel(noteRecordName: noteRecordName, image: image)
                 newImageModel.id = identifier
 
-                ModelManager.save(model: newImageModel) {error in }
+                ModelManager.saveNew(model: newImageModel) { error in }
             }
         }
         

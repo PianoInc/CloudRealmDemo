@@ -20,7 +20,8 @@ class ModelManager {
         }
     }
 
-    static func save(model: RealmCategoryModel, completion: ((Error?) -> Void)? = nil) {
+
+    static func saveNew(model: RealmCategoryModel, completion: ((Error?) -> Void)? = nil) {
         let record = model.getRecord()
 
         LocalDatabase.shared.saveObject(newObject: model)
@@ -36,44 +37,8 @@ class ModelManager {
 
     }
 
-    static func delete(model: RealmCategoryModel, completion: ((Error?) -> Void)? = nil) {
-        let recordName = model.recordName
-        let ref = ThreadSafeReference(to: model)
 
-
-        LocalDatabase.shared.deleteObject(ref: ref)
-        CloudManager.shared.deleteInPrivateDB(recordNames: [recordName]) { error in
-            if let error = error { completion?(error) }
-            else {completion?(nil)}
-        }
-    }
-    
-    static func update(model: RealmCategoryModel, kv: [String: Any], completion: ((Error?) -> Void)? = nil) {
-        
-        let ref = ThreadSafeReference(to: model)
-        let id = model.id
-        
-        LocalDatabase.shared.updateObject(ref: ref, kv: kv) {
-            LocalDatabase.shared.databaseQueue.sync {
-                autoreleasepool {
-                    guard let realm = try? Realm(), let updatedModel = realm.object(ofType: RealmCategoryModel.self, forPrimaryKey: id) else {return}
-                    let record = updatedModel.getRecord()
-                    
-                    CloudManager.shared.uploadRecordToPrivateDB(record: record){ (conflicted, error) in
-                        if let error = error {
-                            return completion?(error) ?? ()
-                        } else if let conflictedModel = conflicted?.parseCategoryRecord() {
-                            LocalDatabase.shared.saveObject(newObject: conflictedModel)
-                        }
-                        completion?(nil)
-                    }
-                }
-            }
-        }
-    }
-
-
-    static func save(model: RealmNoteModel, completion: ((Error?) -> Void)? = nil) {
+    static func saveNew(model: RealmNoteModel, completion: ((Error?) -> Void)? = nil) {
         
         let record = model.getRecord()
         LocalDatabase.shared.saveObject(newObject: model)
@@ -91,117 +56,93 @@ class ModelManager {
         CloudManager.shared.uploadRecordToPrivateDB(record: record, completion: cloudCompletion)
     }
 
-    static func delete(model: RealmNoteModel, completion: ((Error?) -> Void)? = nil) {
 
-        let recordName = model.recordName
-        let ref = ThreadSafeReference(to: model)
-
-        
-        if model.isShared {
-            let record = model.getRecord()
-            CloudManager.shared.deleteInPrivateDB(recordNames: [recordName], completion: {_ in})
-            CloudManager.shared.deleteInSharedDB(recordNames: [recordName], in: record.recordID.zoneID) { error in
-                if let error = error { completion?(error) }
-                else {completion?(nil)}
-            }
-        } else {
-            CloudManager.shared.deleteInPrivateDB(recordNames: [recordName]) { error in
-                if let error = error { completion?(error) }
-                else {completion?(nil)}
-            }
-        }
-        
-        LocalDatabase.shared.deleteObject(ref: ref)
-    }
-
-    static func update(id: String, kv: [String: Any], completion: ((Error?) -> Void)? = nil) {
-        //TODO: refactor it. It's test code & dangerous
-        let realm = try! Realm()
-        let model = realm.object(ofType: RealmNoteModel.self, forPrimaryKey: id)!
-        let ref = ThreadSafeReference(to: model)
-        
-        LocalDatabase.shared.updateObject(ref: ref, kv: kv) {
-            LocalDatabase.shared.databaseQueue.sync {
-                autoreleasepool {
-                    guard let realm = try? Realm(), let updatedModel = realm.object(ofType: RealmNoteModel.self, forPrimaryKey: id) else {return}
-        
-                    
-                    let record = updatedModel.getRecord()
-                    let cloudCompletion: (CKRecord?, Error?) -> Void = { (conflicted, error) in
-                        
-                        if let error = error {
-                            return completion?(error) ?? ()
-                        } else if let conflictedModel = conflicted?.parseNoteRecord() {
-                            LocalDatabase.shared.saveObject(newObject: conflictedModel)
-                        }
-                        completion?(nil)
-                    }
-                    
-                    if updatedModel.isShared {
-                        CloudManager.shared.uploadRecordToSharedDB(record: record, completion: cloudCompletion)
-                    } else {
-                        CloudManager.shared.uploadRecordToPrivateDB(record: record, completion: cloudCompletion)
-                    } 
-                }
-            }
-        }
-        
-    }
-
-    static func save(model: RealmImageModel, completion: ((Error?) -> Void)? = nil) {
+    static func saveNew(model: RealmImageModel, completion: ((Error?) -> Void)? = nil) {
 
         let (url, record) = model.getRecord()
         LocalDatabase.shared.saveObject(newObject: model)
 
-        if model.isShared {
-            CloudManager.shared.uploadRecordToSharedDB(record: record) { conflicted, error in
-                if let error = error {
-                    return completion?(error) ?? ()
-                } else if let conflictedModel = conflicted?.parseImageRecord() {
-                    LocalDatabase.shared.saveObject(newObject: conflictedModel)
-                }
-                completion?(nil)
-                try? FileManager.default.removeItem(at: url)
+        let uploadFunc = model.isShared ? CloudManager.shared.uploadRecordToSharedDB:
+                                            CloudManager.shared.uploadRecordToPrivateDB
+
+        uploadFunc(record) { conflicted, error in
+            if let error = error {
+                return completion?(error) ?? ()
+            } else if let conflictedModel = conflicted?.parseImageRecord() {
+                LocalDatabase.shared.saveObject(newObject: conflictedModel)
             }
-        } else {
-            CloudManager.shared.uploadRecordToPrivateDB(record: record) { (conflicted, error) in
-                if let error = error {
-                    return completion?(error) ?? ()
-                } else if let conflictedModel = conflicted?.parseImageRecord() {
-                    LocalDatabase.shared.saveObject(newObject: conflictedModel)
-                }
-                completion?(nil)
-                try? FileManager.default.removeItem(at: url)
-            }
+            completion?(nil)
+            try? FileManager.default.removeItem(at: url)
         }
     }
 
-    static func delete(model: RealmImageModel, completion: ((Error?) -> Void)? = nil) {
 
-        let recordName = model.recordName
+
+    static func delete(id: String, type: Object.Type, completion: ((Error?) -> Void)? = nil) {
+        guard let realm = try? Realm(),
+                let model = realm.object(ofType: type.self, forPrimaryKey: id),
+                let recordable = model as? Recordable else {return}
+
+        let recordName = recordable.recordName
         let ref = ThreadSafeReference(to: model)
 
-        if model.isShared {
-            //Not make any additional url
-            let coder = NSKeyedUnarchiver(forReadingWith: model.ckMetaData)
+
+        LocalDatabase.shared.deleteObject(ref: ref)
+
+        let cloudCompletion: (Error?) -> () = { error in
+            if let error = error {completion?(error)}
+            else {completion?(nil)}
+        }
+
+        if recordable.isShared {
+            let coder = NSKeyedUnarchiver(forReadingWith: recordable.ckMetaData)
             coder.requiresSecureCoding = true
             guard let record = CKRecord(coder: coder) else {fatalError("Data polluted!!")}
             coder.finishDecoding()
-            
-            CloudManager.shared.deleteInSharedDB(recordNames: [recordName], in: record.recordID.zoneID) { error in
-                if let error = error { completion?(error) }
-                else { completion?(nil) }
-            }
+            CloudManager.shared.deleteInSharedDB(recordNames: [recordName], in: record.recordID.zoneID, completion: cloudCompletion)
         } else {
-            CloudManager.shared.deleteInPrivateDB(recordNames: [recordName]) { error in
-                if let error = error { completion?(error) }
-                else {completion?(nil)}
-
-            }
+            CloudManager.shared.deleteInPrivateDB(recordNames: [recordName], completion: cloudCompletion)
         }
-        
-        LocalDatabase.shared.deleteObject(ref: ref)
     }
 
+    static func update(id: String, type: Object.Type, kv: [String: Any], completion: ((Error?) -> Void)? = nil) {
 
+        LocalDatabase.shared.updateObject(id: id, kv: kv, type: type.self) {
+            LocalDatabase.shared.databaseQueue.sync {
+                autoreleasepool {
+                    guard let realm = try? Realm(),
+                          let model = realm.object(ofType: type.self, forPrimaryKey: id) as? (Object & Recordable),
+                            let record = model.getRecord?()else {return}
+
+
+                    let uploadFunc = model.isShared ? CloudManager.shared.uploadRecordToSharedDB :
+                                                CloudManager.shared.uploadRecordToPrivateDB
+                    uploadFunc(record) { (conflicted, error) in
+                        if let error = error {
+                            return completion?(error) ?? ()
+                        } else if let conflictedRecord = conflicted {
+                            let newModel: Object?
+
+                            switch conflictedRecord.recordType {
+                                case RealmCategoryModel.recordTypeString:
+                                    newModel = conflictedRecord.parseCategoryRecord()
+                                case RealmNoteModel.recordTypeString:
+                                    newModel = conflictedRecord.parseNoteRecord()
+                                case RealmImageModel.recordTypeString:
+                                    newModel = conflictedRecord.parseImageRecord()
+                                default:
+                                    newModel = nil
+                            }
+
+                            if let safeModel = newModel {
+                                LocalDatabase.shared.saveObject(newObject: safeModel)
+                            }
+                        } else {
+                            completion?(nil)
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

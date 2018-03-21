@@ -108,7 +108,7 @@ extension FastTextView {
                     }
 
                     let newImageModel = RealmImageModel.getNewModel(noteRecordName: memo.recordName, image: resizedImage)
-                    ModelManager.save(model: newImageModel) {error in }
+                    ModelManager.saveNew(model: newImageModel) { error in }
 
 
                     let newAttachment = FastTextAttachment()
