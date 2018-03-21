@@ -149,12 +149,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 extension Realm {
     static func setDefaultRealmForUser(username: String) {
+        let defaultConfig = Realm.Configuration.defaultConfiguration
+        
         var config = Realm.Configuration()
         
         // Use the default directory, but replace the filename with the username
         config.fileURL = config.fileURL!.deletingLastPathComponent()
             .appendingPathComponent("\(username).realm")
-        
+        config.schemaVersion = defaultConfig.schemaVersion
         // Set this as the configuration used for the default Realm
         Realm.Configuration.defaultConfiguration = config
     }
