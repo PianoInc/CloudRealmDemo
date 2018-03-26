@@ -19,12 +19,14 @@
 		6C2D317D20282D86003C715C /* ImageCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 6C2D317820282D85003C715C /* ImageCell.xib */; };
 		6C2D317E20282D86003C715C /* ImageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C2D317920282D85003C715C /* ImageCell.swift */; };
 		6C2D318020282E71003C715C /* FastTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C2D317F20282E71003C715C /* FastTextView.swift */; };
+		6C3131122064DBF3001E7E0F /* TextImageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C3131112064DBF3001E7E0F /* TextImageCell.swift */; };
+		6C3131142064DC13001E7E0F /* TextImageCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 6C3131132064DC13001E7E0F /* TextImageCell.xib */; };
+		6C3131162064DD90001E7E0F /* InteractiveTextEngine_iOS.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 6C72A88B206324FD00D124EA /* InteractiveTextEngine_iOS.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		6C4C743F202A79BF00571760 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6C4C743E202A79BF00571760 /* CloudKit.framework */; };
+		6C72A88A206324FD00D124EA /* InteractiveTextEngine_iOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6C72A88B206324FD00D124EA /* InteractiveTextEngine_iOS.framework */; };
 		6C79A44C203BED1700F0C18B /* PianoAttribute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C79A44B203BED1700F0C18B /* PianoAttribute.swift */; };
 		6C9932B220242A4800592B5F /* CategoryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C9932B120242A4800592B5F /* CategoryViewController.swift */; };
 		6C9932B420242AF500592B5F /* MemoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C9932B320242AF500592B5F /* MemoViewController.swift */; };
-		6C9EDE74204E674F005A41D0 /* FastLayoutTextEngine.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6C9EDE72204E674D005A41D0 /* FastLayoutTextEngine.framework */; };
-		6C9EDE75204E674F005A41D0 /* FastLayoutTextEngine.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 6C9EDE72204E674D005A41D0 /* FastLayoutTextEngine.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		6CD8B523205F7698006E3EA5 /* SearchViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CD8B522205F7698006E3EA5 /* SearchViewController.swift */; };
 		6CED385B20520CE200429CD2 /* Diff.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CED385A20520CE200429CD2 /* Diff.swift */; };
 		75E990361EBDBEB577DDDA32 /* RealmDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75E998D3337AA816BF45DE56 /* RealmDataModel.swift */; };
@@ -79,7 +81,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				6C9EDE75204E674F005A41D0 /* FastLayoutTextEngine.framework in Embed Frameworks */,
+				6C3131162064DD90001E7E0F /* InteractiveTextEngine_iOS.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -102,12 +104,14 @@
 		6C2D317820282D85003C715C /* ImageCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ImageCell.xib; sourceTree = "<group>"; };
 		6C2D317920282D85003C715C /* ImageCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageCell.swift; sourceTree = "<group>"; };
 		6C2D317F20282E71003C715C /* FastTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FastTextView.swift; sourceTree = "<group>"; };
+		6C3131112064DBF3001E7E0F /* TextImageCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextImageCell.swift; sourceTree = "<group>"; };
+		6C3131132064DC13001E7E0F /* TextImageCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TextImageCell.xib; sourceTree = "<group>"; };
 		6C4C743D202A79B900571760 /* MemoOverCloud.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MemoOverCloud.entitlements; sourceTree = "<group>"; };
 		6C4C743E202A79BF00571760 /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = System/Library/Frameworks/CloudKit.framework; sourceTree = SDKROOT; };
+		6C72A88B206324FD00D124EA /* InteractiveTextEngine_iOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = InteractiveTextEngine_iOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		6C79A44B203BED1700F0C18B /* PianoAttribute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PianoAttribute.swift; sourceTree = "<group>"; };
 		6C9932B120242A4800592B5F /* CategoryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryViewController.swift; sourceTree = "<group>"; };
 		6C9932B320242AF500592B5F /* MemoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoViewController.swift; sourceTree = "<group>"; };
-		6C9EDE72204E674D005A41D0 /* FastLayoutTextEngine.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = FastLayoutTextEngine.framework; sourceTree = "<group>"; };
 		6CD8B522205F7698006E3EA5 /* SearchViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchViewController.swift; sourceTree = "<group>"; };
 		6CED385A20520CE200429CD2 /* Diff.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Diff.swift; sourceTree = "<group>"; };
 		75E9903A3DB1D3E6F6D676D1 /* MemoOverCloudTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoOverCloudTests.swift; sourceTree = "<group>"; };
@@ -160,8 +164,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6C72A88A206324FD00D124EA /* InteractiveTextEngine_iOS.framework in Frameworks */,
 				6C4C743F202A79BF00571760 /* CloudKit.framework in Frameworks */,
-				6C9EDE74204E674F005A41D0 /* FastLayoutTextEngine.framework in Frameworks */,
 				22B40D73EF1E6C78223215C1 /* Pods_MemoOverCloud.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -180,6 +184,7 @@
 		03E154016548BB9FF8AC785B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				6C72A88B206324FD00D124EA /* InteractiveTextEngine_iOS.framework */,
 				6C4C743E202A79BF00571760 /* CloudKit.framework */,
 				F89DAD8363048C4F709C3A3F /* Pods_MemoOverCloud.framework */,
 				B828A6784D52F558C043BA8C /* Pods_MemoOverCloudTests.framework */,
@@ -214,9 +219,12 @@
 		6C0A68982027D17B00AA5AE3 /* FlangeClasses */ = {
 			isa = PBXGroup;
 			children = (
+				6C72A85920631CB600D124EA /* Engine */,
 				6C2D317F20282E71003C715C /* FastTextView.swift */,
 				6C0A68992027D19200AA5AE3 /* FastTextAttachment.swift */,
 				75E99332E1A14691085512DD /* ImageTag.swift */,
+				6C3131112064DBF3001E7E0F /* TextImageCell.swift */,
+				6C3131132064DC13001E7E0F /* TextImageCell.xib */,
 			);
 			path = FlangeClasses;
 			sourceTree = "<group>";
@@ -257,6 +265,13 @@
 			path = CloudKitModel;
 			sourceTree = "<group>";
 		};
+		6C72A85920631CB600D124EA /* Engine */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Engine;
+			sourceTree = "<group>";
+		};
 		6C9932B02024296E00592B5F /* ViewControllers */ = {
 			isa = PBXGroup;
 			children = (
@@ -281,7 +296,6 @@
 		75E996C00C171195B6E2E714 = {
 			isa = PBXGroup;
 			children = (
-				6C9EDE72204E674D005A41D0 /* FastLayoutTextEngine.framework */,
 				75E992C2BD3038F7176157B3 /* Products */,
 				75E99ACFB0B635E859C80185 /* MemoOverCloud */,
 				75E9988EDF473EC0E797AC2F /* MemoOverCloudTests */,
@@ -441,6 +455,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				Base,
 			);
 			mainGroup = 75E996C00C171195B6E2E714;
 			productRefGroup = 75E992C2BD3038F7176157B3 /* Products */;
@@ -477,6 +492,7 @@
 				75E99651B39B56A70EBBA25F /* LaunchScreen.storyboard in Resources */,
 				75E995FBA2F1DE333DD675CB /* Main.storyboard in Resources */,
 				6C2D317D20282D86003C715C /* ImageCell.xib in Resources */,
+				6C3131142064DC13001E7E0F /* TextImageCell.xib in Resources */,
 				6C2D317B20282D86003C715C /* PhotoView.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -660,6 +676,7 @@
 				6C2D317E20282D86003C715C /* ImageCell.swift in Sources */,
 				75E99A1D9AB722D31CE646C6 /* AppDelegate.swift in Sources */,
 				6C9932B420242AF500592B5F /* MemoViewController.swift in Sources */,
+				6C3131122064DBF3001E7E0F /* TextImageCell.swift in Sources */,
 				6CD8B523205F7698006E3EA5 /* SearchViewController.swift in Sources */,
 				6C2BD494202AB65600910B93 /* CloudManager.swift in Sources */,
 				75E99D4BA031EE3A22CE3CEC /* ViewController.swift in Sources */,
@@ -825,6 +842,8 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
+					"$(PROJECT_DIR)/FastLayoutTextEngine/Output/FastLayoutTextEngine-Debug-iphoneuniversal",
+					"$(PROJECT_DIR)/FastLayoutTextEngine",
 				);
 				INFOPLIST_FILE = MemoOverCloud/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.2;
@@ -846,6 +865,8 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
+					"$(PROJECT_DIR)/FastLayoutTextEngine/Output/FastLayoutTextEngine-Debug-iphoneuniversal",
+					"$(PROJECT_DIR)/FastLayoutTextEngine",
 				);
 				INFOPLIST_FILE = MemoOverCloud/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.2;

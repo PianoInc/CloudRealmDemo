@@ -196,20 +196,16 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="Oj5-0w-9e9" customClass="FastTextView" customModule="MemoOverCloud" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="64" width="375" height="603"/>
+                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="f0G-w4-4JY">
+                                <rect key="frame" x="67" y="231" width="240" height="128"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <string key="text">Lorem ipsum dolor sit er elit lamet, consectetaur cillium adipisicing pecu, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Nam liber te conscient to factor tum poen legum odioque civiuda.</string>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                             </textView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                        <constraints>
-                            <constraint firstItem="Oj5-0w-9e9" firstAttribute="top" secondItem="8wt-zz-CI8" secondAttribute="top" id="Bnq-rb-7er"/>
-                            <constraint firstAttribute="trailing" secondItem="Oj5-0w-9e9" secondAttribute="trailing" id="MLZ-YP-mox"/>
-                            <constraint firstItem="Oj5-0w-9e9" firstAttribute="leading" secondItem="8wt-zz-CI8" secondAttribute="leading" id="ayi-V0-Ref"/>
-                            <constraint firstItem="8wt-zz-CI8" firstAttribute="bottom" secondItem="Oj5-0w-9e9" secondAttribute="bottom" id="kil-it-iDk"/>
-                        </constraints>
                         <viewLayoutGuide key="safeArea" id="8wt-zz-CI8"/>
                     </view>
                     <navigationItem key="navigationItem" id="RXH-EU-60n">
@@ -224,9 +220,6 @@
                             </button>
                         </barButtonItem>
                     </navigationItem>
-                    <connections>
-                        <outlet property="textView" destination="Oj5-0w-9e9" id="PCg-JB-lYs"/>
-                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="jXD-SU-RtW" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>

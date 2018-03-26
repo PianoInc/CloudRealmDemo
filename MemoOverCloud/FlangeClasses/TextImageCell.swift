@@ -6,10 +6,11 @@
 //  Copyright © 2018년 piano. All rights reserved.
 //
 
-import UIKit
+import InteractiveTextEngine_iOS
 
 class TextImageCell: InteractiveAttachmentCell {
 
+    @IBOutlet weak var imageView: UIImageView!
     /*
     // Only override draw() if you perform custom drawing.
     // An empty implementation adversely affects performance during animation.

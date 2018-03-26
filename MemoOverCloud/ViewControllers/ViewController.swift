@@ -58,7 +58,7 @@ class ViewController: UIViewController {
 
     @objc func validateToken() {
         
-        guard let realm = try? Realm() else { fatalError("Database open failed")}
+        do{ let realm = try Realm()
         self.categories = realm.objects(RealmCategoryModel.self)
         
         notificationToken = categories.observe { [weak self] (changes) in
@@ -79,6 +79,7 @@ class ViewController: UIViewController {
 
 
         }
+        } catch {print(error)}
     }
 
     @IBAction func newButtonTouched() {

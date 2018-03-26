@@ -50,7 +50,7 @@ class CategoryViewController: UIViewController {
     
     func validateToken() {
         guard let realm = try? Realm() else {return}
-        notes = realm.objects(RealmNoteModel.self).filter("categoryRecordName = %@", categoryRecordName)
+        notes = realm.objects(RealmNoteModel.self).filter("categoryRecordNames CONTAINS[cd] %@", categoryRecordName)
         
         notificationToken = notes?.observe { [weak self] (changes) in
             guard let tableView = self?.tableView else {return}

@@ -6,14 +6,22 @@
 //  Copyright © 2018년 piano. All rights reserved.
 //
 
-import FastLayoutTextEngine
+import InteractiveTextEngine_iOS
 import UIKit
 
-class FastTextView: FlangeTextView {
+class FastTextView: InteractiveTextView {
 
     var memo: RealmNoteModel!
     var isSyncing = false
-
+    
+    override init(frame: CGRect, textContainer: NSTextContainer?) {
+        super.init(frame: frame, textContainer: textContainer)
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
 
     func set(string: String, with attributes: [PianoAttribute]) {
         let newAttributedString = NSMutableAttributedString(string: string)
@@ -23,6 +31,7 @@ class FastTextView: FlangeTextView {
     }
 
     func get() -> (string: String, attributes: [PianoAttribute]) {
+        
         return attributedText.getStringWithPianoAttributes()
     }
 

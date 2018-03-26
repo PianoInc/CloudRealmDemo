@@ -8,12 +8,12 @@
 
 import UIKit
 import RealmSwift
-import FastLayoutTextEngine
+import InteractiveTextEngine_iOS
 import CloudKit
 
 class MemoViewController: UIViewController {
     
-    @IBOutlet weak var textView: FastTextView!
+    var textView: FastTextView!
     internal var kbHeight: CGFloat?
     var memo: RealmNoteModel!
     var initialImageRecordNames: Set<String>!
@@ -25,14 +25,22 @@ class MemoViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         registerNotification()
+        
+        textView = FastTextView(frame: CGRect.zero, textContainer: nil)
+        textView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        textView.translatesAutoresizingMaskIntoConstraints = false
+        addTextView(textView: textView)
 
         id = memo.id
         recordName = memo.recordName
         textView.memo = memo
         textView.adjustsFontForContentSizeCategory = true
 
-        textView.flangeDelegate = self
+        textView.interactiveDelegate = self
+        textView.interactiveDatasource = self
         textView.delegate = self
+        textView.register(nib: UINib(nibName: "TextImageCell", bundle: nil), forCellReuseIdentifier: "textImageCell")
+        
 
         initialImageRecordNames = []
       
@@ -55,7 +63,6 @@ class MemoViewController: UIViewController {
         } catch {
             print(error)
         }
-        
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -72,6 +79,27 @@ class MemoViewController: UIViewController {
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+    private func addTextView(textView: FastTextView) {
+        view.addSubview(textView)
+        let constraint1 = NSLayoutConstraint(item: textView, attribute: .top, relatedBy: .equal,
+                                             toItem: self.view.safeAreaLayoutGuide,
+                                             attribute: .top, multiplier: 1.0, constant: 0)
+        
+        let constraint2 = NSLayoutConstraint(item: textView, attribute: .leading, relatedBy: .equal,
+                                             toItem: self.view.safeAreaLayoutGuide,
+                                             attribute: .leading, multiplier: 1.0, constant: 0)
+        
+        let constraint3 = NSLayoutConstraint(item: textView, attribute: .trailing, relatedBy: .equal,
+                                             toItem: self.view.safeAreaLayoutGuide,
+                                             attribute: .trailing, multiplier: 1.0, constant: 0)
+        
+        let constraint4 = NSLayoutConstraint(item: textView, attribute: .bottom, relatedBy: .equal,
+                                             toItem: self.view.safeAreaLayoutGuide,
+                                             attribute: .bottom, multiplier: 1.0, constant: 0)
+        
+        view.addConstraints([constraint1, constraint2, constraint3, constraint4])
     }
 
     private func addPhotoView(){
@@ -120,14 +148,14 @@ class MemoViewController: UIViewController {
     }
 
     @IBAction func albumButtonTouched(_ sender: UIButton) {
-        saveText()
-//        sender.isSelected = !sender.isSelected
-//
-//        if sender.isSelected {
-//            addPhotoView()
-//        } else {
-//            removePhotoView()
-//        }
+//        saveText()
+        sender.isSelected = !sender.isSelected
+
+        if sender.isSelected {
+            addPhotoView()
+        } else {
+            removePhotoView()
+        }
 //        presentShare(sender)
     }
 
@@ -140,8 +168,9 @@ class MemoViewController: UIViewController {
             }.filter{!$0.isEmpty}
 
         let currentImageRecordNames = Set<String>(imageRecordNames)
+        initialImageRecordNames.subtract(currentImageRecordNames)
 
-        let deletedImageRecordNames = Array<String>(initialImageRecordNames.subtract(currentImageRecordNames))
+        let deletedImageRecordNames = Array<String>(initialImageRecordNames)
 
         if memo.isShared {
             //get zoneID from record
@@ -150,7 +179,7 @@ class MemoViewController: UIViewController {
             guard let record = CKRecord(coder: coder) else {fatalError("Data poluted!!")}
             coder.finishDecoding()
             CloudManager.shared.deleteInSharedDB(recordNames: deletedImageRecordNames, in: record.recordID.zoneID) { error in
-                guard error == nil else { return print(error) }
+                guard error == nil else { return }
             }
         } else {
             CloudManager.shared.deleteInPrivateDB(recordNames: deletedImageRecordNames) { error in
@@ -160,6 +189,21 @@ class MemoViewController: UIViewController {
     }
     
 }
+
+extension MemoViewController: InteractiveTextViewDelegate, InteractiveTextViewDataSource {
+    func textView(_ textView: InteractiveTextView, attachmentForCell attachment: InteractiveTextAttachment) -> InteractiveAttachmentCell {
+        let cell = textView.dequeueReusableCell(withIdentifier: "textImageCell")
+        guard let imageCell = cell as? TextImageCell,
+            let attachment = attachment as? FastTextAttachment else {return cell}
+        imageCell.imageView.image = attachment.tempImage
+
+        
+        return imageCell
+    }
+    
+    
+}
+
 
 extension MemoViewController: UITextViewDelegate {
     func textViewDidChange(_ textView: UITextView) {
@@ -171,40 +215,15 @@ extension MemoViewController: UITextViewDelegate {
     }
 }
 
-extension MemoViewController: FlangeTextViewDelegate {
-    func requestImage(for attachment: FlangeTextAttachment, range: NSRange) {
-        guard let attachment = (attachment as? FastTextAttachment) else {return}
-        
-        if let image = LocalCache.shared.getImage(id: attachment.imageID + "thumb") {
-            attachment.image = image
-            textView.reloadRange(for: range)
-            return
-        } else {
-            LocalCache.shared.updateThumbnailCacheWithID(id: attachment.imageID + "thumb", width: attachment.width, height: attachment.height) { image in
-                DispatchQueue.main.async { [weak self] in
-                    attachment.image = image
-                    self?.textView.reloadRange(for: range)
-                }
-            }
-            return
-        }
-    }
 
-}
 
 
 extension MemoViewController: PhotoViewDelegate {
     
     func photoView(url: URL, image: UIImage) {
         
-        let resizedImage: UIImage!
-        if image.size.width > UIScreen.main.bounds.width {
-            let width = UIScreen.main.bounds.width / 2
-            let height = image.size.height * width / image.size.width
-            resizedImage = image.resizeImage(size: CGSize(width: width, height: height)) ?? UIImage()
-        } else {
-            resizedImage = image
-        }
+        let resizedImage = image.resizeImage(size: CGSize(width: 300, height: 200))!
+        
 
 
         let identifier = textView.memo.id + url.absoluteString
@@ -230,8 +249,8 @@ extension MemoViewController: PhotoViewDelegate {
 
         let attachment = FastTextAttachment()
         attachment.imageID = identifier
-        attachment.width = resizedImage.size.width
-        attachment.height = resizedImage.size.height
+        attachment.currentSize = resizedImage.size
+        attachment.tempImage = resizedImage
 
         let attrString = NSMutableAttributedString(attributedString: NSAttributedString(attachment: attachment))
         textView.textStorage.replaceCharacters(in: textView.selectedRange, with: attrString)
