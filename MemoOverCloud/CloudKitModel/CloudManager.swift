@@ -28,9 +28,12 @@ class CloudManager {
 
         defer {
             resumeLongLivedOperationIfPossible()
-            setupNotificationHandling()
             
-            requestUserInfo()
+            DispatchQueue.main.async {
+                self.setupNotificationHandling()
+                
+                self.requestUserInfo()
+            }
         }
     }
 
@@ -107,6 +110,7 @@ class CloudManager {
                 if let ckError = error as? CKError, ckError.isSpecificErrorCode(code: .notAuthenticated) {
                     //If not authenticated, request for authentication
                 }
+                print("Error!!!!")
                 print(error!.localizedDescription)
             } else {
                 guard let recordID = recordID else {return}
@@ -119,7 +123,7 @@ class CloudManager {
     }
     
     private func icloudIDChanged(with recordID: CKRecordID) {
-        
+        print("Changed!!!")
         self.userID = recordID
         CloudManager.save(userID: recordID)
         Realm.setDefaultRealmForUser(username: recordID.recordName)

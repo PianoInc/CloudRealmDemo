@@ -29,7 +29,8 @@ class ViewController: UIViewController {
         tableView.dataSource = self
         
         validateToken()
-        NotificationCenter.default.addObserver(self, selector: #selector(validateToken), name: NSNotification.Name.RealmConfigHasChanged, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(realmChanged), name: NSNotification.Name.RealmConfigHasChanged, object: nil)
+
         
         let searchViewController = self.storyboard!.instantiateViewController(withIdentifier: "search") as! SearchViewController
         
@@ -55,30 +56,42 @@ class ViewController: UIViewController {
             categoryVC.categoryRecordName = category.recordName
         }
     }
+    
+    @objc func realmChanged() {
+        DispatchQueue.main.async {
+            self.navigationController?.popToRootViewController(animated: true)
+            self.validateToken()
+            self.tableView.reloadData()
+        }
+    }
 
-    @objc func validateToken() {
-        
-        do{ let realm = try Realm()
-        self.categories = realm.objects(RealmCategoryModel.self)
-        
-        notificationToken = categories.observe { [weak self] (changes) in
-            guard let tableView = self?.tableView else {return}
 
-            switch changes {
-            case .initial:
-                tableView.reloadData()
-            case .update(_, let deletes, let inserts, let mods):
-                tableView.beginUpdates()
-                tableView.insertRows(at: inserts.map{IndexPath(row: $0, section: 0)}, with: .automatic)
-                tableView.deleteRows(at: deletes.map{IndexPath(row: $0, section: 0)}, with: .automatic)
-                tableView.reloadRows(at: mods.map{IndexPath(row: $0, section: 0)}, with: .automatic)
-                tableView.endUpdates()
-            case .error(let error):
+    func validateToken() {
+
+        do {
+            let realm = try Realm()
+            
+            self.categories = realm.objects(RealmCategoryModel.self)
+            
+            notificationToken = categories.observe { [weak self] (changes) in
+                guard let tableView = self?.tableView else {return}
+                
+                switch changes {
+                case .initial:
+                    tableView.reloadData()
+                case .update(_, let deletes, let inserts, let mods):
+                    tableView.beginUpdates()
+                    tableView.insertRows(at: inserts.map{IndexPath(row: $0, section: 0)}, with: .automatic)
+                    tableView.deleteRows(at: deletes.map{IndexPath(row: $0, section: 0)}, with: .automatic)
+                    tableView.reloadRows(at: mods.map{IndexPath(row: $0, section: 0)}, with: .automatic)
+                    tableView.endUpdates()
+                case .error(let error):
                     fatalError("Error!! \(error)")
+                }
+                
+                
             }
 
-
-        }
         } catch {print(error)}
     }
 
@@ -86,7 +99,7 @@ class ViewController: UIViewController {
 
         let newCategory = RealmCategoryModel.getNewModel(name: "new Category\(count)")
 
-        ModelManager.save(model: newCategory) { error in
+        ModelManager.saveNew(model: newCategory) { error in
             if let error = error {
                 print(error)
             } else {
@@ -133,7 +146,8 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
 
-            ModelManager.delete(model: categories[indexPath.row])
+            let id = categories[indexPath.row].id
+            ModelManager.delete(id: id, type: RealmCategoryModel.self)
         }
     }
 }

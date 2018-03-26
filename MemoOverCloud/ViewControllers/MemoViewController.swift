@@ -21,6 +21,7 @@ class MemoViewController: UIViewController {
     var id: String!
     var recordName: String!
     var synchronizer: NoteSynchronizer!
+    var timer: Timer?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -68,9 +69,10 @@ class MemoViewController: UIViewController {
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
 
+        saveText()
         unRegisterNotification()
         removeGarbageImages()
-        saveText()
+        
 
         synchronizer.unregisterFromCloud()
 
@@ -124,7 +126,10 @@ class MemoViewController: UIViewController {
     @objc func saveText() {
         
         DispatchQueue.main.async {
-            if self.isSaving {return}
+            if self.isSaving || self.textView.isSyncing {
+                self.timer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(self.saveText), userInfo: nil, repeats: false)
+                return
+            }
             
             self.isSaving = true
             
@@ -137,7 +142,7 @@ class MemoViewController: UIViewController {
                 
                 let kv: [String: Any] = ["content": string, "attributes": data]
                 
-                ModelManager.update(id: self.id, kv: kv) { [weak self] error in
+                ModelManager.update(id: self.id, type: RealmNoteModel.self, kv: kv) { [weak self] error in
                     if let error = error {print(error)}
                     else {print("happy")}
                     self?.isSaving = false
@@ -148,6 +153,7 @@ class MemoViewController: UIViewController {
     }
 
     @IBAction func albumButtonTouched(_ sender: UIButton) {
+
 //        saveText()
         sender.isSelected = !sender.isSelected
 
@@ -207,7 +213,9 @@ extension MemoViewController: InteractiveTextViewDelegate, InteractiveTextViewDa
 
 extension MemoViewController: UITextViewDelegate {
     func textViewDidChange(_ textView: UITextView) {
-//        saveText()
+
+        timer?.invalidate()
+        timer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(saveText), userInfo: nil, repeats: false)
     }
 
     func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
@@ -237,7 +245,7 @@ extension MemoViewController: PhotoViewDelegate {
                 let newImageModel = RealmImageModel.getNewModel(noteRecordName: noteRecordName, image: image)
                 newImageModel.id = identifier
 
-                ModelManager.save(model: newImageModel) {error in }
+                ModelManager.saveNew(model: newImageModel) { error in }
             }
         }
         

@@ -75,7 +75,7 @@ class CategoryViewController: UIViewController {
         
         let newNote = RealmNoteModel.getNewModel(title: "newNote \(count)", categoryRecordName: categoryRecordName)
 
-        ModelManager.save(model: newNote) { error in
+        ModelManager.saveNew(model: newNote) { error in
             if let error = error {
                 print(error)
             } else {
@@ -124,7 +124,7 @@ extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             guard let note = notes?[indexPath.row] else {return}
-            ModelManager.delete(model: note)
+            ModelManager.delete(id: note.id, type: RealmNoteModel.self)
         }
     }
 }

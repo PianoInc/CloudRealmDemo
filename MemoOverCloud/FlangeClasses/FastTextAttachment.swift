@@ -19,3 +19,19 @@ class FastTextAttachment: InteractiveTextAttachment {
         return super.attachmentBounds(for: textContainer, proposedLineFragment: lineFrag, glyphPosition: position, characterIndex: charIndex)
     }
 }
+
+extension NSTextAttachment {
+    func getImage() -> UIImage? {
+        if let unwrappedImage = image {
+            return unwrappedImage
+        } else if let data = contents,
+            let decodedImage = UIImage(data: data) {
+            return decodedImage
+        } else if let fileWrapper = fileWrapper,
+            let imageData = fileWrapper.regularFileContents,
+            let decodedImage = UIImage(data: imageData) {
+            return decodedImage
+        }
+        return nil
+    }
+}

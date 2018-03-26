@@ -6,8 +6,14 @@
 import RealmSwift
 import CloudKit
 
+@objc protocol Recordable {
+    var recordName: String {get set}
+    var isShared: Bool {get set}
+    var ckMetaData: Data {get set}
+    @objc optional func getRecord() -> CKRecord
+}
 
-class RealmCategoryModel: Object {
+class RealmCategoryModel: Object, Recordable {
 
     static let recordTypeString = "Category"
 
@@ -16,6 +22,7 @@ class RealmCategoryModel: Object {
 
     @objc dynamic var recordName = ""
     @objc dynamic var ckMetaData = Data()
+    @objc dynamic var isShared = false
 
     override static func primaryKey() -> String? {
         return "id"
@@ -46,7 +53,7 @@ class RealmCategoryModel: Object {
 }
 
 
-class RealmNoteModel: Object {
+class RealmNoteModel: Object, Recordable {
 
     static let recordTypeString = "Note"
 
@@ -94,7 +101,7 @@ class RealmNoteModel: Object {
     }
 }
 
-class RealmImageModel: Object {
+class RealmImageModel: Object, Recordable {
 
     static let recordTypeString = "Image"
 
