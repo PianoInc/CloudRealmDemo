@@ -19,3 +19,19 @@ class FastTextAttachment: FlangeTextAttachment {
         return CGRect(x: 0, y: 0, width: width, height: height)
     }
 }
+
+extension NSTextAttachment {
+    func getImage() -> UIImage? {
+        if let unwrappedImage = image {
+            return unwrappedImage
+        } else if let data = contents,
+            let decodedImage = UIImage(data: data) {
+            return decodedImage
+        } else if let fileWrapper = fileWrapper,
+            let imageData = fileWrapper.regularFileContents,
+            let decodedImage = UIImage(data: imageData) {
+            return decodedImage
+        }
+        return nil
+    }
+}

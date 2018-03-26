@@ -313,13 +313,14 @@ class CloudSharedDatabase: CloudCommonDatabase {
     override fileprivate func saveSubscription() {
         //Check If I had saved subscription before
 
-        let userID = self.userID?.recordName ?? ""
-        let uuid = UIDevice.current.identifierForVendor?.uuidString ?? ""
-        let subscriptionKey = "ckSubscriptionSaved\(database.scopeString)\(userID)\(uuid)"
+//        let userID = self.userID?.recordName ?? ""
+//        let uuid = UIDevice.current.identifierForVendor?.uuidString ?? ""
+//        let subscriptionKey = "ckSubscriptionSaved\(database.scopeString)\(userID)\(uuid)"
+        let subscriptionKey = "ckSubscriptionSaved\(database.scopeString)"
         let alreadySaved = UserDefaults.standard.bool(forKey: subscriptionKey)
         guard !alreadySaved else {return}
 
-        let subscription = CKDatabaseSubscription(subscriptionID: "\(subscriptionID)\(userID)")
+        let subscription = CKDatabaseSubscription(subscriptionID: subscriptionKey)
 
 
         //Set Silent Push
