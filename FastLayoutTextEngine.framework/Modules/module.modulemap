@@ -1,4 +1,0 @@
-framework module FastLayoutTextEngine {
-    header "FastLayoutTextEngine-Swift.h"
-    requires objc
-}
