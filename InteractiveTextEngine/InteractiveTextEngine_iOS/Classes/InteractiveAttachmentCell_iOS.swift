@@ -11,7 +11,7 @@ open class InteractiveAttachmentCell: UIView {
 
     let uniqueID = UUID().uuidString
     var reuseIdentifier: String!
-    var lineFragmentPadding: CGFloat!
+    let lineFragmentPadding: CGFloat = 8.0
     
     weak var relatedAttachment: InteractiveTextAttachment?
 }

@@ -17,11 +17,27 @@ open class InteractiveTextAttachment: NSTextAttachment {
     weak var relatedCell: InteractiveAttachmentCell?
     weak var delegate: InteractiveTextAttachmentDelegate?
     
-
+    //Convenience initializer to make drag
+    public init() {
+        super.init(data: nil, ofType: nil)
+    }
+    
+    public init(attachment: InteractiveTextAttachment) {
+        super.init(data: nil, ofType: nil)
+        
+        self.delegate = attachment.delegate
+        self.currentSize = attachment.currentSize
+    }
+    
+    required public init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+    }
+    
     var currentBounds: CGRect? {
         didSet {
             if oldValue == nil {
                 //then request update
+                self.isVisible = true
                 delegate?.needToDisplay(attachment: self)
             }
             
@@ -35,6 +51,14 @@ open class InteractiveTextAttachment: NSTextAttachment {
         didSet {
             delegate?.invalidateDisplay(range: NSMakeRange(currentCharacterIndex, 1))
         }
+    }
+    
+    open func getPreviewForDragInteraction() -> UIImage? {
+        return nil
+    }
+    
+    open func getCopyForDragInteraction() -> InteractiveTextAttachment {
+        return InteractiveTextAttachment(attachment: self)
     }
 
     func checkForVisibility(visibleBounds: CGRect) {

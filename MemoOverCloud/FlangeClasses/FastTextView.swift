@@ -122,8 +122,9 @@ extension FastTextView {
 
                     let newAttachment = FastTextAttachment()
                     newAttachment.imageID = newImageModel.id
-                    newAttachment.width = resizedImage.size.width
-                    newAttachment.height = resizedImage.size.height
+                    newAttachment.currentSize = resizedImage.size
+                    newAttachment.tempImage = resizedImage
+
                     let attachString = NSAttributedString(attachment: newAttachment)
 
                     pasteString.replaceCharacters(in: range, with: attachString)

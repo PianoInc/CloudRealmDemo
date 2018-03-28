@@ -11,3 +11,4 @@ typealias LayoutManager = NSLayoutManager
 typealias TextView = UITextView
 typealias TextAttachment = NSTextAttachment
 typealias View = UIView
+typealias Image = UIImage

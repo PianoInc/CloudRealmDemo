@@ -44,7 +44,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             fileURL: url,
             // Set the new schema version. This must be greater than the previously used
             // version (if you've never set a schema version before, the version is 0).
-            schemaVersion: 22,
+            schemaVersion: 23,
             
             // Set the block which will be called automatically when opening a Realm with
             // a schema version lower than the one set above

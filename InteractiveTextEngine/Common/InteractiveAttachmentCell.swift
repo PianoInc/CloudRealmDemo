@@ -10,11 +10,10 @@ import Foundation
 extension InteractiveAttachmentCell {
 
     func sync(to bounds: CGRect) {
-        if bounds != frame.offsetBy(dx: 0, dy: lineFragmentPadding) {
-            
-            let lineFragment = lineFragmentPadding ?? 0
+        if bounds.offsetBy(dx: 0, dy: lineFragmentPadding).insetBy(dx: 1, dy: 0) != frame {
+            let padding = lineFragmentPadding
             DispatchQueue.main.async { [weak self] in
-                self?.frame = bounds.offsetBy(dx: 0, dy: lineFragment)
+                self?.frame = bounds.offsetBy(dx: 0, dy: padding).insetBy(dx: 1, dy: 0)
             }
         }
     }
@@ -22,7 +21,9 @@ extension InteractiveAttachmentCell {
     open func prepareForReuse() {
     }
     
-    //TODO: add change Size
-
+    public func changeSize(to size: CGSize) {
+        guard let relatedAttachment = relatedAttachment else {return}
+        relatedAttachment.currentSize = size
+    }
 }
 

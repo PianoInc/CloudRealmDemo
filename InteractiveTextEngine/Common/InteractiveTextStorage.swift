@@ -22,6 +22,7 @@ class InteractiveTextStorage: NSTextStorage {
     }
     
     override func replaceCharacters(in range: NSRange, with str: String) {
+        
         attachmentChanged(deletedRange: range)
         
         beginEditing()
@@ -32,6 +33,7 @@ class InteractiveTextStorage: NSTextStorage {
     }
     
     override func replaceCharacters(in range: NSRange, with attrString: NSAttributedString) {
+        
         attachmentChanged(deletedRange: range, newAttString: attrString)
         
         beginEditing()
@@ -42,6 +44,7 @@ class InteractiveTextStorage: NSTextStorage {
     }
     
     override func addAttribute(_ name: NSAttributedStringKey, value: Any, range: NSRange) {
+        
         if name == .attachment, let attachment = value as? InteractiveTextAttachment {
             textView?.add(attachment)
             
@@ -54,6 +57,7 @@ class InteractiveTextStorage: NSTextStorage {
     }
     
     override func addAttributes(_ attrs: [NSAttributedStringKey : Any] = [:], range: NSRange) {
+        
         if let attachment = attrs[.attachment] as? InteractiveTextAttachment {
             textView?.add(attachment)
             attachmentChanged(deletedRange: range)
@@ -66,6 +70,7 @@ class InteractiveTextStorage: NSTextStorage {
     }
     
     override func append(_ attrString: NSAttributedString) {
+        
         attachmentChanged(newAttString: attrString)
         
         beginEditing()
@@ -76,6 +81,7 @@ class InteractiveTextStorage: NSTextStorage {
     }
     
     override func insert(_ attrString: NSAttributedString, at loc: Int) {
+        
         attachmentChanged(newAttString: attrString)
         
         beginEditing()
@@ -85,6 +91,7 @@ class InteractiveTextStorage: NSTextStorage {
     }
     
     override func deleteCharacters(in range: NSRange) {
+        
         attachmentChanged(deletedRange: range)
         
         beginEditing()
@@ -94,6 +101,7 @@ class InteractiveTextStorage: NSTextStorage {
     }
     
     override func removeAttribute(_ name: NSAttributedStringKey, range: NSRange) {
+        
         if name == .attachment {attachmentChanged(deletedRange: range)}
         
         beginEditing()
@@ -105,6 +113,7 @@ class InteractiveTextStorage: NSTextStorage {
     
     
     override func setAttributes(_ attrs: [NSAttributedStringKey : Any]?, range: NSRange) {
+        
         if let attachment = attrs?[.attachment] as? InteractiveTextAttachment {
             textView?.add(attachment)
         }
@@ -119,6 +128,7 @@ class InteractiveTextStorage: NSTextStorage {
         if let deletedRange = deletedRange {
             enumerateAttribute(.attachment, in: deletedRange, options: .longestEffectiveRangeNotRequired) { (value, _, _) in
                 guard let attachment = value as? InteractiveTextAttachment else {return}
+                print("delete \(attachment.uniqueID)")
                 self.textView?.remove(attachmentID: attachment.uniqueID)
             }
         }
@@ -127,6 +137,7 @@ class InteractiveTextStorage: NSTextStorage {
             newAttString.enumerateAttribute(.attachment, in: NSMakeRange(0, newAttString.length)
             , options: .longestEffectiveRangeNotRequired) { (value, _, _) in
                 guard let attachment = value as? InteractiveTextAttachment else {return}
+                print("add \(attachment.uniqueID)")
                 self.textView?.add(attachment)
             }
         }

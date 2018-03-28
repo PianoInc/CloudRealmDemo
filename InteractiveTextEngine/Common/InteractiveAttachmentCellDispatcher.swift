@@ -36,7 +36,7 @@ class InteractiveAttachmentCellDispatcher {
         
         attachment.delegate = self
         attachments[attachment.uniqueID] = attachment
-        
+        needToDisplay(attachment: attachment)//for undos
     }
 
     func remove(attachmentID: String) {
@@ -66,9 +66,9 @@ class InteractiveAttachmentCellDispatcher {
                 if let cell = object as? InteractiveAttachmentCell {
                     cell.frame = CGRect.zero
                     
-                    cell.lineFragmentPadding = 8
+                    cell.isUserInteractionEnabled = true
                     
-                    textView.insertSubview(cell, at: 0)
+                    textView.addSubview(cell)
                     
                     idleCells[identifier]?[cell.uniqueID] = cell
                     cell.reuseIdentifier = identifier
@@ -88,7 +88,8 @@ extension InteractiveAttachmentCellDispatcher: InteractiveTextAttachmentDelegate
         if attachment.relatedCell != nil { return }
         //get cell from delegate
         guard let textView = superView,
-            let cell = textView.interactiveDatasource?.textView(textView, attachmentForCell: attachment) else {return}
+            let cell = textView.interactiveDatasource?.textView(textView, attachmentForCell: attachment),
+            let currentBounds = attachment.currentBounds else {return}
         
         cell.prepareForReuse()
         
@@ -102,8 +103,9 @@ extension InteractiveAttachmentCellDispatcher: InteractiveTextAttachmentDelegate
         //willDisplayCell
         textView.interactiveDelegate?.textView?(textView, willDisplay: cell)
         //sync frame
-        let bounds = attachment.currentBounds ?? CGRect.zero
-        cell.frame = bounds.offsetBy(dx: 0, dy: textView.textContainer.lineFragmentPadding)
+        
+        cell.frame = currentBounds.offsetBy(dx: 0, dy: 8).insetBy(dx: 1, dy: 0)
+        cell.isHidden = false
         
         //didDisplayCell
         textView.interactiveDelegate?.textView?(textView, didDisplay: cell)
@@ -121,6 +123,7 @@ extension InteractiveAttachmentCellDispatcher: InteractiveTextAttachmentDelegate
         textView.interactiveDelegate?.textView?(textView, willEndDisplaying: cell)
         
         cell.frame = CGRect.zero
+        cell.isHidden = false
         
         //get cell and put it in idle
         workingCells[cell.reuseIdentifier]?.removeValue(forKey: cell.uniqueID)

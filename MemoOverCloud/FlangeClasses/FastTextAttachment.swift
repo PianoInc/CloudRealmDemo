@@ -12,13 +12,32 @@ import CoreGraphics
 
 class FastTextAttachment: InteractiveTextAttachment {
     var imageID: String!
-    var tempImage: UIImage!
+    var tempImage: UIImage!//This is temp!!!!
+    
+    override init() {
+        super.init()
+    }
 
-    override func attachmentBounds(for textContainer: NSTextContainer?, proposedLineFragment lineFrag: CGRect, glyphPosition position: CGPoint, characterIndex charIndex: Int) -> CGRect {
-        
-        return super.attachmentBounds(for: textContainer, proposedLineFragment: lineFrag, glyphPosition: position, characterIndex: charIndex)
+    init(attachment: FastTextAttachment) {
+        super.init(attachment: attachment)
+        self.imageID = attachment.imageID
+        self.tempImage = attachment.tempImage
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+    }
+    
+    override func getPreviewForDragInteraction() -> UIImage? {
+        return tempImage
+    }
+    
+    override func getCopyForDragInteraction() -> InteractiveTextAttachment {
+        return FastTextAttachment(attachment: self)
     }
 }
+
+
 
 extension NSTextAttachment {
     func getImage() -> UIImage? {
