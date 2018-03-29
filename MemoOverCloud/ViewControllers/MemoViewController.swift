@@ -46,6 +46,7 @@ class MemoViewController: UIViewController {
         textView.pasteDelegate = self
         textView.delegate = self
         textView.register(nib: UINib(nibName: "TextImageCell", bundle: nil), forCellReuseIdentifier: "textImageCell")
+        textView.typingAttributes = [NSAttributedStringKey.font.rawValue: FontManager.shared.getFont(for: .body)]
         
 
         initialImageRecordNames = []
@@ -61,7 +62,7 @@ class MemoViewController: UIViewController {
             textView.set(string: memo.content, with: attributes)
 
             let imageRecordNames = attributes.map { attribute -> String in
-                if case let .image(id, _, _) = attribute.style {return id}
+                if case let .attachment(.image(imageAttribute)) = attribute.style {return imageAttribute.id}
                 else {return ""}
             }.filter{!$0.isEmpty}
 
@@ -173,7 +174,7 @@ class MemoViewController: UIViewController {
         let (_, attributes) = textView.attributedText.getStringWithPianoAttributes()
 
         let imageRecordNames = attributes.map { attribute -> String in
-                if case let .image(id, _, _) = attribute.style {return id}
+                if case let .attachment(.image(imageAttribute)) = attribute.style {return imageAttribute.id}
                 else {return ""}
             }.filter{!$0.isEmpty}
 
@@ -206,8 +207,20 @@ extension MemoViewController: InteractiveTextViewDelegate, InteractiveTextViewDa
         
         let cell = textView.dequeueReusableCell(withIdentifier: "textImageCell")
         guard let imageCell = cell as? TextImageCell,
-            let attachment = attachment as? FastTextAttachment else {return cell}
-        imageCell.imageView.image = attachment.tempImage
+            let attachment = attachment as? ImageAttachment else {return cell}
+        
+        if let image = LocalCache.shared.getImage(id: attachment.imageID + "thumb") {
+            imageCell.imageView.image = image
+        } else {
+            LocalCache.shared.updateThumbnailCacheWithID(id: attachment.imageID + "thumb", width: attachment.currentSize.width, height: attachment.currentSize.height) { image in
+                //TODO: make it weak!!
+//                DispatchQueue.main.async {
+//                    if imageCell.isRelated(to: attachment) {
+//                        imageCell.imageView.image = image
+//                    }
+//                }
+            }
+        }
 
         
         return imageCell
@@ -261,10 +274,9 @@ extension MemoViewController: PhotoViewDelegate {
         //왼쪽 범위가 존재하고 && 왼쪽에 개행이 아니면 개행 삽입하기
         textView.insertNewLineToLeftSideIfNeeded(location: textView.selectedRange.location)
 
-        let attachment = FastTextAttachment()
+        let attachment = ImageAttachment()
         attachment.imageID = identifier
         attachment.currentSize = resizedImage.size
-        attachment.tempImage = resizedImage
 
         let attrString = NSMutableAttributedString(attributedString: NSAttributedString(attachment: attachment))
         textView.textStorage.replaceCharacters(in: textView.selectedRange, with: attrString)

@@ -128,7 +128,7 @@ class InteractiveTextStorage: NSTextStorage {
         if let deletedRange = deletedRange {
             enumerateAttribute(.attachment, in: deletedRange, options: .longestEffectiveRangeNotRequired) { (value, _, _) in
                 guard let attachment = value as? InteractiveTextAttachment else {return}
-                print("delete \(attachment.uniqueID)")
+//                print("delete \(attachment.uniqueID)")
                 self.textView?.remove(attachmentID: attachment.uniqueID)
             }
         }
@@ -137,7 +137,7 @@ class InteractiveTextStorage: NSTextStorage {
             newAttString.enumerateAttribute(.attachment, in: NSMakeRange(0, newAttString.length)
             , options: .longestEffectiveRangeNotRequired) { (value, _, _) in
                 guard let attachment = value as? InteractiveTextAttachment else {return}
-                print("add \(attachment.uniqueID)")
+//                print("add \(attachment.uniqueID)")
                 self.textView?.add(attachment)
             }
         }
