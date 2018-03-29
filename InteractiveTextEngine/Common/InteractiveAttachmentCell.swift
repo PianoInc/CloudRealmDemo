@@ -8,6 +8,10 @@
 import Foundation
 
 extension InteractiveAttachmentCell {
+    
+    public func isRelated(to attachment: InteractiveTextAttachment) -> Bool {
+        return (relatedAttachment?.uniqueID ?? "") == attachment.uniqueID
+    }
 
     func sync(to bounds: CGRect) {
         if bounds.offsetBy(dx: 0, dy: lineFragmentPadding).insetBy(dx: 1, dy: 0) != frame {
@@ -17,6 +21,7 @@ extension InteractiveAttachmentCell {
             }
         }
     }
+    
 
     open func prepareForReuse() {
     }

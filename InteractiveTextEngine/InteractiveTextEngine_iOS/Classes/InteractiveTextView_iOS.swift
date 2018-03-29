@@ -45,10 +45,6 @@ open class InteractiveTextView: UITextView {
         contentOffsetObserver = nil
     }
     
-    open func forceRedraw() {
-        dispatcher.visibleRectChanged(rect: visibleBounds)
-    }
-    
     func setObserver() {
         contentOffsetObserver = observe(\.contentOffset, options: [.old, .new, .prior]) {[weak self] (object, change) in
             guard let new = change.newValue, let old = change.oldValue else {return}

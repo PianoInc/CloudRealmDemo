@@ -23,8 +23,6 @@ class InteractiveAttachmentCellDispatcher {
     // List of attachments
     private var attachments: [String: InteractiveTextAttachment] = [:]
 
-    private let dispatchQueue = DispatchQueue.global(qos: .utility)
-
     func visibleRectChanged(rect: CGRect) {
         //Notify!
 
@@ -56,7 +54,10 @@ class InteractiveAttachmentCellDispatcher {
     }
     
     func dequeueReusableCell(withIdentifier identifier: String) -> InteractiveAttachmentCell {
+        
         if let cell = idleCells[identifier]?.popFirst() {
+            cell.value.prepareForReuse()
+            
             return cell.value
         } else {
             guard let nib = nibs[identifier],
@@ -73,12 +74,15 @@ class InteractiveAttachmentCellDispatcher {
                     idleCells[identifier]?[cell.uniqueID] = cell
                     cell.reuseIdentifier = identifier
                     
+                    cell.prepareForReuse()
+                    
                     return cell
                 }
             }
             fatalError("There is no InteractiveAttachmentCell class registered in Nib \(nib.description)")
         }
     }
+    
 }
 
 extension InteractiveAttachmentCellDispatcher: InteractiveTextAttachmentDelegate {
@@ -88,13 +92,12 @@ extension InteractiveAttachmentCellDispatcher: InteractiveTextAttachmentDelegate
         if attachment.relatedCell != nil { return }
         //get cell from delegate
         guard let textView = superView,
-            let cell = textView.interactiveDatasource?.textView(textView, attachmentForCell: attachment),
-            let currentBounds = attachment.currentBounds else {return}
+            let currentBounds = attachment.currentBounds,
+            let cell = textView.interactiveDatasource?.textView(textView, attachmentForCell: attachment) else {return}
         
-        cell.prepareForReuse()
         
-        idleCells[cell.reuseIdentifier]?.removeValue(forKey: cell.uniqueID)
         workingCells[cell.reuseIdentifier]?[cell.uniqueID] = cell
+        idleCells[cell.reuseIdentifier]?.removeValue(forKey: cell.uniqueID)
         
         //link cell with attribute
         cell.relatedAttachment = attachment
@@ -123,11 +126,11 @@ extension InteractiveAttachmentCellDispatcher: InteractiveTextAttachmentDelegate
         textView.interactiveDelegate?.textView?(textView, willEndDisplaying: cell)
         
         cell.frame = CGRect.zero
-        cell.isHidden = false
+        cell.isHidden = true
         
         //get cell and put it in idle
-        workingCells[cell.reuseIdentifier]?.removeValue(forKey: cell.uniqueID)
         idleCells[cell.reuseIdentifier]?[cell.uniqueID] = cell
+        workingCells[cell.reuseIdentifier]?.removeValue(forKey: cell.uniqueID)
         
         //didEndDisplayCell
         textView.interactiveDelegate?.textView?(textView, didEndDisplaying: cell)

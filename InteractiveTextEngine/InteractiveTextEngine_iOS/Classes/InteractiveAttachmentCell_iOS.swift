@@ -14,4 +14,11 @@ open class InteractiveAttachmentCell: UIView {
     let lineFragmentPadding: CGFloat = 8.0
     
     weak var relatedAttachment: InteractiveTextAttachment?
+    
+    func getScreenShot() -> UIImage {
+        let renderer = UIGraphicsImageRenderer(bounds: bounds)
+        return renderer.image { rendererContext in
+            layer.render(in: rendererContext.cgContext)
+        }
+    }
 }
