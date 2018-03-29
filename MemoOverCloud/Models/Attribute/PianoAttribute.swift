@@ -8,6 +8,7 @@
 
 import Foundation
 import UIKit
+import InteractiveTextEngine_iOS
 
 
 struct PianoAttribute {
@@ -79,7 +80,7 @@ enum Style {
     case strikethrough
     case underline
     case font(PianoFontAttribute)
-    case image(String, CGFloat, CGFloat)
+    case attachment(AttachmentAttribute)
 
     init?(from attribute: (key: NSAttributedStringKey, value: Any)) {
         switch attribute.key {
@@ -99,26 +100,21 @@ enum Style {
                 guard let font = attribute.value as? UIFont, let fontAttribute = PianoFontAttribute(font: font) else {return nil}
                 self = .font(fontAttribute)
             case .attachment:
-                guard let attachment = attribute.value as? FastTextAttachment else {return nil}
-                self = .image(attachment.imageID, attachment.currentSize.width, attachment.currentSize.height)
-
+                guard let attachment = attribute.value as? InteractiveTextAttachment,
+                    let attribute = AttachmentAttribute(attachment: attachment) else {return nil}
+                self = .attachment(attribute)
             default: return nil
         }
     }
 
     func toNSAttribute() -> [NSAttributedStringKey: Any] {
         switch self {
-            case .backgroundColor(let hex): return [NSAttributedStringKey.backgroundColor: UIColor(hex: hex)]
-            case .foregroundColor(let hex): return [NSAttributedStringKey.foregroundColor: UIColor(hex: hex)]
-            case .strikethrough: return [NSAttributedStringKey.strikethroughStyle: NSUnderlineStyle.styleSingle]
-            case .underline: return [NSAttributedStringKey.underlineStyle: NSUnderlineStyle.styleSingle]
-            case .font(let fontAttribute): return [NSAttributedStringKey.font: fontAttribute.getFont()]
-            case .image(let id, let width, let height):
-                let attachment = FastTextAttachment()
-                attachment.imageID = id
-                attachment.currentSize = CGSize(width: width, height: height)
-                
-                return [NSAttributedStringKey.attachment: attachment]
+            case .backgroundColor(let hex): return [.backgroundColor: UIColor(hex: hex)]
+            case .foregroundColor(let hex): return [.foregroundColor: UIColor(hex: hex)]
+            case .strikethrough: return [.strikethroughStyle: NSUnderlineStyle.styleSingle]
+            case .underline: return [.underlineStyle: NSUnderlineStyle.styleSingle]
+            case .font(let fontAttribute): return [.font: fontAttribute.getFont()]
+            case .attachment(let attachmentAttribute): return attachmentAttribute.toNSAttribute()
         }
     }
 }
@@ -131,7 +127,7 @@ extension Style: Hashable {
             case .strikethrough: return "strikethrough".hashValue
             case .underline: return "underline".hashValue
             case .font(let fontAttribute): return fontAttribute.hashValue
-            case.image(let id, let width, let height): return id.hashValue ^ width.hashValue ^ height.hashValue
+            case .attachment(let attachmentAttribute): return attachmentAttribute.hashValue
         }
     }
     
@@ -162,11 +158,9 @@ extension Style: Hashable {
                     return fontAttribute.hashValue == rFontAttribute.hashValue
                 }
                 return false
-            case .image(let id, let width, let height):
-                if case let .image(rID, rWidth, rHeight) = rhs {
-                    if id == rID && width == rWidth && height == rHeight {
-                        return true
-                    }
+            case .attachment(let attachmentAttribute):
+                if case let .attachment(rAttachmentAttribute) = rhs {
+                    return attachmentAttribute == rAttachmentAttribute
                 }
                 return false
         }
@@ -184,7 +178,7 @@ extension Style: Codable {
         case strikeThrough
         case underline
         case font
-        case image
+        case attachment
     }
 
     enum CodingError: Error {
@@ -216,9 +210,8 @@ extension Style: Codable {
             return
         }
 
-        if let tagString = try? values.decode(String.self, forKey: .image) {
-            let (id, width, height) = ImageTag.parseImageTag(tagString)
-            self = .image(id, width, height)
+        if let attachmentAttribute = try? values.decode(AttachmentAttribute.self, forKey: .attachment) {
+            self = .attachment(attachmentAttribute)
             return
         }
 
@@ -226,6 +219,7 @@ extension Style: Codable {
     }
 
     func encode(to encoder: Encoder) throws {
+
         var container = encoder.container(keyedBy: CodingKeys.self)
 
         switch self {
@@ -234,7 +228,7 @@ extension Style: Codable {
             case .strikethrough: try container.encode("", forKey: .strikeThrough)
             case .underline: try container.encode("", forKey: .underline)
             case .font(let fontDescriptor): try container.encode(fontDescriptor, forKey: .font)
-            case .image(let id, let width, let height): try container.encode(ImageTag.getImageTag(id: id, width: width, height: height), forKey: .image)
+            case .attachment(let attachmentAttribute): try container.encode(attachmentAttribute, forKey: .attachment)
         }
     }
 }

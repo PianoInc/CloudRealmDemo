@@ -22,6 +22,10 @@ struct FontTraits: OptionSet {
 
 
 struct PianoFontAttribute: Hashable {
+    static func ==(lhs: PianoFontAttribute, rhs: PianoFontAttribute) -> Bool {
+        return lhs.textStyle == rhs.textStyle && lhs.traits == rhs.traits
+    }
+    
     let textStyle: UIFontTextStyle
     let traits: FontTraits
 
