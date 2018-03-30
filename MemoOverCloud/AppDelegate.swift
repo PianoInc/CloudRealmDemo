@@ -44,7 +44,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             fileURL: url,
             // Set the new schema version. This must be greater than the previously used
             // version (if you've never set a schema version before, the version is 0).
-            schemaVersion: 20,
+            schemaVersion: 23,
             
             // Set the block which will be called automatically when opening a Realm with
             // a schema version lower than the one set above
@@ -149,14 +149,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 extension Realm {
     static func setDefaultRealmForUser(username: String) {
+
         let defaultConfig = Realm.Configuration.defaultConfiguration
-        
         var config = Realm.Configuration()
         
         // Use the default directory, but replace the filename with the username
         config.fileURL = config.fileURL!.deletingLastPathComponent()
             .appendingPathComponent("\(username).realm")
         config.schemaVersion = defaultConfig.schemaVersion
+
         // Set this as the configuration used for the default Realm
         Realm.Configuration.defaultConfiguration = config
     }

@@ -107,7 +107,7 @@ enum Style {
                 } else {return nil}
             case .attachment:
                 guard let attachment = attribute.value as? FastTextAttachment else {return nil}
-                self = .image(attachment.imageID, attachment.width, attachment.height)
+                self = .image(attachment.imageID, attachment.currentSize.width, attachment.currentSize.height)
 
             default: return nil
         }
@@ -125,8 +125,8 @@ enum Style {
             case .image(let id, let width, let height):
                 let attachment = FastTextAttachment()
                 attachment.imageID = id
-                attachment.width = width
-                attachment.height = height
+                attachment.currentSize = CGSize(width: width, height: height)
+                
                 return [NSAttributedStringKey.attachment: attachment]
         }
     }

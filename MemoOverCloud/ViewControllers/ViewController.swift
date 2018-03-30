@@ -65,33 +65,34 @@ class ViewController: UIViewController {
         }
     }
 
+
     func validateToken() {
 
         do {
             let realm = try Realm()
-        self.categories = realm.objects(RealmCategoryModel.self)
-        
-        notificationToken = categories.observe { [weak self] (changes) in
-            guard let tableView = self?.tableView else {return}
-
-            switch changes {
-            case .initial:
-                tableView.reloadData()
-            case .update(_, let deletes, let inserts, let mods):
-                tableView.beginUpdates()
-                tableView.insertRows(at: inserts.map{IndexPath(row: $0, section: 0)}, with: .automatic)
-                tableView.deleteRows(at: deletes.map{IndexPath(row: $0, section: 0)}, with: .automatic)
-                tableView.reloadRows(at: mods.map{IndexPath(row: $0, section: 0)}, with: .automatic)
-                tableView.endUpdates()
-            case .error(let error):
+            
+            self.categories = realm.objects(RealmCategoryModel.self)
+            
+            notificationToken = categories.observe { [weak self] (changes) in
+                guard let tableView = self?.tableView else {return}
+                
+                switch changes {
+                case .initial:
+                    tableView.reloadData()
+                case .update(_, let deletes, let inserts, let mods):
+                    tableView.beginUpdates()
+                    tableView.insertRows(at: inserts.map{IndexPath(row: $0, section: 0)}, with: .automatic)
+                    tableView.deleteRows(at: deletes.map{IndexPath(row: $0, section: 0)}, with: .automatic)
+                    tableView.reloadRows(at: mods.map{IndexPath(row: $0, section: 0)}, with: .automatic)
+                    tableView.endUpdates()
+                case .error(let error):
                     fatalError("Error!! \(error)")
+                }
+                
+                
             }
 
-
-        }
-        } catch {
-            print(error)
-        }
+        } catch {print(error)}
     }
 
     @IBAction func newButtonTouched() {

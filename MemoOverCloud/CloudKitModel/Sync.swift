@@ -106,7 +106,7 @@ extension CloudCommonDatabase {
         guard let realm = try? Realm(),
                 let categoryModel = realm.objects(RealmCategoryModel.self).filter("recordName = %@", recordName).first else {return}
 
-        let notes = realm.objects(RealmNoteModel.self).filter("categoryRecordName = %@", recordName)
+        let notes = realm.objects(RealmNoteModel.self).filter("categoryRecordNames = %@", recordName)
 
         let categoryRef = ThreadSafeReference(to: categoryModel)
 

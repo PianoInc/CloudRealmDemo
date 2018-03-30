@@ -6,19 +6,38 @@
 //  Copyright © 2018년 piano. All rights reserved.
 //
 
-import FastLayoutTextEngine
+import InteractiveTextEngine_iOS
 import UIKit
 import CoreGraphics
 
-class FastTextAttachment: FlangeTextAttachment {
-    var width: CGFloat!
-    var height: CGFloat!
+class FastTextAttachment: InteractiveTextAttachment {
     var imageID: String!
+    var tempImage: UIImage!//This is temp!!!!
+    
+    override init() {
+        super.init()
+    }
 
-    override func attachmentBounds(for textContainer: NSTextContainer?, proposedLineFragment lineFrag: CGRect, glyphPosition position: CGPoint, characterIndex charIndex: Int) -> CGRect {
-        return CGRect(x: 0, y: 0, width: width, height: height)
+    init(attachment: FastTextAttachment) {
+        super.init(attachment: attachment)
+        self.imageID = attachment.imageID
+        self.tempImage = attachment.tempImage
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+    }
+    
+    override func getPreviewForDragInteraction() -> UIImage? {
+        return tempImage
+    }
+    
+    override func getCopyForDragInteraction() -> InteractiveTextAttachment {
+        return FastTextAttachment(attachment: self)
     }
 }
+
+
 
 extension NSTextAttachment {
     func getImage() -> UIImage? {

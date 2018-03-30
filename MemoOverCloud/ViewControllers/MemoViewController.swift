@@ -8,12 +8,12 @@
 
 import UIKit
 import RealmSwift
-import FastLayoutTextEngine
+import InteractiveTextEngine_iOS
 import CloudKit
 
 class MemoViewController: UIViewController {
     
-    @IBOutlet weak var textView: FastTextView!
+    var textView: FastTextView!
     internal var kbHeight: CGFloat?
     var memo: RealmNoteModel!
     var initialImageRecordNames: Set<String>!
@@ -26,14 +26,27 @@ class MemoViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         registerNotification()
+        //tint = 007aff
+        textView = FastTextView(frame: CGRect.zero, textContainer: nil)
+        textView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        textView.translatesAutoresizingMaskIntoConstraints = false
+        addTextView(textView: textView)
 
         id = memo.id
         recordName = memo.recordName
         textView.memo = memo
         textView.adjustsFontForContentSizeCategory = true
 
-        textView.flangeDelegate = self
+        textView.interactiveDelegate = self
+        textView.interactiveDatasource = self
+        
+        
+        textView.textDragDelegate = self
+        textView.textDropDelegate = self
+        textView.pasteDelegate = self
         textView.delegate = self
+        textView.register(nib: UINib(nibName: "TextImageCell", bundle: nil), forCellReuseIdentifier: "textImageCell")
+        
 
         initialImageRecordNames = []
       
@@ -56,7 +69,6 @@ class MemoViewController: UIViewController {
         } catch {
             print(error)
         }
-        
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -74,6 +86,27 @@ class MemoViewController: UIViewController {
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+    private func addTextView(textView: FastTextView) {
+        view.addSubview(textView)
+        let constraint1 = NSLayoutConstraint(item: textView, attribute: .top, relatedBy: .equal,
+                                             toItem: self.view.safeAreaLayoutGuide,
+                                             attribute: .top, multiplier: 1.0, constant: 0)
+        
+        let constraint2 = NSLayoutConstraint(item: textView, attribute: .leading, relatedBy: .equal,
+                                             toItem: self.view.safeAreaLayoutGuide,
+                                             attribute: .leading, multiplier: 1.0, constant: 0)
+        
+        let constraint3 = NSLayoutConstraint(item: textView, attribute: .trailing, relatedBy: .equal,
+                                             toItem: self.view.safeAreaLayoutGuide,
+                                             attribute: .trailing, multiplier: 1.0, constant: 0)
+        
+        let constraint4 = NSLayoutConstraint(item: textView, attribute: .bottom, relatedBy: .equal,
+                                             toItem: self.view.safeAreaLayoutGuide,
+                                             attribute: .bottom, multiplier: 1.0, constant: 0)
+        
+        view.addConstraints([constraint1, constraint2, constraint3, constraint4])
     }
 
     private func addPhotoView(){
@@ -99,7 +132,6 @@ class MemoViewController: UIViewController {
         
         DispatchQueue.main.async {
             if self.isSaving || self.textView.isSyncing {
-                self.timer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(self.saveText), userInfo: nil, repeats: false)
                 return
             }
             
@@ -126,6 +158,7 @@ class MemoViewController: UIViewController {
 
     @IBAction func albumButtonTouched(_ sender: UIButton) {
 
+//        saveText()
         sender.isSelected = !sender.isSelected
 
         if sender.isSelected {
@@ -145,8 +178,8 @@ class MemoViewController: UIViewController {
             }.filter{!$0.isEmpty}
 
         let currentImageRecordNames = Set<String>(imageRecordNames)
-
         initialImageRecordNames.subtract(currentImageRecordNames)
+
         let deletedImageRecordNames = Array<String>(initialImageRecordNames)
 
         if memo.isShared {
@@ -156,7 +189,7 @@ class MemoViewController: UIViewController {
             guard let record = CKRecord(coder: coder) else {fatalError("Data poluted!!")}
             coder.finishDecoding()
             CloudManager.shared.deleteInSharedDB(recordNames: deletedImageRecordNames, in: record.recordID.zoneID) { error in
-                guard error == nil else { return print(error!) }
+                guard error == nil else { return }
             }
         } else {
             CloudManager.shared.deleteInPrivateDB(recordNames: deletedImageRecordNames) { error in
@@ -166,6 +199,23 @@ class MemoViewController: UIViewController {
     }
     
 }
+
+extension MemoViewController: InteractiveTextViewDelegate, InteractiveTextViewDataSource {
+    func textView(_ textView: InteractiveTextView, attachmentForCell attachment: InteractiveTextAttachment) -> InteractiveAttachmentCell {
+        //나중엔 attachment 의 클래스별로 새로운 셀 dequeue
+        
+        let cell = textView.dequeueReusableCell(withIdentifier: "textImageCell")
+        guard let imageCell = cell as? TextImageCell,
+            let attachment = attachment as? FastTextAttachment else {return cell}
+        imageCell.imageView.image = attachment.tempImage
+
+        
+        return imageCell
+    }
+    
+    
+}
+
 
 extension MemoViewController: UITextViewDelegate {
     func textViewDidChange(_ textView: UITextView) {
@@ -179,40 +229,15 @@ extension MemoViewController: UITextViewDelegate {
     }
 }
 
-extension MemoViewController: FlangeTextViewDelegate {
-    func requestImage(for attachment: FlangeTextAttachment, range: NSRange) {
-        guard let attachment = (attachment as? FastTextAttachment) else {return}
-        
-        if let image = LocalCache.shared.getImage(id: attachment.imageID + "thumb") {
-            attachment.image = image
-            textView.reloadRange(for: range)
-            return
-        } else {
-            LocalCache.shared.updateThumbnailCacheWithID(id: attachment.imageID + "thumb", width: attachment.width, height: attachment.height) { image in
-                DispatchQueue.main.async { [weak self] in
-                    attachment.image = image
-                    self?.textView.reloadRange(for: range)
-                }
-            }
-            return
-        }
-    }
 
-}
 
 
 extension MemoViewController: PhotoViewDelegate {
     
     func photoView(url: URL, image: UIImage) {
         
-        let resizedImage: UIImage!
-        if image.size.width > UIScreen.main.bounds.width {
-            let width = UIScreen.main.bounds.width / 2
-            let height = image.size.height * width / image.size.width
-            resizedImage = image.resizeImage(size: CGSize(width: width, height: height)) ?? UIImage()
-        } else {
-            resizedImage = image
-        }
+        let resizedImage = image.resizeImage(size: CGSize(width: 300, height: 200))!
+        
 
 
         let identifier = textView.memo.id + url.absoluteString
@@ -238,8 +263,8 @@ extension MemoViewController: PhotoViewDelegate {
 
         let attachment = FastTextAttachment()
         attachment.imageID = identifier
-        attachment.width = resizedImage.size.width
-        attachment.height = resizedImage.size.height
+        attachment.currentSize = resizedImage.size
+        attachment.tempImage = resizedImage
 
         let attrString = NSMutableAttributedString(attributedString: NSAttributedString(attachment: attachment))
         textView.textStorage.replaceCharacters(in: textView.selectedRange, with: attrString)
@@ -352,5 +377,79 @@ extension MemoViewController: UICloudSharingControllerDelegate, UIPopoverPresent
             self.present(contentViewController, animated: true, completion: nil)
         }
         
+    }
+}
+
+extension MemoViewController: UITextDragDelegate, UITextDropDelegate {
+    func textDraggableView(_ textDraggableView: UIView & UITextDraggable, itemsForDrag dragRequest: UITextDragRequest) -> [UIDragItem] {
+        let location = textView.offset(from: textView.beginningOfDocument, to: dragRequest.dragRange.start)
+        let length = textView.offset(from: dragRequest.dragRange.start, to: dragRequest.dragRange.end)
+        
+        let attributedString = NSAttributedString(attributedString:
+                    textView.textStorage.attributedSubstring(from: NSMakeRange(location, length)))
+        
+        let itemProvider = NSItemProvider(object: attributedString)
+        
+        
+        let dragItem = UIDragItem(itemProvider: itemProvider)
+        dragItem.localObject = dragRequest.dragRange
+        
+        return [dragItem]
+    }
+
+    func textDraggableView(_ textDraggableView: UIView & UITextDraggable, dragPreviewForLiftingItem item: UIDragItem, session: UIDragSession) -> UITargetedDragPreview? {
+        
+        guard let textRange = item.localObject as? UITextRange else { return nil }
+        let location = textView.offset(from: textView.beginningOfDocument, to: textRange.start)
+        let length = textView.offset(from: textRange.start, to: textRange.end)
+        let range = NSMakeRange(location, length)
+        
+        let preview: UIView
+        let bounds = textView.layoutManager.boundingRect(forGlyphRange: range, in: textView.textContainer)
+        if let attachment = textView.attributedText.attribute(.attachment, at: range.location, effectiveRange: nil) as? InteractiveTextAttachment {
+            //make it blurred
+            preview = UIImageView(image: attachment.getPreviewForDragInteraction())
+        } else {
+            preview = UILabel(frame: bounds)
+            (preview as! UILabel).attributedText = textView.textStorage.attributedSubstring(from: range)
+        }
+        
+        let center = CGPoint(x: bounds.midX, y: bounds.midY)
+        let target = UIDragPreviewTarget(container: textView, center: center)
+        
+        return UITargetedDragPreview(view: preview, parameters: UIDragPreviewParameters(), target: target)
+    }
+    
+    func textDroppableView(_ textDroppableView: UIView & UITextDroppable, willBecomeEditableForDrop drop: UITextDropRequest) -> UITextDropEditability {
+        
+        return (textView.isSyncing || isSaving) ? .no : .yes
+    }
+    
+    func textDroppableView(_ textDroppableView: UIView & UITextDroppable, proposalForDrop drop: UITextDropRequest) -> UITextDropProposal {
+        return UITextDropProposal(operation: .move)
+    }
+    
+    
+    func textDroppableView(_ textDroppableView: UIView & UITextDroppable, dropSessionDidEnd session: UIDropSession) {
+        saveText()
+    }
+}
+
+extension MemoViewController: UITextPasteDelegate {
+    func textPasteConfigurationSupporting(_ textPasteConfigurationSupporting: UITextPasteConfigurationSupporting, combineItemAttributedStrings itemStrings: [NSAttributedString], for textRange: UITextRange) -> NSAttributedString {
+        
+        if itemStrings.count == 1 {
+            let attributedString = itemStrings[0]
+            
+            if let attachment = attributedString.attribute(.attachment, at: 0, effectiveRange: nil) as? InteractiveTextAttachment {
+                let newAttr = NSAttributedString(attachment: attachment.getCopyForDragInteraction())
+                return newAttr
+            }
+        }
+        
+        return itemStrings.reduce(NSMutableAttributedString()) { (result, attr) -> NSMutableAttributedString in
+            result.append(attr)
+            return result
+        }
     }
 }
