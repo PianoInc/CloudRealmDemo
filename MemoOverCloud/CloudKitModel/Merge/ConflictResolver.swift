@@ -35,6 +35,7 @@ extension CloudCommonDatabase {
 
         if let synchronizer = synchronizers[myRecord.recordID.recordName] {
             //DO diff3 here with ancestor: myrecord, a: textView.text b: b
+            //TODO: I think we need ancestor....
             synchronizer.resolveConflict(myRecord: myRecord, serverRecord: serverRecord, completion: completion)
             return
         }

@@ -53,8 +53,8 @@ open class InteractiveTextAttachment: NSTextAttachment {
         }
     }
     
-    open func getPreviewForDragInteraction() -> UIImage? {
-        return nil
+    public func getPreviewForDragInteraction() -> UIImage? {
+        return relatedCell?.getScreenShot()
     }
     
     open func getCopyForDragInteraction() -> InteractiveTextAttachment {

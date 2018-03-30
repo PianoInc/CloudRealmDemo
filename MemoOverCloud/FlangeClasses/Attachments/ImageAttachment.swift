@@ -1,5 +1,5 @@
 //
-//  FastTextAttachment.swift
+//  ImageAttachment.swift
 //  MemoOverCloud
 //
 //  Created by 김범수 on 2018. 2. 5..
@@ -10,30 +10,30 @@ import InteractiveTextEngine_iOS
 import UIKit
 import CoreGraphics
 
-class FastTextAttachment: InteractiveTextAttachment {
+class ImageAttachment: InteractiveTextAttachment {
     var imageID: String!
-    var tempImage: UIImage!//This is temp!!!!
     
     override init() {
         super.init()
     }
+    
+    init(attribute: ImageAttribute) {
+        super.init()
+        self.imageID = attribute.id
+        self.currentSize = attribute.size
+    }
 
-    init(attachment: FastTextAttachment) {
+    init(attachment: ImageAttachment) {
         super.init(attachment: attachment)
         self.imageID = attachment.imageID
-        self.tempImage = attachment.tempImage
     }
     
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
     }
-    
-    override func getPreviewForDragInteraction() -> UIImage? {
-        return tempImage
-    }
-    
+        
     override func getCopyForDragInteraction() -> InteractiveTextAttachment {
-        return FastTextAttachment(attachment: self)
+        return ImageAttachment(attachment: self)
     }
 }
 

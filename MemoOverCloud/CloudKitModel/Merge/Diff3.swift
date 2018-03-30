@@ -191,17 +191,7 @@ class Diff3Maker {
                 switch aBlock {
                 case .delete(_, let index): start = index
                 case .change(_, let range) : start = range.location
-                case .add(let oaIndex, let aRange):
-                    if index == oaIndex {
-                        let aSubString = aDiffMaker.bChunks[aRange.location..<aRange.upperBound]
-                        let bSubString = bDiffMaker.bChunks[bRange.location..<bRange.upperBound]
-
-                        if String(describing: aSubString).hashValue == String(describing: bSubString).hashValue {
-                            continue
-                        }
-
-                    }
-                    fallthrough
+                case .add(_, _): fallthrough
                 default: start = index+offset
                 }
                 diff3Chunks.append(Diff3Block.add(start, bRange))
@@ -271,13 +261,6 @@ class Diff3Maker {
                         diff3Chunks.append(.change(unionedRange, NSMakeRange(index - differences.0!.length, differences.0!.length + differences.1!.length), bRange))
                     }
                 case .change(let oaRange, let aaRange):
-
-                    let aSubString = aDiffMaker.bChunks[aaRange.location..<aaRange.upperBound]
-                    let bSubString = bDiffMaker.bChunks[bRange.location..<bRange.upperBound]
-
-                    if String(describing: aSubString).hashValue == String(describing: bSubString).hashValue {
-                        continue
-                    }
 
                     let differences = oRange.difference(to: oaRange)
                     let unionedRange = oRange.union(oaRange)

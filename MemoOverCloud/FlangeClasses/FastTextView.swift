@@ -61,7 +61,7 @@ extension FastTextView {
 
         selectedAttributedString.enumerateAttribute(.attachment, in: NSMakeRange(0, selectedAttributedString.length),
                 options: .longestEffectiveRangeNotRequired) { value, range, _ in
-            if let attachment = value as? FastTextAttachment,
+            if let attachment = value as? ImageAttachment,
                 let imageModel = realm.object(ofType: RealmImageModel.self, forPrimaryKey: attachment.imageID),
                 let image = UIImage(data: imageModel.image) {
                 
@@ -120,10 +120,9 @@ extension FastTextView {
                     ModelManager.saveNew(model: newImageModel) { error in }
 
 
-                    let newAttachment = FastTextAttachment()
+                    let newAttachment = ImageAttachment()
                     newAttachment.imageID = newImageModel.id
                     newAttachment.currentSize = resizedImage.size
-                    newAttachment.tempImage = resizedImage
 
                     let attachString = NSAttributedString(attachment: newAttachment)
 
