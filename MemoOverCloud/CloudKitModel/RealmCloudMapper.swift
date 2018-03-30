@@ -7,46 +7,39 @@ import RealmSwift
 import CloudKit
 
 
-extension RealmCategoryModel {
-
+extension RealmTagsModel {
     func getRecord() -> CKRecord {
-        let scheme = Schema.Category.self
-        
+        let scheme = Schema.Tags.self
+
         let coder = NSKeyedUnarchiver(forReadingWith: self.ckMetaData)
         coder.requiresSecureCoding = true
-        guard let record = CKRecord(coder: coder) else {fatalError("Data poluted!!")}
+        guard let record = CKRecord(coder: coder) else {fatalError("Data polluted!!")}
         coder.finishDecoding()
 
-
-        record[scheme.id] = self.id as CKRecordValue
-        record[scheme.name] = self.name as CKRecordValue
+        record[scheme.tags] = self.tags as CKRecordValue
 
         return record
     }
-
 }
 
 extension RealmNoteModel {
 
     func getRecord() -> CKRecord {
         let scheme = Schema.Note.self
-        
+
         let coder = NSKeyedUnarchiver(forReadingWith: self.ckMetaData)
         coder.requiresSecureCoding = true
         guard let record = CKRecord(coder: coder) else {fatalError("Data poluted!!")}
         coder.finishDecoding()
-
-
-        let categoryRecordIDs = self.categoryRecordNames.components(separatedBy: "!").map{ CKRecordID(recordName: $0, zoneID: record.recordID.zoneID) }
-        
 
         record[scheme.id] = self.id as CKRecordValue
         record[scheme.title] = self.title as CKRecordValue
         record[scheme.content] = self.content as CKRecordValue
         record[scheme.attributes] = self.attributes as CKRecordValue
 
-
-        record[scheme.categoryRecordNames] = (categoryRecordIDs.map{ CKReference(recordID: $0, action: .deleteSelf)}) as CKRecordValue
+        record[scheme.tags] = self.tags as CKRecordValue
+        record[scheme.isPinned] = (self.isPinned ? 1 : 0) as CKRecordValue
+        record[scheme.isInTrash] = (self.isInTrash ? 1 : 0) as CKRecordValue
 
         return record
 
@@ -78,25 +71,23 @@ extension RealmImageModel {
 
 
 extension CKRecord {
-    func parseCategoryRecord() -> RealmCategoryModel? {
-        let newCategoryModel = RealmCategoryModel()
-        let schema = Schema.Category.self
 
-        guard let id = self[schema.id] as? String,
-                let name = self[schema.name] as? String else {return nil}
-        
+    func parseTagsRecord() -> RealmTagsModel? {
+        let newTagsModel = RealmTagsModel()
+        let schema = Schema.Tags.self
+
+        guard let tags = self[schema.tags] as? String else {return nil}
+
         let data = NSMutableData()
-        let coder = NSKeyedArchiver.init(forWritingWith: data)
+        let coder = NSKeyedArchiver(forWritingWith: data)
         coder.requiresSecureCoding = true
         self.encodeSystemFields(with: coder)
         coder.finishEncoding()
 
-        newCategoryModel.id = id
-        newCategoryModel.name = name
-        newCategoryModel.recordName = self.recordID.recordName
-        newCategoryModel.ckMetaData = Data(referencing: data)
+        newTagsModel.tags = tags
+        newTagsModel.ckMetaData = Data(referencing: data)
 
-        return newCategoryModel
+        return newTagsModel
     }
 
     func parseNoteRecord() -> RealmNoteModel? {
@@ -107,14 +98,15 @@ extension CKRecord {
                 let title = self[schema.title] as? String,
                 let content = self[schema.content] as? String,
                 let attributes = self[schema.attributes] as? Data,
-                let categoryReferences = self[schema.categoryRecordNames] as? [CKReference] else {return nil}
+                let tags = self[schema.tags] as? String,
+                let isPinned = self[schema.isPinned] as? Int,
+                let isInTrash = self[schema.isInTrash] as? Int else {return nil}
         
         let data = NSMutableData()
-        let coder = NSKeyedArchiver.init(forWritingWith: data)
+        let coder = NSKeyedArchiver(forWritingWith: data)
         coder.requiresSecureCoding = true
         self.encodeSystemFields(with: coder)
         coder.finishEncoding()
-
 
         newNoteModel.id = id
         newNoteModel.title = title
@@ -123,8 +115,9 @@ extension CKRecord {
         newNoteModel.recordName = self.recordID.recordName
         newNoteModel.ckMetaData = Data(referencing: data)
         newNoteModel.isModified = self.modificationDate ?? Date()
-        newNoteModel.categoryRecordNames = categoryReferences.map {$0.recordID.recordName}.joined(separator: "!")
-        //TODO: add count property of categoryRecordNames
+        newNoteModel.tags = tags
+        newNoteModel.isPinned = isPinned == 1
+        newNoteModel.isInTrash = isInTrash == 1
 
         return newNoteModel
     }

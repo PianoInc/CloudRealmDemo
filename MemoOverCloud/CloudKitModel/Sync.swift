@@ -10,37 +10,32 @@ import RealmSwift
 
 struct Schema {
 
-    struct Category {
-
-        static let id = "id"
-        static let name = "name"
-
+    struct Tags {
+        static let tags = "tags"
     }
 
     struct Note {
-
         static let id = "id"
         static let title = "title"
         static let content = "content"
         static let attributes = "attributes"
 
-        static let categoryRecordNames = "categoryRecordNames"
-
+        static let tags = "tags"
+        static let isPinned = "isPinned"
+        static let isInTrash = "isInTrash"
     }
 
     struct Image {
-
         static let id = "id"
         static let image = "image"
 
         static let noteRecordName = "noteRecordName"
-
     }
 }
 
 enum RealmRecordTypeString: String {
 
-        case category = "Category"
+        case tags = "Tags"
         case note = "Note"
         case image = "Image"
 }
@@ -53,7 +48,7 @@ extension CloudCommonDatabase {
         guard let realmType = RealmRecordTypeString(rawValue: record.recordType) else { /*fatal error*/ return }
 
         switch realmType {
-            case .category: saveCategoryRecord(record)
+            case .tags: saveTagsRecord(record)
             case .note: saveNoteRecord(record, isShared: isShared)
             case .image: saveImageRecord(record, isShared: isShared)
         }
@@ -64,18 +59,16 @@ extension CloudCommonDatabase {
         guard let realmType = RealmRecordTypeString(rawValue: recordType) else { /*fatal error*/ return }
 
         switch realmType {
-            case .category: deleteCategoryRecord(recordID.recordName)
+            case .tags: break //Not gonna happen!
             case .note: deleteNoteRecord(recordID.recordName)
             case .image: deleteImageRecord(recordID.recordName)
         }
     }
 
 
-
-    private static func saveCategoryRecord(_ record: CKRecord) {
-
-        guard let categoryModel = record.parseCategoryRecord() else {return}
-        LocalDatabase.shared.saveObject(newObject: categoryModel)
+    private static func saveTagsRecord(_ record: CKRecord) {
+        guard let tagsModel = record.parseTagsRecord() else {return}
+        LocalDatabase.shared.saveObject(newObject: tagsModel)
     }
 
     private static func saveNoteRecord(_ record: CKRecord, isShared: Bool) {
@@ -98,20 +91,6 @@ extension CloudCommonDatabase {
 
         imageModel.isShared = isShared
         LocalDatabase.shared.saveObject(newObject: imageModel)
-    }
-
-
-    private static func deleteCategoryRecord(_ recordName: String) {
-
-        guard let realm = try? Realm(),
-                let categoryModel = realm.objects(RealmCategoryModel.self).filter("recordName = %@", recordName).first else {return}
-
-        let notes = realm.objects(RealmNoteModel.self).filter("categoryRecordNames = %@", recordName)
-
-        let categoryRef = ThreadSafeReference(to: categoryModel)
-
-        notes.forEach{ deleteNoteRecord($0.recordName) }
-        LocalDatabase.shared.deleteObject(ref: categoryRef)
     }
 
     private static func deleteNoteRecord(_ recordName: String) {

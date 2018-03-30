@@ -11,17 +11,17 @@ import RealmSwift
 
 class ModelManager {
     
-    private func getTypeFrom(recordType string: String) -> Object.Type? {
-        switch string {
-            case RealmCategoryModel.recordTypeString: return RealmCategoryModel.self
-            case RealmNoteModel.recordTypeString: return RealmNoteModel.self
-            case RealmImageModel.recordTypeString: return RealmImageModel.self
-            default: return nil
-        }
-    }
+//    private func getTypeFrom(recordType string: String) -> Object.Type? {
+//        switch string {
+//            case RealmCategoryModel.recordTypeString: return RealmCategoryModel.self
+//            case RealmNoteModel.recordTypeString: return RealmNoteModel.self
+//            case RealmImageModel.recordTypeString: return RealmImageModel.self
+//            default: return nil
+//        }
+//    }
 
 
-    static func saveNew(model: RealmCategoryModel, completion: ((Error?) -> Void)? = nil) {
+    static func saveNew(model: RealmTagsModel, completion: ((Error?) -> Void)? = nil) {
         let record = model.getRecord()
 
         LocalDatabase.shared.saveObject(newObject: model)
@@ -29,7 +29,7 @@ class ModelManager {
         CloudManager.shared.uploadRecordToPrivateDB(record: record) { (conflicted, error) in
             if let error = error {
                 return completion?(error) ?? ()
-            } else if let conflictedModel = conflicted?.parseCategoryRecord() {
+            } else if let conflictedModel = conflicted?.parseTagsRecord() {
                 LocalDatabase.shared.saveObject(newObject: conflictedModel)
             }
             completion?(nil)
@@ -110,6 +110,7 @@ class ModelManager {
         LocalDatabase.shared.updateObject(id: id, kv: kv, type: type.self) {
             LocalDatabase.shared.databaseQueue.sync {
                 autoreleasepool {
+
                     guard let realm = try? Realm(),
                           let model = realm.object(ofType: type.self, forPrimaryKey: id) as? (Object & Recordable),
                             let record = model.getRecord?()else {return}
@@ -124,8 +125,8 @@ class ModelManager {
                             let newModel: Object?
 
                             switch conflictedRecord.recordType {
-                                case RealmCategoryModel.recordTypeString:
-                                    newModel = conflictedRecord.parseCategoryRecord()
+                                case RealmTagsModel.recordTypeString:
+                                    newModel = conflictedRecord.parseTagsRecord()
                                 case RealmNoteModel.recordTypeString:
                                     newModel = conflictedRecord.parseNoteRecord()
                                 case RealmImageModel.recordTypeString:
@@ -141,6 +142,7 @@ class ModelManager {
                             completion?(nil)
                         }
                     }
+
                 }
             }
         }

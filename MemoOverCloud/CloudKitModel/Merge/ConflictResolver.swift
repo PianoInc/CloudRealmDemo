@@ -10,17 +10,17 @@ import CloudKit
 
 extension CloudCommonDatabase {
     func merge(ancestor: CKRecord, myRecord: CKRecord, serverRecord: CKRecord, completion: @escaping (Bool)->()) {
-        guard let myModified = myRecord.modificationDate,
-              let serverModified = serverRecord.modificationDate else {return}
+        let myModified = myRecord.modificationDate ?? Date()
+        let serverModified = serverRecord.modificationDate ?? Date()
  
         switch ancestor.recordType {
         case RealmNoteModel.recordTypeString:
             mergeNote(ancestor: ancestor, myRecord: myRecord, serverRecord: serverRecord, myModified: myModified, serverModified: serverModified, completion: completion)
             
-        case RealmCategoryModel.recordTypeString:
+        case RealmTagsModel.recordTypeString:
             
             if myModified.compare(serverModified) == .orderedDescending {
-                serverRecord[Schema.Category.name] = myRecord[Schema.Category.name]
+                serverRecord[Schema.Tags.tags] = myRecord[Schema.Tags.tags]
                 completion(true)
             } else {
                 completion(false)
@@ -52,11 +52,11 @@ extension CloudCommonDatabase {
                 return
             }
 
-            if let serverCategory = serverRecord[Schema.Note.categoryRecordNames] as? String,
-                    let myCategory = myRecord[Schema.Note.categoryRecordNames] as? String,
+            if let serverCategory = serverRecord[Schema.Note.tags] as? String,
+                    let myCategory = myRecord[Schema.Note.tags] as? String,
                     serverCategory != myCategory {
 
-                serverRecord[Schema.Note.categoryRecordNames] = myRecord[Schema.Note.categoryRecordNames]
+                serverRecord[Schema.Note.tags] = myRecord[Schema.Note.tags]
                 completion(true)
                 return
             }
