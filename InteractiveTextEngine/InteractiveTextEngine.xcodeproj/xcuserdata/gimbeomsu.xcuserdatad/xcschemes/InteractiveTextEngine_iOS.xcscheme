@@ -44,6 +44,15 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
+      <BuildableProductRunnable>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "75E9953B060BEE4DB8AA6294"
+            BuildableName = "MemoOverCloud.app"
+            BlueprintName = "MemoOverCloud"
+            ReferencedContainer = "container:../MemoOverCloud.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"

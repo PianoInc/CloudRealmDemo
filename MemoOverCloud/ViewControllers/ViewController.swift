@@ -13,7 +13,7 @@ import RealmSwift
 class ViewController: UIViewController {
 
     @IBOutlet weak var tableView: UITableView!
-    var categories: Results<RealmCategoryModel>!
+    var tags: RealmTagsModel?
     var notificationToken: NotificationToken?
     var count = 0
 
@@ -52,8 +52,8 @@ class ViewController: UIViewController {
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "goToCategory" {
             guard let categoryVC = segue.destination as? CategoryViewController,
-                let category = sender as? RealmCategoryModel else {return}
-            categoryVC.categoryRecordName = category.recordName
+                let category = sender as? String else {return}
+            categoryVC.categoryRecordName = category
         }
     }
     
@@ -70,42 +70,38 @@ class ViewController: UIViewController {
 
         do {
             let realm = try Realm()
-            
-            self.categories = realm.objects(RealmCategoryModel.self)
-            
-            notificationToken = categories.observe { [weak self] (changes) in
-                guard let tableView = self?.tableView else {return}
-                
-                switch changes {
-                case .initial:
-                    tableView.reloadData()
-                case .update(_, let deletes, let inserts, let mods):
-                    tableView.beginUpdates()
-                    tableView.insertRows(at: inserts.map{IndexPath(row: $0, section: 0)}, with: .automatic)
-                    tableView.deleteRows(at: deletes.map{IndexPath(row: $0, section: 0)}, with: .automatic)
-                    tableView.reloadRows(at: mods.map{IndexPath(row: $0, section: 0)}, with: .automatic)
-                    tableView.endUpdates()
-                case .error(let error):
-                    fatalError("Error!! \(error)")
+
+            if let existingTags = realm.objects(RealmTagsModel.self).first {
+                tags = existingTags
+            } else {
+                let newTags = RealmTagsModel.getNewModel()
+                ModelManager.saveNew(model: newTags) { [weak self] _ in
+                    DispatchQueue.main.async {
+                        self?.validateToken()
+                    }
                 }
-                
-                
             }
+
+            notificationToken = tags?.observe { [weak self] (changes) in
+                guard let tableView = self?.tableView else {return}
+
+                switch changes {
+                    case .deleted: break
+                    case .change(_): tableView.reloadData()
+                    case .error(let error): print(error)
+                }
+            }
+
 
         } catch {print(error)}
     }
 
     @IBAction func newButtonTouched() {
 
-        let newCategory = RealmCategoryModel.getNewModel(name: "new Category\(count)")
-
-        ModelManager.saveNew(model: newCategory) { error in
-            if let error = error {
-                print(error)
-            } else {
-                print("happy")
-            }
-        }
+        var tagsArray = tags!.tags.components(separatedBy: "!")
+        tagsArray.append("\(count)")
+        
+        ModelManager.update(id: tags?.id ?? "", type: RealmTagsModel.self, kv: ["tags": tagsArray.joined(separator: "!")])
 
         count += 1
     }
@@ -115,22 +111,23 @@ class ViewController: UIViewController {
 
 extension ViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return categories.count
+        let count = tags?.tags.components(separatedBy: "!").count ?? 0
+        return count
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "categoryCell", for: indexPath)
-        let category = categories[indexPath.row]
+        let tag = tags?.tags.components(separatedBy: "!")[indexPath.row]
 
-        cell.textLabel?.text = category.name
+        cell.textLabel?.text = tag ?? ""
 
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let category = categories[indexPath.row]
-        
-        performSegue(withIdentifier: "goToCategory", sender: category)
+        let tag = tags?.tags.components(separatedBy: "!")[indexPath.row]
+
+        performSegue(withIdentifier: "goToCategory", sender: tag)
         tableView.deselectRow(at: indexPath, animated: true)
     }
     
@@ -146,8 +143,10 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
 
-            let id = categories[indexPath.row].id
-            ModelManager.delete(id: id, type: RealmCategoryModel.self)
+            var tagsArray = tags!.tags.components(separatedBy: "!")
+            tagsArray.remove(at: indexPath.row)
+
+            ModelManager.update(id: tags?.id ?? "", type: RealmTagsModel.self, kv: ["tags": tagsArray.joined(separator: "!")]) 
         }
     }
 }
