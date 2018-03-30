@@ -50,8 +50,12 @@ class CategoryViewController: UIViewController {
     
     func validateToken() {
         guard let realm = try? Realm() else {return}
-        notes = realm.objects(RealmNoteModel.self).filter("categoryRecordNames CONTAINS[cd] %@", categoryRecordName)
-        
+
+        let sortDescriptors = [SortDescriptor(keyPath: "isPinned", ascending: false), SortDescriptor(keyPath: "isModified", ascending: false)]
+        notes = realm.objects(RealmNoteModel.self)
+                .filter("tags CONTAINS[cd] %@ AND isInTrash = false", "!\(categoryRecordName!)!")
+                .sorted(by: sortDescriptors)
+
         notificationToken = notes?.observe { [weak self] (changes) in
             guard let tableView = self?.tableView else {return}
             

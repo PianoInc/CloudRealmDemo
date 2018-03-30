@@ -198,7 +198,7 @@ class CloudPrivateDatabase: CloudCommonDatabase {
     override fileprivate func saveSubscription() {
 
         let userID = self.userID?.recordName ?? ""
-        let recordTypes = [RealmCategoryModel.recordTypeString,
+        let recordTypes = [RealmTagsModel.recordTypeString,
                            RealmNoteModel.recordTypeString,
                            RealmImageModel.recordTypeString]
 

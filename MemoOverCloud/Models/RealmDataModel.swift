@@ -13,13 +13,11 @@ import CloudKit
     @objc optional func getRecord() -> CKRecord
 }
 
-class RealmCategoryModel: Object, Recordable {
-
-    static let recordTypeString = "Category"
+class RealmTagsModel: Object, Recordable {
+    static let recordTypeString = "Tags"
 
     @objc dynamic var id = ""
-    @objc dynamic var name = ""
-
+    @objc dynamic var tags = ""
     @objc dynamic var recordName = ""
     @objc dynamic var ckMetaData = Data()
     @objc dynamic var isShared = false
@@ -32,21 +30,20 @@ class RealmCategoryModel: Object, Recordable {
         return ["recordTypeString"]
     }
 
-    static func getNewModel(name: String) -> RealmCategoryModel {
+    static func getNewModel() -> RealmTagsModel {
         let id = UniqueIDGenerator.getUniqueID()
-        let record = CKRecord(recordType: RealmCategoryModel.recordTypeString, zoneID: CloudManager.shared.privateDatabase.zoneID)
-        
+        let record = CKRecord(recordType: RealmTagsModel.recordTypeString, zoneID: CloudManager.shared.privateDatabase.zoneID)
+
         let data = NSMutableData()
         let coder = NSKeyedArchiver(forWritingWith: data)
         coder.requiresSecureCoding = true
         record.encodeSystemFields(with: coder)
         coder.finishEncoding()
 
-        let newModel = RealmCategoryModel()
+        let newModel = RealmTagsModel()
+        newModel.id = id
         newModel.recordName = record.recordID.recordName
         newModel.ckMetaData = Data(referencing: data)
-        newModel.id = id
-        newModel.name = name
 
         return newModel
     }
@@ -68,8 +65,10 @@ class RealmNoteModel: Object, Recordable {
     
     @objc dynamic var isShared = false
 
+    @objc dynamic var isPinned = false
+    @objc dynamic var isInTrash = false
 
-    @objc dynamic var categoryRecordNames = ""
+    @objc dynamic var tags = ""
 
     override static func primaryKey() -> String? {
         return "id"
@@ -94,7 +93,7 @@ class RealmNoteModel: Object, Recordable {
         newModel.ckMetaData = Data(referencing: data)
         newModel.id = id
         newModel.title = title
-        newModel.categoryRecordNames = categoryRecordName
+        newModel.tags = "!\(categoryRecordName)!"
         newModel.content = ""
 
         return newModel
