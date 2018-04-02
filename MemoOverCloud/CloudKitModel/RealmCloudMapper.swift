@@ -7,39 +7,39 @@ import RealmSwift
 import CloudKit
 
 
-extension RealmCategoryModel {
-
+extension RealmTagsModel {
     func getRecord() -> CKRecord {
-        let scheme = Schema.Category.self
-        let zoneID = CKRecordZoneID(zoneName: zoneName, ownerName: ownerName)
-        let recordID = CKRecordID(recordName: self.recordName, zoneID: zoneID)
-        let record = CKRecord(recordType: RealmCategoryModel.recordTypeString, recordID: recordID)
+        let scheme = Schema.Tags.self
 
-        record[scheme.id] = self.id as CKRecordValue
-        record[scheme.name] = self.name as CKRecordValue
+        let coder = NSKeyedUnarchiver(forReadingWith: self.ckMetaData)
+        coder.requiresSecureCoding = true
+        guard let record = CKRecord(coder: coder) else {fatalError("Data polluted!!")}
+        coder.finishDecoding()
+
+        record[scheme.tags] = self.tags as CKRecordValue
 
         return record
     }
-
 }
 
 extension RealmNoteModel {
 
     func getRecord() -> CKRecord {
         let scheme = Schema.Note.self
-        let zoneID = CKRecordZoneID(zoneName: zoneName, ownerName: ownerName)
-        let recordID = CKRecordID(recordName: self.recordName, zoneID: zoneID)
-        let record = CKRecord(recordType: RealmNoteModel.recordTypeString, recordID: recordID)
-        let categoryRecordID = CKRecordID(recordName: self.categoryRecordName, zoneID: zoneID)
-        
+
+        let coder = NSKeyedUnarchiver(forReadingWith: self.ckMetaData)
+        coder.requiresSecureCoding = true
+        guard let record = CKRecord(coder: coder) else {fatalError("Data poluted!!")}
+        coder.finishDecoding()
 
         record[scheme.id] = self.id as CKRecordValue
         record[scheme.title] = self.title as CKRecordValue
         record[scheme.content] = self.content as CKRecordValue
         record[scheme.attributes] = self.attributes as CKRecordValue
 
-
-        record[scheme.category] = CKReference(recordID: categoryRecordID, action: .deleteSelf)
+        record[scheme.tags] = self.tags as CKRecordValue
+        record[scheme.isPinned] = (self.isPinned ? 1 : 0) as CKRecordValue
+        record[scheme.isInTrash] = (self.isInTrash ? 1 : 0) as CKRecordValue
 
         return record
 
@@ -50,16 +50,19 @@ extension RealmImageModel {
 
     func getRecord() -> (URL, CKRecord) {
         let scheme = Schema.Image.self
-        let zoneID = CKRecordZoneID(zoneName: zoneName, ownerName: ownerName)
-        let recordID = CKRecordID(recordName: self.recordName, zoneID: zoneID)
-        let record = CKRecord(recordType: RealmImageModel.recordTypeString, recordID: recordID)
-        let noteRecordID = CKRecordID(recordName: noteRecordName, zoneID: zoneID)
+        
+        let coder = NSKeyedUnarchiver(forReadingWith: self.ckMetaData)
+        coder.requiresSecureCoding = true
+        guard let record = CKRecord(coder: coder) else {fatalError("Data poluted!!")}
+        coder.finishDecoding()
+        
+        let noteRecordID = CKRecordID(recordName: noteRecordName, zoneID: record.recordID.zoneID)
 
         record[scheme.id] = self.id as CKRecordValue
         guard let asset = try? CKAsset(data: self.image) else { fatalError() }
         record[scheme.image] = asset
 
-        record[scheme.note] = CKReference(recordID: noteRecordID, action: .deleteSelf)
+        record[scheme.noteRecordName] = CKReference(recordID: noteRecordID, action: .deleteSelf)
         record.setParent(noteRecordID)
         
         return (asset.fileURL, record)
@@ -68,24 +71,23 @@ extension RealmImageModel {
 
 
 extension CKRecord {
-    func parseCategoryRecord() -> RealmCategoryModel? {
-        let newCategoryModel = RealmCategoryModel()
-        let schema = Schema.Category.self
 
-        guard let id = self[schema.id] as? String,
-                let name = self[schema.name] as? String,
-                let isCreated = self.creationDate,
-                let isModified = self.modificationDate else {return nil}
+    func parseTagsRecord() -> RealmTagsModel? {
+        let newTagsModel = RealmTagsModel()
+        let schema = Schema.Tags.self
 
-        newCategoryModel.id = id
-        newCategoryModel.name = name
-        newCategoryModel.isCreated = isCreated
-        newCategoryModel.isModified = isModified
-        newCategoryModel.recordName = self.recordID.recordName
-        newCategoryModel.zoneName = self.recordID.zoneID.zoneName
-        newCategoryModel.ownerName = self.recordID.zoneID.ownerName
+        guard let tags = self[schema.tags] as? String else {return nil}
 
-        return newCategoryModel
+        let data = NSMutableData()
+        let coder = NSKeyedArchiver(forWritingWith: data)
+        coder.requiresSecureCoding = true
+        self.encodeSystemFields(with: coder)
+        coder.finishEncoding()
+
+        newTagsModel.tags = tags
+        newTagsModel.ckMetaData = Data(referencing: data)
+
+        return newTagsModel
     }
 
     func parseNoteRecord() -> RealmNoteModel? {
@@ -95,19 +97,27 @@ extension CKRecord {
         guard let id = self[schema.id] as? String,
                 let title = self[schema.title] as? String,
                 let content = self[schema.content] as? String,
-                let attributes = self[schema.attributes] as? String,
-                let isCreated = self.creationDate,
-                let isModified = self.modificationDate else {return nil}
+                let attributes = self[schema.attributes] as? Data,
+                let tags = self[schema.tags] as? String,
+                let isPinned = self[schema.isPinned] as? Int,
+                let isInTrash = self[schema.isInTrash] as? Int else {return nil}
+        
+        let data = NSMutableData()
+        let coder = NSKeyedArchiver(forWritingWith: data)
+        coder.requiresSecureCoding = true
+        self.encodeSystemFields(with: coder)
+        coder.finishEncoding()
 
         newNoteModel.id = id
         newNoteModel.title = title
         newNoteModel.content = content
         newNoteModel.attributes = attributes
-        newNoteModel.isCreated = isCreated
-        newNoteModel.isModified = isModified
         newNoteModel.recordName = self.recordID.recordName
-        newNoteModel.zoneName = self.recordID.zoneID.zoneName
-        newNoteModel.ownerName = self.recordID.zoneID.ownerName
+        newNoteModel.ckMetaData = Data(referencing: data)
+        newNoteModel.isModified = self.modificationDate ?? Date()
+        newNoteModel.tags = tags
+        newNoteModel.isPinned = isPinned == 1
+        newNoteModel.isInTrash = isInTrash == 1
 
         return newNoteModel
     }
@@ -117,21 +127,28 @@ extension CKRecord {
         let schema = Schema.Image.self
 
         guard let id = self[schema.id] as? String,
-                let isCreated = self.creationDate,
-                let isModified = self.modificationDate,
                 let imageAsset = self[schema.image] as? CKAsset,
-                let image = try? Data(contentsOf: imageAsset.fileURL)
+                let image = try? Data(contentsOf: imageAsset.fileURL),
+                let noteReference = self[schema.noteRecordName] as? CKReference
                 else {return nil}
 
+        let data = NSMutableData()
+        let coder = NSKeyedArchiver(forWritingWith: data)
+        coder.requiresSecureCoding = true
+        self.encodeSystemFields(with: coder)
+        coder.finishEncoding()
+        
         newImageModel.id = id
-        newImageModel.isCreated = isCreated
-        newImageModel.isModified = isModified
         newImageModel.image = image
+        newImageModel.noteRecordName = noteReference.recordID.recordName
         newImageModel.recordName = self.recordID.recordName
-        newImageModel.zoneName = self.recordID.zoneID.zoneName
-        newImageModel.ownerName = self.recordID.zoneID.ownerName
+        newImageModel.ckMetaData = Data(referencing: data)
 
+        defer {
+            try? FileManager.default.removeItem(at: imageAsset.fileURL)
+        }
 
         return newImageModel
     }
+    
 }

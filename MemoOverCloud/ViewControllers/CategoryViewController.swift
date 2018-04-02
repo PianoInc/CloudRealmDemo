@@ -50,8 +50,12 @@ class CategoryViewController: UIViewController {
     
     func validateToken() {
         guard let realm = try? Realm() else {return}
-        notes = realm.objects(RealmNoteModel.self).filter("categoryRecordName = %@", categoryRecordName)
-        
+
+        let sortDescriptors = [SortDescriptor(keyPath: "isPinned", ascending: false), SortDescriptor(keyPath: "isModified", ascending: false)]
+        notes = realm.objects(RealmNoteModel.self)
+                .filter("tags CONTAINS[cd] %@ AND isInTrash = false", "!\(categoryRecordName!)!")
+                .sorted(by: sortDescriptors)
+
         notificationToken = notes?.observe { [weak self] (changes) in
             guard let tableView = self?.tableView else {return}
             
@@ -72,22 +76,16 @@ class CategoryViewController: UIViewController {
     }
     
     @IBAction func newButtonTouched() {
-        //This functionality will be moved to Realm Wrapper
-        let newNote = RealmNoteModel.getNewModel(title: "newNote \(count)")
-
-        LocalDatabase.shared.saveObject(newObject: newNote) {
-
-            CloudManager.shared.uploadRecordToPrivateDB(record: newNote.getRecord()) { (conflicted, error) in
-                if let error = error {
-                    print(error)
-                } else {
-                    print("happy")
-                }
-            }
-
-        }
-
         
+        let newNote = RealmNoteModel.getNewModel(title: "newNote \(count)", categoryRecordName: categoryRecordName)
+
+        ModelManager.saveNew(model: newNote) { error in
+            if let error = error {
+                print(error)
+            } else {
+                print("happy")
+            }
+        }
 
         count += 1
 
@@ -130,8 +128,7 @@ extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             guard let note = notes?[indexPath.row] else {return}
-            let noteRef = ThreadSafeReference(to: note)
-            LocalDatabase.shared.deleteObject(ref: noteRef)
+            ModelManager.delete(id: note.id, type: RealmNoteModel.self)
         }
     }
 }

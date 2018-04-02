@@ -48,6 +48,7 @@ class RealmImageObserver {
     }
 
     func setHandler(for id: String, handler: @escaping ((ThreadSafeReference<RealmImageModel>) -> Void)) {
-        handlerDic[id] = handler
+        //Don't overwrite handler
+        if handlerDic[id] == nil { handlerDic[id] = handler }
     }
 }

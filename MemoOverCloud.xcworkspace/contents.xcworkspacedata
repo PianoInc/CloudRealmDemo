@@ -2,6 +2,9 @@
 <Workspace
    version = "1.0">
    <FileRef
+      location = "group:InteractiveTextEngine/InteractiveTextEngine.xcodeproj">
+   </FileRef>
+   <FileRef
       location = "group:MemoOverCloud.xcodeproj">
    </FileRef>
    <FileRef

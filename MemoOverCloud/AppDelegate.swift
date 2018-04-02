@@ -16,26 +16,22 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     var window: UIWindow?
     
-    
-    //TODO: make user managing point
-    //It will check whether user has turned icloud on or not
-    //Also it enables share owner check
-    
-    
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
         
         application.registerForRemoteNotifications()
+        _ = CloudManager.shared
         performMigration()
         
-        //Remove this chunk if datas need to be persistent
-        let realm = try! Realm()
-        try! realm.write {
-            realm.deleteAll()
-        }
         
-        _ = CloudManager.shared
-
+        
+        
+        //Remove this chunk if datas need to be persistent
+//        let realm = try! Realm()
+//        try! realm.write {
+//            realm.deleteAll()
+//        }
+        
 
         return true
     }
@@ -43,20 +39,24 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     
     func performMigration() {
+        let url = Realm.Configuration.defaultConfiguration.fileURL
         let config = Realm.Configuration(
+            fileURL: url,
             // Set the new schema version. This must be greater than the previously used
             // version (if you've never set a schema version before, the version is 0).
-            schemaVersion: 5,
+            schemaVersion: 26,
             
             // Set the block which will be called automatically when opening a Realm with
             // a schema version lower than the one set above
             migrationBlock: { migration, oldSchemaVersion in
                 // We haven’t migrated anything yet, so oldSchemaVersion == 0
+                
                 if (oldSchemaVersion < 1) {
                     // Nothing to do!
                     // Realm will automatically detect new properties and removed properties
                     // And will update the schema on disk automatically
                 }
+
         })
         
         // Tell Realm to use this new configuration object for the default Realm
@@ -97,8 +97,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-        print("let's go")
-        CloudManager.shared.privateDatabase.handleNotification()
+        print("oh yeah!!")
     }
     
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
@@ -115,10 +114,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         guard let subscriptionID = notification.subscriptionID else {return}
 
 
-        let subscriptionIDs = CloudManager.shared.databases.map {$0.subscriptionID}
-
-        if let index = subscriptionIDs.index(of: subscriptionID) {
-            CloudManager.shared.databases[index].handleNotification()
+        if subscriptionID.hasPrefix(CloudManager.shared.privateDatabase.subscriptionID) {
+            CloudManager.shared.privateDatabase.handleNotification()
+            completionHandler(.newData)
+        } else if subscriptionID == CloudManager.shared.sharedDatabase.subscriptionID {
+            CloudManager.shared.sharedDatabase.handleNotification()
             completionHandler(.newData)
         } else {
             completionHandler(.noData)
@@ -144,4 +144,21 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             cloudKitShareMetadata.containerIdentifier).add(acceptShareOperation)
     }
     
+}
+
+
+extension Realm {
+    static func setDefaultRealmForUser(username: String) {
+
+        let defaultConfig = Realm.Configuration.defaultConfiguration
+        var config = Realm.Configuration()
+        
+        // Use the default directory, but replace the filename with the username
+        config.fileURL = config.fileURL!.deletingLastPathComponent()
+            .appendingPathComponent("\(username).realm")
+        config.schemaVersion = defaultConfig.schemaVersion
+
+        // Set this as the configuration used for the default Realm
+        Realm.Configuration.defaultConfiguration = config
+    }
 }

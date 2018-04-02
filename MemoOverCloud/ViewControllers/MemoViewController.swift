@@ -8,37 +8,80 @@
 
 import UIKit
 import RealmSwift
-import FlangeTextEngine
+import InteractiveTextEngine_iOS
 import CloudKit
 
 class MemoViewController: UIViewController {
     
-    @IBOutlet weak var textView: FastTextView!
+    var textView: FastTextView!
     internal var kbHeight: CGFloat?
     var memo: RealmNoteModel!
-
+    var initialImageRecordNames: Set<String>!
+    var isSaving = false
+    var id: String!
+    var recordName: String!
+    var synchronizer: NoteSynchronizer!
+    var timer: Timer?
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        registerKeyboardNotification()
-        
+        registerNotification()
+        //tint = 007aff
+        textView = FastTextView(frame: CGRect.zero, textContainer: nil)
+        textView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        textView.translatesAutoresizingMaskIntoConstraints = false
+        addTextView(textView: textView)
+
+        id = memo.id
+        recordName = memo.recordName
         textView.memo = memo
+        textView.adjustsFontForContentSizeCategory = true
 
-        textView.registerClass(FastTextAttachment.self)
-        textView.flangeDelegate = self
+        textView.interactiveDelegate = self
+        textView.interactiveDatasource = self
+        
+        
+        textView.textDragDelegate = self
+        textView.textDropDelegate = self
+        textView.pasteDelegate = self
         textView.delegate = self
+        textView.register(nib: UINib(nibName: "TextImageCell", bundle: nil), forCellReuseIdentifier: "textImageCell")
+        textView.typingAttributes = [NSAttributedStringKey.font.rawValue: FontManager.shared.getFont(for: .body)]
+        
 
+        initialImageRecordNames = []
+      
+        synchronizer = NoteSynchronizer(textView: textView)
+        synchronizer.registerToCloud()
         
-        guard let data = textView.memo.content.data(using: .utf8),
-            let attributedString = try? NSAttributedString(data: data, options: [.documentType : NSAttributedString.DocumentType.rtf], documentAttributes: nil) else {return}
-        textView.unmarkedString = attributedString
-        
+
+        do {
+            let jsonDecoder = JSONDecoder()
+            let attributes = try jsonDecoder.decode([PianoAttribute].self, from: memo.attributes)
+
+            textView.set(string: memo.content, with: attributes)
+
+            let imageRecordNames = attributes.map { attribute -> String in
+                if case let .attachment(.image(imageAttribute)) = attribute.style {return imageAttribute.id}
+                else {return ""}
+            }.filter{!$0.isEmpty}
+
+            initialImageRecordNames = Set<String>(imageRecordNames)
+        } catch {
+            print(error)
+        }
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+
         saveText()
+        unRegisterNotification()
+        removeGarbageImages()
+        
+
+        synchronizer.unregisterFromCloud()
+
     }
 
     override func didReceiveMemoryWarning() {
@@ -46,6 +89,27 @@ class MemoViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
     
+    private func addTextView(textView: FastTextView) {
+        view.addSubview(textView)
+        let constraint1 = NSLayoutConstraint(item: textView, attribute: .top, relatedBy: .equal,
+                                             toItem: self.view.safeAreaLayoutGuide,
+                                             attribute: .top, multiplier: 1.0, constant: 0)
+        
+        let constraint2 = NSLayoutConstraint(item: textView, attribute: .leading, relatedBy: .equal,
+                                             toItem: self.view.safeAreaLayoutGuide,
+                                             attribute: .leading, multiplier: 1.0, constant: 0)
+        
+        let constraint3 = NSLayoutConstraint(item: textView, attribute: .trailing, relatedBy: .equal,
+                                             toItem: self.view.safeAreaLayoutGuide,
+                                             attribute: .trailing, multiplier: 1.0, constant: 0)
+        
+        let constraint4 = NSLayoutConstraint(item: textView, attribute: .bottom, relatedBy: .equal,
+                                             toItem: self.view.safeAreaLayoutGuide,
+                                             attribute: .bottom, multiplier: 1.0, constant: 0)
+        
+        view.addConstraints([constraint1, constraint2, constraint3, constraint4])
+    }
+
     private func addPhotoView(){
         let nib = UINib(nibName: "PhotoView", bundle: nil)
         let photoView: PhotoView = nib.instantiate(withOwner: nil, options: nil).first as! PhotoView
@@ -66,96 +130,141 @@ class MemoViewController: UIViewController {
 
 
     @objc func saveText() {
-
-        let memoReference = ThreadSafeReference(to: textView.memo)
-
         
-        let attributedString: NSAttributedString = textView.unmarkedString
-        guard let data = try? attributedString.data(from: NSMakeRange(0, attributedString.length), documentAttributes:[.documentType: NSAttributedString.DocumentType.rtf]),
-            let string = String(data: data, encoding: .utf8) else {/* save failed!! */ return}
-
-        let kv: [String: Any] = ["content": string]
-
-        LocalDatabase.shared.updateObject(ref: memoReference, kv: kv)
-    }
-
-    
-    @IBAction func albumButtonTouched(_ sender: UIButton) {
-//        sender.isSelected = !sender.isSelected
-//
-//        if sender.isSelected {
-//            addPhotoView()
-//        } else {
-//            removePhotoView()
-//        }
-        presentShare(sender)
-    }
-    
-}
-
-extension MemoViewController: UITextViewDelegate {
-    func textViewDidChange(_ textView: UITextView) {
-        saveText()
-    }
-}
-
-extension MemoViewController: FlangeTextViewDelegate {
-    func image(for attachment: FlangeTextAttachment, bounds: CGRect, range: NSRange) -> FlangeImage? {
-        
-        guard let imageTag = (attachment as? FastTextAttachment)?.imageTag else {return nil}
-
-        if let image = LocalCache.shared.getImage(id: imageTag.identifier) {
-            return image
-        } else {
-            
-            LocalCache.shared.updateCacheWithID(id: imageTag.identifier) {
-                DispatchQueue.main.async { [weak self] in
-                    self?.textView.reloadRange(for: range)
-                }
+        DispatchQueue.main.async {
+            if self.isSaving || self.textView.isSyncing {
+                return
             }
             
-            return nil
+            self.isSaving = true
+            
+            let (string, attributes) = self.textView.get()
+            
+            DispatchQueue.global().async {
+                let jsonEncoder = JSONEncoder()
+                
+                guard let data = try? jsonEncoder.encode(attributes) else {return}
+                
+                let kv: [String: Any] = ["content": string, "attributes": data]
+                
+                ModelManager.update(id: self.id, type: RealmNoteModel.self, kv: kv) { [weak self] error in
+                    if let error = error {print(error)}
+                    else {print("happy")}
+                    self?.isSaving = false
+                }
+            }
+        }
+
+    }
+
+    @IBAction func albumButtonTouched(_ sender: UIButton) {
+
+//        saveText()
+        sender.isSelected = !sender.isSelected
+
+        if sender.isSelected {
+            addPhotoView()
+        } else {
+            removePhotoView()
+        }
+//        presentShare(sender)
+    }
+
+    private func removeGarbageImages() {
+        let (_, attributes) = textView.attributedText.getStringWithPianoAttributes()
+
+        let imageRecordNames = attributes.map { attribute -> String in
+                if case let .attachment(.image(imageAttribute)) = attribute.style {return imageAttribute.id}
+                else {return ""}
+            }.filter{!$0.isEmpty}
+
+        let currentImageRecordNames = Set<String>(imageRecordNames)
+        initialImageRecordNames.subtract(currentImageRecordNames)
+
+        let deletedImageRecordNames = Array<String>(initialImageRecordNames)
+
+        if memo.isShared {
+            //get zoneID from record
+            let coder = NSKeyedUnarchiver(forReadingWith: textView.memo.ckMetaData)
+            coder.requiresSecureCoding = true
+            guard let record = CKRecord(coder: coder) else {fatalError("Data poluted!!")}
+            coder.finishDecoding()
+            CloudManager.shared.deleteInSharedDB(recordNames: deletedImageRecordNames, in: record.recordID.zoneID) { error in
+                guard error == nil else { return }
+            }
+        } else {
+            CloudManager.shared.deleteInPrivateDB(recordNames: deletedImageRecordNames) { error in
+                guard error == nil else { return print(error!) }
+            }
         }
     }
     
-    func attachmentBounds(for attachment: FlangeTextAttachment, proposedLineFragment lineFrag: CGRect, glyphPosition position: CGPoint, characterIndex charIndex: Int) -> CGRect {
+}
+
+extension MemoViewController: InteractiveTextViewDelegate, InteractiveTextViewDataSource {
+    func textView(_ textView: InteractiveTextView, attachmentForCell attachment: InteractiveTextAttachment) -> InteractiveAttachmentCell {
+        //나중엔 attachment 의 클래스별로 새로운 셀 dequeue
         
-        guard let imageTag = (attachment as? FastTextAttachment)?.imageTag else {return CGRect.zero}
-        return CGRect(x: 0, y: 0, width: imageTag.width, height: imageTag.height)
+        let cell = textView.dequeueReusableCell(withIdentifier: "textImageCell")
+        guard let imageCell = cell as? TextImageCell,
+            let attachment = attachment as? ImageAttachment else {return cell}
+        
+        if let image = LocalCache.shared.getImage(id: attachment.imageID + "thumb") {
+            imageCell.imageView.image = image
+        } else {
+            LocalCache.shared.updateThumbnailCacheWithID(id: attachment.imageID + "thumb", width: attachment.currentSize.width, height: attachment.currentSize.height) { image in
+                //TODO: make it weak!!
+//                DispatchQueue.main.async {
+//                    if imageCell.isRelated(to: attachment) {
+//                        imageCell.imageView.image = image
+//                    }
+//                }
+            }
+        }
+
+        
+        return imageCell
     }
     
     
 }
+
+
+extension MemoViewController: UITextViewDelegate {
+    func textViewDidChange(_ textView: UITextView) {
+
+        timer?.invalidate()
+        timer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(saveText), userInfo: nil, repeats: false)
+    }
+
+    func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+        return !self.textView.isSyncing
+    }
+}
+
+
 
 
 extension MemoViewController: PhotoViewDelegate {
     
     func photoView(url: URL, image: UIImage) {
         
-        let resizedImage: UIImage!
-        if image.size.width > UIScreen.main.bounds.width {
-            let width = UIScreen.main.bounds.width / 2
-            let height = image.size.height * width / image.size.width
-            resizedImage = image.resizeImage(size: CGSize(width: width, height: height)) ?? UIImage()
-        } else {
-            resizedImage = image
-        }
+        let resizedImage = image.resizeImage(size: CGSize(width: 300, height: 200))!
         
-        
+
+
         let identifier = textView.memo.id + url.absoluteString
         
-        let imageTag = ImageTag(identifier: identifier, width: resizedImage.size.width, height: resizedImage.size.height)
-
+        let noteRecordName = memo.recordName
         DispatchQueue.global(qos: .userInteractive).async {
             if let realm = try? Realm(),
-                let _ = realm.object(ofType: RealmImageModel.self, forPrimaryKey: imageTag.identifier) {
+                let _ = realm.object(ofType: RealmImageModel.self, forPrimaryKey: identifier) {
                 //ImageModel exist!!
             } else {
-                let newImageModel = RealmImageModel.getNewModel()
-                newImageModel.id = imageTag.identifier
-                newImageModel.image = UIImageJPEGRepresentation(image, 1.0) ?? Data()
+                let newImageModel = RealmImageModel.getNewModel(noteRecordName: noteRecordName, image: image)
+                newImageModel.id = identifier
 
-                LocalDatabase.shared.saveObject(newObject: newImageModel)
+                ModelManager.saveNew(model: newImageModel) { error in }
             }
         }
         
@@ -164,10 +273,11 @@ extension MemoViewController: PhotoViewDelegate {
         
         //왼쪽 범위가 존재하고 && 왼쪽에 개행이 아니면 개행 삽입하기
         textView.insertNewLineToLeftSideIfNeeded(location: textView.selectedRange.location)
-        
-        guard let attachment = textView.dequeueAttachment() as? FastTextAttachment else {return}
-        attachment.imageTag = imageTag
-        
+
+        let attachment = ImageAttachment()
+        attachment.imageID = identifier
+        attachment.currentSize = resizedImage.size
+
         let attrString = NSMutableAttributedString(attributedString: NSAttributedString(attachment: attachment))
         textView.textStorage.replaceCharacters(in: textView.selectedRange, with: attrString)
         
@@ -182,13 +292,13 @@ extension MemoViewController: PhotoViewDelegate {
 
 
 extension MemoViewController {
-    internal func registerKeyboardNotification(){
+    internal func registerNotification(){
         NotificationCenter.default.addObserver(self, selector: #selector(MemoViewController.keyboardWillShow(notification:)), name: Notification.Name.UIKeyboardWillShow, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(MemoViewController.keyboardWillHide(notification:)), name: Notification.Name.UIKeyboardWillHide, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(MemoViewController.keyboardDidHide(notification:)), name: Notification.Name.UIKeyboardDidHide, object: nil)
     }
     
-    internal func unRegisterKeyboardNotification(){
+    internal func unRegisterNotification(){
         NotificationCenter.default.removeObserver(self)
     }
     
@@ -279,5 +389,79 @@ extension MemoViewController: UICloudSharingControllerDelegate, UIPopoverPresent
             self.present(contentViewController, animated: true, completion: nil)
         }
         
+    }
+}
+
+extension MemoViewController: UITextDragDelegate, UITextDropDelegate {
+    func textDraggableView(_ textDraggableView: UIView & UITextDraggable, itemsForDrag dragRequest: UITextDragRequest) -> [UIDragItem] {
+        let location = textView.offset(from: textView.beginningOfDocument, to: dragRequest.dragRange.start)
+        let length = textView.offset(from: dragRequest.dragRange.start, to: dragRequest.dragRange.end)
+        
+        let attributedString = NSAttributedString(attributedString:
+                    textView.textStorage.attributedSubstring(from: NSMakeRange(location, length)))
+        
+        let itemProvider = NSItemProvider(object: attributedString)
+        
+        
+        let dragItem = UIDragItem(itemProvider: itemProvider)
+        dragItem.localObject = dragRequest.dragRange
+        
+        return [dragItem]
+    }
+
+    func textDraggableView(_ textDraggableView: UIView & UITextDraggable, dragPreviewForLiftingItem item: UIDragItem, session: UIDragSession) -> UITargetedDragPreview? {
+        
+        guard let textRange = item.localObject as? UITextRange else { return nil }
+        let location = textView.offset(from: textView.beginningOfDocument, to: textRange.start)
+        let length = textView.offset(from: textRange.start, to: textRange.end)
+        let range = NSMakeRange(location, length)
+        
+        let preview: UIView
+        let bounds = textView.layoutManager.boundingRect(forGlyphRange: range, in: textView.textContainer)
+        if let attachment = textView.attributedText.attribute(.attachment, at: range.location, effectiveRange: nil) as? InteractiveTextAttachment {
+            //make it blurred
+            preview = UIImageView(image: attachment.getPreviewForDragInteraction())
+        } else {
+            preview = UILabel(frame: bounds)
+            (preview as! UILabel).attributedText = textView.textStorage.attributedSubstring(from: range)
+        }
+        
+        let center = CGPoint(x: bounds.midX, y: bounds.midY)
+        let target = UIDragPreviewTarget(container: textView, center: center)
+        
+        return UITargetedDragPreview(view: preview, parameters: UIDragPreviewParameters(), target: target)
+    }
+    
+    func textDroppableView(_ textDroppableView: UIView & UITextDroppable, willBecomeEditableForDrop drop: UITextDropRequest) -> UITextDropEditability {
+        
+        return (textView.isSyncing || isSaving) ? .no : .yes
+    }
+    
+    func textDroppableView(_ textDroppableView: UIView & UITextDroppable, proposalForDrop drop: UITextDropRequest) -> UITextDropProposal {
+        return UITextDropProposal(operation: .move)
+    }
+    
+    
+    func textDroppableView(_ textDroppableView: UIView & UITextDroppable, dropSessionDidEnd session: UIDropSession) {
+        saveText()
+    }
+}
+
+extension MemoViewController: UITextPasteDelegate {
+    func textPasteConfigurationSupporting(_ textPasteConfigurationSupporting: UITextPasteConfigurationSupporting, combineItemAttributedStrings itemStrings: [NSAttributedString], for textRange: UITextRange) -> NSAttributedString {
+        
+        if itemStrings.count == 1 {
+            let attributedString = itemStrings[0]
+            
+            if let attachment = attributedString.attribute(.attachment, at: 0, effectiveRange: nil) as? InteractiveTextAttachment {
+                let newAttr = NSAttributedString(attachment: attachment.getCopyForDragInteraction())
+                return newAttr
+            }
+        }
+        
+        return itemStrings.reduce(NSMutableAttributedString()) { (result, attr) -> NSMutableAttributedString in
+            result.append(attr)
+            return result
+        }
     }
 }
