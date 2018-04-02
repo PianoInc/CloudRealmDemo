@@ -138,39 +138,61 @@ class NoteSynchronizer {
                 
 
             } else if oldNote.attributes != noteModel.attributes {
-                //TODO: attribute sync logic!!
-                //Use both substraction
+                
+                let myAttributes = try! JSONDecoder().decode([PianoAttribute].self, from: oldNote.attributes)
+                let serverAttributes = try! JSONDecoder().decode([PianoAttribute].self, from: noteModel.attributes)
+                
+                var mySet = Set<PianoAttribute>(myAttributes)
+                var serverSet = Set<PianoAttribute>(serverAttributes)
+                mySet.subtract(serverAttributes)
+                serverSet.subtract(myAttributes)
+                
+                DispatchQueue.main.sync {
+                    mySet.forEach {
+                        textView.textStorage.delete(attribute: $0)
+                    }
+                    serverSet.forEach {
+                        textView.textStorage.add(attribute: $0)
+                    }
+                }
+                
             }
             textView.isSyncing = false
         }
     }
 
     func resolveConflict(myRecord: CKRecord, serverRecord: CKRecord, completion: @escaping  (Bool) -> ()) {
+        guard let realm = try? Realm(),
+            let myNote = realm.object(ofType: RealmNoteModel.self, forPrimaryKey: myRecord[Schema.Note.id] as! String) else {print("Realm open error!!!"); return}
+        let myModified = myRecord.modificationDate ?? Date(timeIntervalSince1970: 0)
+        let serverModified = serverRecord.modificationDate ?? Date(timeIntervalSince1970: 0)
         
-        let myContent = myRecord[Schema.Note.content] as! String
+        let ancestorContent = myNote.content
         let serverContent = serverRecord[Schema.Note.content] as! String
 
-        let myAttributesData = myRecord[Schema.Note.attributes] as! Data
+        let ancestorAttributesData = myNote.attributes
         let serverAttributesData = serverRecord[Schema.Note.attributes] as! Data
 
+        let ancestorAttributes = try! JSONDecoder().decode([PianoAttribute].self, from: ancestorAttributesData)
         let serverAttributes = try! JSONDecoder().decode([PianoAttribute].self, from: serverAttributesData)
 
         let serverAttributedString = NSMutableAttributedString(string: serverContent)
         serverAttributes.forEach { serverAttributedString.add(attribute: $0) }
+        
 
         textView.isSyncing = true
         
         
 
-        if myContent != serverContent {
+        if ancestorContent != serverContent {
             DispatchQueue.main.sync {
                 let currentString = self.textView.textStorage.string
                 
                 DispatchQueue.global(qos: .utility).async { [weak self] in
-                    let diff3Maker = Diff3Maker(ancestor: myContent, a: currentString, b: serverContent)
+                    let diff3Maker = Diff3Maker(ancestor: ancestorContent, a: currentString, b: serverContent)
                     let diff3Chunks = diff3Maker.mergeInLineLevel().flatMap { chunk -> [Diff3Block] in
                         if case let .change(oRange, aRange, bRange) = chunk {
-                            let oString = myContent.substring(with: oRange)
+                            let oString = ancestorContent.substring(with: oRange)
                             let aString = currentString.substring(with: aRange)
                             let bString = serverContent.substring(with: bRange)
                             
@@ -178,7 +200,7 @@ class NoteSynchronizer {
                             return wordDiffMaker.mergeInWordLevel(oOffset: oRange.lowerBound, aOffset: aRange.lowerBound, bOffset: bRange.lowerBound)
                             
                         } else if case let .conflict(oRange, aRange, bRange) = chunk {
-                            let oString = myContent.substring(with: oRange)
+                            let oString = ancestorContent.substring(with: oRange)
                             let aString = currentString.substring(with: aRange)
                             let bString = serverContent.substring(with: bRange)
                             
@@ -188,16 +210,60 @@ class NoteSynchronizer {
                     }
                     
                     self?.sync(with: diff3Chunks, and: serverAttributedString, serverRecord: serverRecord)
-                    self?.textView.isSyncing = false
+                    DispatchQueue.main.async {
+                        self?.textView.isSyncing = false
+                    }
                     completion(true)
                 }
             }
-        } else if myAttributesData != serverAttributesData {
+        } else if ancestorAttributesData != serverAttributesData {
             //Let's just union it
-
-            textView.isSyncing = false
+            DispatchQueue.main.sync { [weak self] in
+                guard let (_, currentAttributes) = self?.textView.get() else {print("get attributes error!");return}
+                
+                var myDeleteSet = Set<PianoAttribute>(ancestorAttributes)
+                var myAddSet = Set<PianoAttribute>(currentAttributes)
+                myDeleteSet.subtract(currentAttributes)
+                myAddSet.subtract(ancestorAttributes)
+                
+                var serverDeleteSet = Set<PianoAttribute>(ancestorAttributes)
+                var serverAddSet = Set<PianoAttribute>(serverAttributes)
+                serverDeleteSet.subtract(serverAttributes)
+                serverAddSet.subtract(ancestorAttributes)
+                
+                let deletedSet = myDeleteSet.union(serverDeleteSet)
+                let addSet = myAddSet.union(serverAddSet)
+                
+                deletedSet.forEach { self?.textView.textStorage.delete(attribute: $0) }
+                addSet.forEach { self?.textView.textStorage.add(attribute: $0) }
+                
+                self?.textView.isSyncing = false
+            }
             completion(true)
         } else {
+            if myModified.compare(serverModified) == .orderedDescending {
+                
+                if let serverTitle = serverRecord[Schema.Note.title] as? String,
+                    let myTitle = myRecord[Schema.Note.title] as? String,
+                    serverTitle != myTitle {
+                    
+                    serverRecord[Schema.Note.title] = myRecord[Schema.Note.title]
+                    completion(true)
+                    return
+                }
+                
+                if let serverCategory = serverRecord[Schema.Note.tags] as? String,
+                    let myCategory = myRecord[Schema.Note.tags] as? String,
+                    serverCategory != myCategory {
+                    
+                    serverRecord[Schema.Note.tags] = myRecord[Schema.Note.tags]
+                    completion(true)
+                    return
+                }
+                
+            }
+            
+            completion(false)
             textView.isSyncing = false
             completion(false)
         }
