@@ -6,6 +6,8 @@
 //
 
 import Foundation
+import CoreText
+
 
 open class InteractiveTextView: UITextView {
     let dispatcher = InteractiveAttachmentCellDispatcher()
@@ -33,13 +35,64 @@ open class InteractiveTextView: UITextView {
         dispatcher.superView = self
         self.backgroundColor = UIColor.clear
         setObserver()
+        
     }
     
     
     required public init?(coder aDecoder: NSCoder) {
-        fatalError("Not implemented!!")
+        super.init(coder: aDecoder)
     }
-    
+
+    open override func awakeAfter(using aDecoder: NSCoder) -> Any? {
+        let newTextView = InteractiveTextView(frame: self.frame)
+
+        //get constraints
+        var constraints: Array<NSLayoutConstraint> = []
+        self.constraints.forEach {
+            let firstItem: AnyObject!, secondItem: AnyObject!
+
+            if let unwrappedFirst = $0.firstItem as? InteractiveTextView, unwrappedFirst == self {
+                firstItem = self
+            } else {
+                firstItem = $0.firstItem
+            }
+
+            if let unwrappedSecond = $0.secondItem as? InteractiveTextView, unwrappedSecond == self {
+                secondItem = self
+            } else {
+                secondItem = $0.secondItem
+            }
+
+            constraints.append(
+                    NSLayoutConstraint(item: firstItem,
+                            attribute: $0.firstAttribute,
+                            relatedBy: $0.relation,
+                            toItem: secondItem,
+                            attribute: $0.secondAttribute,
+                            multiplier: $0.multiplier,
+                            constant: $0.constant))
+        }
+
+
+
+        newTextView.addConstraints(constraints)
+        newTextView.autoresizingMask = self.autoresizingMask
+        newTextView.translatesAutoresizingMaskIntoConstraints = self.translatesAutoresizingMaskIntoConstraints
+
+
+        newTextView.autocorrectionType = self.autocorrectionType
+        newTextView.attributedText = self.attributedText
+        newTextView.backgroundColor = self.backgroundColor
+        newTextView.dataDetectorTypes = self.dataDetectorTypes
+        newTextView.returnKeyType = self.returnKeyType
+        newTextView.keyboardAppearance = self.keyboardAppearance
+        newTextView.keyboardDismissMode = self.keyboardDismissMode
+        newTextView.keyboardType = self.keyboardType
+
+        return newTextView
+    }
+
+
     deinit {
         contentOffsetObserver?.invalidate()
         contentOffsetObserver = nil

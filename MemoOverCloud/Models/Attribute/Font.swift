@@ -23,36 +23,32 @@ struct FontTraits: OptionSet {
 
 struct PianoFontAttribute: Hashable {
     static func ==(lhs: PianoFontAttribute, rhs: PianoFontAttribute) -> Bool {
-        return lhs.textStyle == rhs.textStyle && lhs.traits == rhs.traits
+        return lhs.traits == rhs.traits
     }
     
-    let textStyle: UIFontTextStyle
     let traits: FontTraits
 
     var hashValue: Int {
-        return textStyle.hashValue ^ traits.rawValue
+        return traits.rawValue
     }
 
     init?(font: UIFont) {
-        guard let style = FontManager.getStyle(font) else {return nil}
-
         var traits: FontTraits = []
         if font.fontDescriptor.symbolicTraits.contains(.traitBold) { traits.insert(.bold) }
         if font.fontDescriptor.symbolicTraits.contains(.traitItalic) { traits.insert(.italic) }
 
-        self.textStyle = style
         self.traits = traits
     }
 
     func getFont() -> UIFont {
-        return FontManager.shared.getFont(for: textStyle, with: traits)
+
+        return FontManager.shared.getFont(for: .body, with: traits)
     }
 }
 
 extension PianoFontAttribute: Codable {
 
     private enum CodingKeys: String, CodingKey {
-        case textStyle
         case traits
     }
 
@@ -60,17 +56,14 @@ extension PianoFontAttribute: Codable {
     init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
 
-        let styleString = try values.decode(String.self, forKey: .textStyle)
         let optionInt = try values.decode(Int.self, forKey: .traits)
 
-        self.textStyle = UIFontTextStyle(rawValue: styleString)
         self.traits = FontTraits(rawValue: optionInt)
     }
 
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
 
-        try container.encode(textStyle.rawValue, forKey: .textStyle)
         try container.encode(traits.rawValue, forKey: .traits)
     }
 }

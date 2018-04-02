@@ -36,8 +36,27 @@ class FontManager {
 
         return metric.scaledFont(for: traitedFont)
     }
-
-
+    
+    func getFont(from font: UIFont, with traits: FontTraits) -> UIFont {
+        guard let style = FontManager.getStyle(font) else {print("Font size error!!");return font}
+        
+        let stylePoint = UIFont.preferredFont(forTextStyle: style).pointSize
+        let baseFont = font
+        
+        let traitedFont: UIFont
+        
+        if !traits.isEmpty {
+            guard let newFontDescriptor = baseFont.fontDescriptor.withSymbolicTraits(traits.toSymbolicTraits()) else { print("Font descriptor error!");return baseFont }
+            traitedFont = UIFont(descriptor: newFontDescriptor, size: stylePoint)
+        } else {
+            traitedFont = baseFont
+        }
+        
+        let metric = UIFontMetrics(forTextStyle: style)
+        
+        return metric.scaledFont(for: traitedFont)
+    }
+    
     static func isStyle(_ style: UIFontTextStyle, font: UIFont) -> Bool {
         let baseFont = UIFont.preferredFont(forTextStyle: style)
 

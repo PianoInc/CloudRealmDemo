@@ -72,6 +72,12 @@ extension NSMutableAttributedString {
 
         self.addAttributes(attribute.style.toNSAttribute(), range: range)
     }
+    
+    func delete(attribute: PianoAttribute) {
+        let range = NSMakeRange(attribute.startIndex, attribute.endIndex - attribute.startIndex)
+        
+        self.removeAttribute(attribute.style.toNSAttribute().keys.first!, range: range)
+    }
 }
 
 enum Style {
